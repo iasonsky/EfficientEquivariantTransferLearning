@@ -1,0 +1,40 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+usage: main_equizero.py [-h] [--seed SEED] [--device DEVICE]
+                        [--logit_factor LOGIT_FACTOR]
+                        [--data_transformations DATA_TRANSFORMATIONS]
+                        [--group_name GROUP_NAME] [--method METHOD]
+                        [--model_name MODEL_NAME]
+                        [--dataset_name DATASET_NAME] [--verbose]
+main_equizero.py: error: argument --data_transformations: expected one argument
+Torch version: 2.0.1
+srun: error: gcn31: task 0: Exited with exit code 2
+srun: Terminating StepId=5937734.0
+
+JOB STATISTICS
+==============
+Job ID: 5937734
+Cluster: snellius
+User/Group: scur1394/scur1394
+State: RUNNING
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:04:48 core-walltime
+Job Wall-clock time: 00:00:16
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 120.00 GB (120.00 GB/node)
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.

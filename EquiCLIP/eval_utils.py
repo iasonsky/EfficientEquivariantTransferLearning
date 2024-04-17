@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn.functional as F
 
@@ -147,9 +148,22 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
     top1 = (top1 / n) * 100
     top5 = (top5 / n) * 100
 
+    print(f"Dataset: {args.dataset_name}")
+    print(f"Model: {args.model_name}")
+    print(f"Method: {args.method}")
+    print(f"Group: {args.group_name}")
+    print(f"Data transformation: {args.data_transformations}")
     print(f"Top-1 accuracy: {top1:.2f}")
     print(f"Top-5 accuracy: {top5:.2f}")
 
+    # Save the top-1 accuracy in a folder 
+    folder = f"results/{args.dataset_name}/{args.model_name}/{args.method}/{args.data_transformations}"
+    os.makedirs(folder, exist_ok=True)
+    with open(f"{folder}/top1_accuracy.txt", "w") as f:
+        f.write(f"{top1:.2f}")
+    # save the top-5 accuracy as well
+    with open(f"{folder}/top5_accuracy.txt", "w") as f:
+        f.write(f"{top5:.2f}")
     current_time = time.time()
     time_elapsed = current_time - since
     print(f"time elapsed: {time_elapsed}")
