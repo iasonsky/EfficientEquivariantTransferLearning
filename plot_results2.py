@@ -65,7 +65,7 @@ def plot_1_imagenet_flip(models, save_fig=False):
 
 
     plt.ylabel(ylabel="Top-1 accuracy", fontsize=15)
-    plt.ylim([35, 65])
+    plt.ylim([40, 65])
 
     plt.legend(prop={'size': 12})
     plt.title("Top-1 accuracies for flip-Imagenet V2", fontsize=15)
