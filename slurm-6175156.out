@@ -1,0 +1,100 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+[rank: 0] Global seed set to 0
+/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Torch version: 2.0.1
+Model parameters: 102,007,137
+Input resolution: 224
+Context length: 77
+Vocab size: 49408
+computing zeroshot weights...
+  0%|          | 0/7 [00:00<?, ?it/s] 14%|█▍        | 1/7 [00:00<00:02,  2.86it/s]100%|██████████| 7/7 [00:00<00:00, 17.43it/s]
+  0%|          | 0/313 [00:00<?, ?it/s]/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/nn/modules/conv.py:459: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at /opt/conda/conda-bld/pytorch_1682343997789/work/aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv2d(input, weight, bias, self.stride,
+  0%|          | 1/313 [00:04<24:00,  4.62s/it]  2%|▏         | 5/313 [00:04<03:39,  1.40it/s]  2%|▏         | 7/313 [00:05<03:15,  1.56it/s]  3%|▎         | 9/313 [00:06<03:05,  1.64it/s]  3%|▎         | 10/313 [00:07<03:29,  1.45it/s]  4%|▍         | 12/313 [00:09<03:12,  1.56it/s]  4%|▍         | 14/313 [00:10<03:00,  1.66it/s]  5%|▌         | 16/313 [00:11<02:53,  1.71it/s]  5%|▌         | 17/313 [00:11<02:28,  2.00it/s]  6%|▌         | 18/313 [00:12<02:54,  1.69it/s]  6%|▋         | 20/313 [00:13<02:46,  1.76it/s]  7%|▋         | 22/313 [00:14<02:42,  1.79it/s]  8%|▊         | 24/313 [00:15<02:40,  1.81it/s]  8%|▊         | 26/313 [00:16<02:37,  1.83it/s]  9%|▉         | 28/313 [00:17<02:34,  1.84it/s] 10%|▉         | 30/313 [00:18<02:32,  1.85it/s] 10%|█         | 32/313 [00:19<02:31,  1.85it/s] 11%|█         | 34/313 [00:20<02:30,  1.85it/s] 12%|█▏        | 36/313 [00:21<02:30,  1.84it/s] 12%|█▏        | 38/313 [00:23<02:28,  1.85it/s] 13%|█▎        | 40/313 [00:24<02:29,  1.82it/s] 13%|█▎        | 42/313 [00:25<02:27,  1.84it/s] 14%|█▍        | 44/313 [00:26<02:25,  1.85it/s] 15%|█▍        | 46/313 [00:27<02:24,  1.85it/s] 15%|█▌        | 48/313 [00:28<02:23,  1.84it/s] 16%|█▌        | 50/313 [00:29<02:23,  1.83it/s] 17%|█▋        | 52/313 [00:30<02:22,  1.83it/s] 17%|█▋        | 54/313 [00:31<02:21,  1.84it/s] 18%|█▊        | 56/313 [00:32<02:19,  1.84it/s] 19%|█▊        | 58/313 [00:33<02:17,  1.85it/s] 19%|█▉        | 60/313 [00:34<02:18,  1.83it/s] 20%|█▉        | 62/313 [00:36<02:16,  1.84it/s] 20%|██        | 64/313 [00:37<02:15,  1.84it/s] 21%|██        | 66/313 [00:38<02:13,  1.85it/s] 22%|██▏       | 68/313 [00:39<02:11,  1.86it/s] 22%|██▏       | 70/313 [00:40<02:11,  1.85it/s] 23%|██▎       | 72/313 [00:41<02:10,  1.85it/s] 24%|██▎       | 74/313 [00:42<02:07,  1.87it/s] 24%|██▍       | 76/313 [00:43<02:06,  1.88it/s] 25%|██▍       | 78/313 [00:44<02:04,  1.88it/s] 26%|██▌       | 80/313 [00:45<02:04,  1.87it/s] 26%|██▌       | 82/313 [00:46<02:02,  1.88it/s] 27%|██▋       | 84/313 [00:47<02:01,  1.88it/s] 27%|██▋       | 86/313 [00:48<02:01,  1.87it/s] 28%|██▊       | 88/313 [00:49<02:00,  1.87it/s] 29%|██▉       | 90/313 [00:51<01:59,  1.87it/s] 29%|██▉       | 92/313 [00:52<01:59,  1.85it/s] 30%|███       | 94/313 [00:53<01:58,  1.85it/s] 31%|███       | 96/313 [00:54<01:57,  1.85it/s] 31%|███▏      | 98/313 [00:55<01:55,  1.87it/s] 32%|███▏      | 100/313 [00:56<01:54,  1.87it/s] 33%|███▎      | 102/313 [00:57<01:52,  1.87it/s] 33%|███▎      | 104/313 [00:58<01:52,  1.86it/s] 34%|███▍      | 106/313 [00:59<01:50,  1.87it/s] 35%|███▍      | 108/313 [01:00<01:49,  1.87it/s] 35%|███▌      | 110/313 [01:01<01:48,  1.87it/s] 36%|███▌      | 112/313 [01:02<01:47,  1.86it/s] 36%|███▋      | 114/313 [01:03<01:47,  1.86it/s] 37%|███▋      | 116/313 [01:04<01:45,  1.87it/s] 37%|███▋      | 117/313 [01:05<01:30,  2.17it/s] 38%|███▊      | 118/313 [01:06<01:48,  1.79it/s] 38%|███▊      | 119/313 [01:06<01:29,  2.17it/s] 38%|███▊      | 120/313 [01:07<01:51,  1.74it/s] 39%|███▉      | 122/313 [01:08<01:47,  1.78it/s] 40%|███▉      | 124/313 [01:09<01:44,  1.81it/s] 40%|███▉      | 125/313 [01:09<01:26,  2.16it/s] 40%|████      | 126/313 [01:10<01:48,  1.72it/s] 41%|████      | 127/313 [01:10<01:26,  2.14it/s] 41%|████      | 128/313 [01:11<01:50,  1.68it/s] 42%|████▏     | 130/313 [01:12<01:43,  1.76it/s] 42%|████▏     | 131/313 [01:12<01:24,  2.16it/s] 42%|████▏     | 132/313 [01:13<01:47,  1.69it/s] 43%|████▎     | 134/313 [01:14<01:41,  1.77it/s] 43%|████▎     | 136/313 [01:15<01:37,  1.81it/s] 44%|████▍     | 138/313 [01:16<01:35,  1.83it/s] 45%|████▍     | 140/313 [01:17<01:34,  1.84it/s] 45%|████▌     | 142/313 [01:18<01:32,  1.86it/s] 46%|████▌     | 143/313 [01:19<01:18,  2.16it/s] 46%|████▌     | 144/313 [01:19<01:34,  1.79it/s] 46%|████▋     | 145/313 [01:20<01:18,  2.14it/s] 47%|████▋     | 146/313 [01:21<01:36,  1.73it/s] 47%|████▋     | 147/313 [01:21<01:17,  2.14it/s] 47%|████▋     | 148/313 [01:22<01:36,  1.71it/s] 48%|████▊     | 149/313 [01:22<01:16,  2.13it/s] 48%|████▊     | 150/313 [01:23<01:36,  1.69it/s] 48%|████▊     | 151/313 [01:23<01:16,  2.11it/s] 49%|████▊     | 152/313 [01:24<01:36,  1.67it/s] 49%|████▉     | 153/313 [01:24<01:15,  2.11it/s] 49%|████▉     | 154/313 [01:25<01:35,  1.66it/s] 50%|████▉     | 155/313 [01:25<01:14,  2.12it/s] 50%|████▉     | 156/313 [01:26<01:34,  1.66it/s] 50%|█████     | 157/313 [01:26<01:13,  2.13it/s] 50%|█████     | 158/313 [01:27<01:33,  1.66it/s] 51%|█████     | 159/313 [01:27<01:11,  2.14it/s] 51%|█████     | 160/313 [01:28<01:32,  1.66it/s] 51%|█████▏    | 161/313 [01:28<01:11,  2.13it/s] 52%|█████▏    | 162/313 [01:29<01:29,  1.68it/s] 52%|█████▏    | 163/313 [01:29<01:11,  2.10it/s] 52%|█████▏    | 164/313 [01:30<01:28,  1.68it/s] 53%|█████▎    | 165/313 [01:30<01:11,  2.08it/s] 53%|█████▎    | 166/313 [01:31<01:26,  1.70it/s] 53%|█████▎    | 167/313 [01:31<01:09,  2.11it/s] 54%|█████▎    | 168/313 [01:32<01:25,  1.70it/s] 54%|█████▍    | 169/313 [01:33<01:08,  2.09it/s] 54%|█████▍    | 170/313 [01:33<01:24,  1.69it/s] 55%|█████▍    | 171/313 [01:34<01:07,  2.12it/s] 55%|█████▍    | 172/313 [01:34<01:22,  1.71it/s] 55%|█████▌    | 173/313 [01:35<01:06,  2.11it/s] 56%|█████▌    | 174/313 [01:35<01:20,  1.73it/s] 56%|█████▌    | 175/313 [01:36<01:06,  2.09it/s] 56%|█████▌    | 176/313 [01:37<01:20,  1.70it/s] 57%|█████▋    | 177/313 [01:37<01:03,  2.13it/s] 57%|█████▋    | 178/313 [01:38<01:19,  1.69it/s] 57%|█████▋    | 179/313 [01:38<01:02,  2.14it/s] 58%|█████▊    | 180/313 [01:39<01:19,  1.67it/s] 58%|█████▊    | 181/313 [01:39<01:01,  2.16it/s] 58%|█████▊    | 182/313 [01:40<01:18,  1.67it/s] 58%|█████▊    | 183/313 [01:40<00:59,  2.18it/s] 59%|█████▉    | 184/313 [01:41<01:16,  1.68it/s] 59%|█████▉    | 185/313 [01:41<00:59,  2.17it/s] 59%|█████▉    | 186/313 [01:42<01:16,  1.66it/s] 60%|█████▉    | 187/313 [01:42<00:58,  2.14it/s] 60%|██████    | 188/313 [01:43<01:15,  1.66it/s] 60%|██████    | 189/313 [01:43<00:56,  2.19it/s] 61%|██████    | 190/313 [01:44<01:13,  1.67it/s] 61%|██████    | 191/313 [01:44<00:55,  2.20it/s] 61%|██████▏   | 192/313 [01:45<01:12,  1.67it/s] 62%|██████▏   | 193/313 [01:45<00:54,  2.20it/s] 62%|██████▏   | 194/313 [01:46<01:12,  1.65it/s] 62%|██████▏   | 195/313 [01:46<00:53,  2.20it/s] 63%|██████▎   | 196/313 [01:47<01:10,  1.65it/s] 63%|██████▎   | 197/313 [01:47<00:53,  2.17it/s] 63%|██████▎   | 198/313 [01:48<01:09,  1.64it/s] 64%|██████▍   | 200/313 [01:49<01:04,  1.74it/s] 65%|██████▍   | 202/313 [01:50<01:02,  1.79it/s] 65%|██████▌   | 204/313 [01:51<01:00,  1.82it/s] 66%|██████▌   | 206/313 [01:53<00:58,  1.82it/s] 66%|██████▋   | 208/313 [01:54<00:57,  1.83it/s] 67%|██████▋   | 210/313 [01:55<00:56,  1.84it/s] 68%|██████▊   | 212/313 [01:56<00:54,  1.85it/s] 68%|██████▊   | 214/313 [01:57<00:53,  1.86it/s] 69%|██████▉   | 216/313 [01:58<00:52,  1.86it/s] 70%|██████▉   | 218/313 [01:59<00:50,  1.87it/s] 70%|███████   | 220/313 [02:00<00:49,  1.87it/s] 71%|███████   | 222/313 [02:01<00:48,  1.87it/s] 72%|███████▏  | 224/313 [02:02<00:47,  1.86it/s] 72%|███████▏  | 226/313 [02:03<00:46,  1.88it/s] 73%|███████▎  | 228/313 [02:04<00:45,  1.88it/s] 73%|███████▎  | 230/313 [02:05<00:44,  1.89it/s] 74%|███████▍  | 232/313 [02:06<00:43,  1.88it/s] 75%|███████▍  | 234/313 [02:08<00:42,  1.87it/s] 75%|███████▌  | 236/313 [02:09<00:41,  1.87it/s] 76%|███████▌  | 238/313 [02:10<00:39,  1.89it/s] 77%|███████▋  | 240/313 [02:11<00:38,  1.89it/s] 77%|███████▋  | 242/313 [02:12<00:37,  1.88it/s] 78%|███████▊  | 244/313 [02:13<00:36,  1.88it/s] 79%|███████▊  | 246/313 [02:14<00:35,  1.91it/s] 79%|███████▉  | 248/313 [02:15<00:34,  1.88it/s] 80%|███████▉  | 250/313 [02:16<00:33,  1.87it/s] 81%|████████  | 252/313 [02:17<00:32,  1.87it/s] 81%|████████  | 254/313 [02:18<00:31,  1.87it/s] 82%|████████▏ | 256/313 [02:19<00:30,  1.87it/s] 82%|████████▏ | 258/313 [02:20<00:29,  1.86it/s] 83%|████████▎ | 260/313 [02:21<00:28,  1.86it/s] 84%|████████▎ | 262/313 [02:22<00:27,  1.87it/s] 84%|████████▍ | 264/313 [02:24<00:26,  1.85it/s] 85%|████████▍ | 266/313 [02:25<00:25,  1.87it/s] 86%|████████▌ | 268/313 [02:26<00:24,  1.87it/s] 86%|████████▋ | 270/313 [02:27<00:22,  1.88it/s] 87%|████████▋ | 272/313 [02:28<00:21,  1.87it/s] 88%|████████▊ | 274/313 [02:29<00:20,  1.87it/s] 88%|████████▊ | 276/313 [02:30<00:19,  1.88it/s] 89%|████████▉ | 278/313 [02:31<00:18,  1.87it/s] 89%|████████▉ | 280/313 [02:32<00:17,  1.87it/s] 90%|█████████ | 282/313 [02:33<00:16,  1.87it/s] 91%|█████████ | 284/313 [02:34<00:15,  1.89it/s] 91%|█████████▏| 286/313 [02:35<00:14,  1.89it/s] 92%|█████████▏| 288/313 [02:36<00:13,  1.88it/s] 93%|█████████▎| 290/313 [02:37<00:12,  1.87it/s] 93%|█████████▎| 292/313 [02:38<00:11,  1.88it/s] 94%|█████████▍| 294/313 [02:40<00:10,  1.87it/s] 95%|█████████▍| 296/313 [02:41<00:09,  1.87it/s] 95%|█████████▍| 297/313 [02:41<00:07,  2.18it/s] 95%|█████████▌| 298/313 [02:42<00:08,  1.80it/s] 96%|█████████▌| 299/313 [02:42<00:06,  2.18it/s] 96%|█████████▌| 300/313 [02:43<00:07,  1.72it/s] 96%|█████████▋| 302/313 [02:44<00:06,  1.77it/s] 97%|█████████▋| 304/313 [02:45<00:04,  1.81it/s] 98%|█████████▊| 306/313 [02:46<00:03,  1.85it/s] 98%|█████████▊| 308/313 [02:47<00:02,  1.85it/s] 99%|█████████▉| 310/313 [02:48<00:01,  1.86it/s]100%|█████████▉| 312/313 [02:49<00:00,  1.87it/s]100%|██████████| 313/313 [02:49<00:00,  2.18it/s]100%|██████████| 313/313 [02:49<00:00,  1.84it/s]
+Dataset: ISIC2018
+Model: RN50
+Method: vanilla
+Group: 
+Data transformation: 
+Top-1 accuracy: 12.48
+Top-5 accuracy: 92.02
+time elapsed: 169.76182746887207
+time taken: 169.76186203956604
+[rank: 0] Global seed set to 0
+/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Torch version: 2.0.1
+Model parameters: 102,007,137
+Input resolution: 224
+Context length: 77
+Vocab size: 49408
+loaded zeroshot weights!
+  0%|          | 0/313 [00:00<?, ?it/s]/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/nn/modules/conv.py:459: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at /opt/conda/conda-bld/pytorch_1682343997789/work/aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv2d(input, weight, bias, self.stride,
+  0%|          | 0/313 [00:04<?, ?it/s]
+Traceback (most recent call last):
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/main_equizero.py", line 60, in <module>
+    main(args)
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/main_equizero.py", line 36, in main
+    eval_clip(args, model, zeroshot_weights, dataloader, data_transformations=args.data_transformations,
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/eval_utils.py", line 143, in eval_clip
+    acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name="")
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/eval_utils.py", line 21, in equi0_accuracy
+    correct = pred.eq(target.view(1, -1).expand_as(pred))  # dim [max_topk, batch_size]
+RuntimeError: The expanded size of the tensor (64) must match the existing size (32) at non-singleton dimension 1.  Target sizes: [5, 64].  Tensor sizes: [1, 32]
+srun: error: gcn51: task 0: Exited with exit code 1
+srun: Terminating StepId=6175156.1
+[rank: 0] Global seed set to 0
+/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Torch version: 2.0.1
+Model parameters: 102,007,137
+Input resolution: 224
+Context length: 77
+Vocab size: 49408
+loaded zeroshot weights!
+  0%|          | 0/313 [00:00<?, ?it/s]/home/scur1394/.conda/envs/lambda_equitune/lib/python3.9/site-packages/torch/nn/modules/conv.py:459: UserWarning: Applied workaround for CuDNN issue, install nvrtc.so (Triggered internally at /opt/conda/conda-bld/pytorch_1682343997789/work/aten/src/ATen/native/cudnn/Conv_v8.cpp:80.)
+  return F.conv2d(input, weight, bias, self.stride,
+  0%|          | 0/313 [00:04<?, ?it/s]
+Traceback (most recent call last):
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/main_equizero.py", line 60, in <module>
+    main(args)
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/main_equizero.py", line 36, in main
+    eval_clip(args, model, zeroshot_weights, dataloader, data_transformations=args.data_transformations,
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/eval_utils.py", line 143, in eval_clip
+    acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name="")
+  File "/gpfs/home1/scur1394/dev/lambda_equitune/EquiCLIP/eval_utils.py", line 21, in equi0_accuracy
+    correct = pred.eq(target.view(1, -1).expand_as(pred))  # dim [max_topk, batch_size]
+RuntimeError: The expanded size of the tensor (128) must match the existing size (32) at non-singleton dimension 1.  Target sizes: [5, 128].  Tensor sizes: [1, 32]
+srun: error: gcn51: task 0: Exited with exit code 1
+srun: Terminating StepId=6175156.2
+
+JOB STATISTICS
+==============
+Job ID: 6175156
+Cluster: snellius
+User/Group: scur1394/scur1394
+State: RUNNING
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:03:01
+CPU Efficiency: 4.74% of 01:03:36 core-walltime
+Job Wall-clock time: 00:03:32
+Memory Utilized: 1.28 GB
+Memory Efficiency: 1.07% of 120.00 GB
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.
