@@ -141,7 +141,7 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
             image_features = image_features.view(-1, group_size, image_features.shape[-1])
             # dim [batch_size, feat_size]
             # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-            image_features = attention_net(image_features)
+            image_features = attention_net(image_features.float()).half()
         else:
             # weighted image features
             # use .half since the model is in fp16

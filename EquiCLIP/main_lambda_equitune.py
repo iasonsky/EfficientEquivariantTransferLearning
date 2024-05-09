@@ -52,8 +52,13 @@ def main(args):
 
     # optimizer and loss criterion
     criterion = nn.CrossEntropyLoss()
-    # only weight_net is trained not the model itself
-    optimizer1 = optim.SGD(weight_net.parameters(), lr=args.prelr, momentum=0.9)
+
+    if args.method == "attention":
+        # todo: test adam
+        optimizer1 = optim.SGD(attention_aggregation.parameters(), lr=args.prelr, momentum=0.9)
+    else:
+        # only weight_net is trained not the model itself
+        optimizer1 = optim.SGD(weight_net.parameters(), lr=args.prelr, momentum=0.9)
 
     # create text weights for different classes
     zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
@@ -83,12 +88,14 @@ def main(args):
     train_kwargs["num_iterations"] = args.iter_per_prefinetune
     train_kwargs["iter_print_freq"] = args.iter_print_freq
 
-    if os.path.isfile(MODEL_PATH):
+    if os.path.isfile(MODEL_PATH) and not args.method == "attention":
         weight_net.load_state_dict(torch.load(MODEL_PATH))
-
     else:
         for i in range(args.num_prefinetunes):
-            print(f"Learning lambda weights: {i}/{args.num_prefinetunes}")
+            if args.method == "attention":
+                print(f"Learning attention weights: {i}/{args.num_prefinetunes}")
+            else:
+                print(f"Learning lambda weights: {i}/{args.num_prefinetunes}")
             # zeroshot prediction
             # add weight_net save code for the best model
 
