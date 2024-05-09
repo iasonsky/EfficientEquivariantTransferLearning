@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from clip.model import CLIP
 
 from tqdm import tqdm
 from exp_utils import group_transform_images, random_transformed_images
@@ -59,7 +60,7 @@ def get_equitune_output(output, target, topk=(1,), group_name=""):
         raise NotImplementedError
 
 
-def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zeroshot_weights, loader, data_transformations="", group_name="",
+def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion, zeroshot_weights, loader, data_transformations="", group_name="",
                            num_iterations=100, iter_print_freq=10, device="cuda:0", model_=None):
     """
     Trains either model (clip), or weightnet, or both, depending on the optimizer
@@ -125,7 +126,6 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
             image_features_ = image_features_ / image_features_norm_
 
 
-
         # weighted image features
         # use .half since the model is in fp16
         # normalize group weights proportional to size of group_size
@@ -154,7 +154,7 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
         logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
 
 
-        logits = torch.nn.functional.softmax(logits, dim=-1)
+        # logits = torch.nn.functional.softmax(logits, dim=-1)
         # print(f"logits.shape: {logits.shape}")
 
         # measure accuracy

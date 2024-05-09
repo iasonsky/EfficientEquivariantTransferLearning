@@ -1,4 +1,7 @@
 import os
+
+from clip.model import CLIP
+
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 import numpy as np
@@ -23,6 +26,7 @@ print("Torch version:", torch.__version__)
 
 def main(args):
     # load model and preprocess
+    model: CLIP
     model, preprocess = load_model(args)
     model_, preprocess_ = load_model(args)
 
@@ -124,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", default=0.000005, type=float)
     parser.add_argument("--data_transformations", default="", type=str, help=str(["", "flip", "rot90"]))
     parser.add_argument("--group_name", default="", type=str, help=str(["", "flip", "rot90"]))
-    parser.add_argument("--method", default="equitune", type=str, help=str(["vanilla", "equitune", "equizero"]))
+    parser.add_argument("--method", default="equitune", type=str, help=str(["vanilla", "equitune", "equizero", "attention"]))
     parser.add_argument("--model_name", default="RN50", type=str, help=str(['RN50', 'RN101', 'RN50x4', 'RN50x16',
                                                                         'RN50x64', 'ViT-B/32', 'ViT-B/16',
                                                                         'ViT-L/14', 'ViT-L/14@336px']))
