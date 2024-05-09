@@ -3,6 +3,7 @@ import argparse
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
+import pytorch_lightning as pl
 
 
 class WeightNet(nn.Module):
@@ -27,6 +28,36 @@ class WeightNet(nn.Module):
         # x = torch.exp(-0.0 * x)
         # x = torch.exp(-0.1 * self.k * x)
         return x  # dim [B, 1]
+
+
+class AttentionAggregation(pl.LightningModule):
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+        self.q = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, dim)
+        )
+        self.k = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, dim)
+        )
+        self.attn = nn.MultiheadAttention(dim, 1, batch_first=True)
+
+    def forward(self, x):
+        """
+
+        Args:
+            x: features of shape [B, N, D]
+
+        Returns:
+
+        """
+        qs = self.q(x)
+        ks = self.k(x)
+        return self.attn(qs, ks, x.clone(), need_weights=False)#.mean(dim=1)
 
 
 if __name__ == "__main__":

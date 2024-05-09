@@ -1,8 +1,12 @@
+from typing import Optional
+
 import torch
 import torch.nn.functional as F
 from clip.model import CLIP
 
 from tqdm import tqdm
+
+from EquiCLIP.weight_models import AttentionAggregation
 from exp_utils import group_transform_images, random_transformed_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
@@ -60,8 +64,12 @@ def get_equitune_output(output, target, topk=(1,), group_name=""):
         raise NotImplementedError
 
 
-def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion, zeroshot_weights, loader, data_transformations="", group_name="",
-                           num_iterations=100, iter_print_freq=10, device="cuda:0", model_=None):
+def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
+                           zeroshot_weights, loader,
+                           data_transformations="", group_name="",
+                           num_iterations=100, iter_print_freq=10, device="cuda:0",
+                           model_=None,
+                           attention_net: Optional[AttentionAggregation]=None):
     """
     Trains either model (clip), or weightnet, or both, depending on the optimizer
     Args:
@@ -78,6 +86,7 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion, 
         iter_print_freq:
         device:
         model_:
+        attention_net: a module that combines features by using attention within the group
 
     Returns:
 
@@ -126,24 +135,32 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion, 
             image_features_ = image_features_ / image_features_norm_
 
 
-        # weighted image features
-        # use .half since the model is in fp16
-        # normalize group weights proportional to size of group_size
-        group_weights = weight_net(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
-        # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
+        if args.method == "attention":
+            group_size = group_images_shape[0]
+            # to B, N, D form
+            image_features = image_features.view(-1, group_size, image_features.shape[-1])
+            # dim [batch_size, feat_size]
+            # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
+            image_features = attention_net(image_features)
+        else:
+            # weighted image features
+            # use .half since the model is in fp16
+            # normalize group weights proportional to size of group_size
+            group_weights = weight_net(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
+            # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
 
-        # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
-        # group_weights = F.softmax(group_weights, dim=0)
-        # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
-        # print(f"weight_sum: {weight_sum}")
-        # print(f"group weights: {group_weights.permute(1, 0, 2)}")
-        # group_size = group_sizes[args.group_name]
-        # group_weights = group_size * (group_weights / weight_sum)
-        # group_weights = group_weights.reshape(-1, 1)
+            # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
+            # group_weights = F.softmax(group_weights, dim=0)
+            # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
+            # print(f"weight_sum: {weight_sum}")
+            # print(f"group weights: {group_weights.permute(1, 0, 2)}")
+            # group_size = group_sizes[args.group_name]
+            # group_weights = group_size * (group_weights / weight_sum)
+            # group_weights = group_weights.reshape(-1, 1)
 
-        # image_features = image_features_ * torch.broadcast_to(group_weights, image_features_.shape)
-        # i think this is the same as the einsum, but lets stick to the original code
-        image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
+            # image_features = image_features_ * torch.broadcast_to(group_weights, image_features_.shape)
+            # i think this is the same as the einsum, but lets stick to the original code
+            image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
 
 
         # zeroshot weights correspond to text features for all possible classes
