@@ -6,7 +6,7 @@ from clip.model import CLIP
 
 from tqdm import tqdm
 
-from EquiCLIP.weight_models import AttentionAggregation
+from weight_models import AttentionAggregation
 from exp_utils import group_transform_images, random_transformed_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
