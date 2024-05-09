@@ -11,7 +11,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 from tqdm import tqdm
-from pkg_resources import packaging
 from weight_models import WeightNet
 from load_model import load_model
 from weighted_equitune_utils import weighted_equitune_clip
@@ -111,11 +110,6 @@ def main(args):
               group_name=args.group_name, device=args.device, weight_net=weight_net, val=False, model_=model_)
 
 
-
-
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Weighted equituning')
     parser.add_argument("--seed", default=0, type=int)
@@ -128,13 +122,13 @@ if __name__ == "__main__":
     parser.add_argument("--logit_factor", default=1., type=float)
     parser.add_argument("--prelr", default=0.33, type=float)
     parser.add_argument("--lr", default=0.000005, type=float)
-    parser.add_argument("--data_transformations", default="", type=str, help=["", "flip", "rot90"])
-    parser.add_argument("--group_name", default="", type=str, help=["", "flip", "rot90"])
-    parser.add_argument("--method", default="equitune", type=str, help=["vanilla", "equitune", "equizero"])
-    parser.add_argument("--model_name", default="RN50", type=str, help=['RN50', 'RN101', 'RN50x4', 'RN50x16',
+    parser.add_argument("--data_transformations", default="", type=str, help=str(["", "flip", "rot90"]))
+    parser.add_argument("--group_name", default="", type=str, help=str(["", "flip", "rot90"]))
+    parser.add_argument("--method", default="equitune", type=str, help=str(["vanilla", "equitune", "equizero"]))
+    parser.add_argument("--model_name", default="RN50", type=str, help=str(['RN50', 'RN101', 'RN50x4', 'RN50x16',
                                                                         'RN50x64', 'ViT-B/32', 'ViT-B/16',
-                                                                        'ViT-L/14', 'ViT-L/14@336px'])
-    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100"])
+                                                                        'ViT-L/14', 'ViT-L/14@336px']))
+    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=str(["ImagenetV2", "CIFAR100"]))
     parser.add_argument("--verbose", action='store_true')
     args = parser.parse_args()
 
