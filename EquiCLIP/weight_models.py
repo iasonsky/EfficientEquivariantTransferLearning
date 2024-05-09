@@ -44,7 +44,6 @@ class AttentionAggregation(pl.LightningModule):
             nn.ReLU(),
             nn.Linear(dim, dim)
         )
-        self.attn = nn.MultiheadAttention(dim, 1, batch_first=True)
 
     def forward(self, x):
         """
@@ -55,9 +54,19 @@ class AttentionAggregation(pl.LightningModule):
         Returns:
 
         """
-        qs = self.q(x)
-        ks = self.k(x)
-        return self.attn(qs, ks, x.clone(), need_weights=False)#.mean(dim=1)
+        queries = self.q(x)
+        keys = self.k(x)
+        values = x
+
+        # Scaled dot-product attention
+        scores = torch.matmul(queries, keys.transpose(-2, -1)) / torch.sqrt(
+            torch.tensor(self.dim, dtype=torch.float32))
+
+        attention_weights = F.softmax(scores, dim=-1)
+
+        # Multiply weights with values
+        output = torch.matmul(attention_weights, values)
+        return output
 
 
 if __name__ == "__main__":

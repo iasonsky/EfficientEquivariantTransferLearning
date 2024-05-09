@@ -120,7 +120,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                 image_features = image_features.view(-1, group_size, image_features.shape[-1])
                 # dim [batch_size, feat_size]
                 # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-                image_features = attention_net(image_features)
+                image_features = attention_net(image_features.float()).half()
             else:
                 if not weight_net is None:
                     # use .half since the model is in fp16
