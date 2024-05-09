@@ -38,6 +38,7 @@ def main(args):
 
     # init attention
     attention_aggregation = AttentionAggregation(dim)
+    attention_aggregation.to(args.device)
 
     # load weight network
     weight_net = WeightNet(args)
