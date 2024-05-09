@@ -142,6 +142,8 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
             # dim [batch_size, feat_size]
             # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
             image_features = attention_net(image_features.float()).half()
+            # back to group_size * batch_size, feat_size
+            image_features = image_features.view(-1, image_features.shape[-1])
         else:
             # weighted image features
             # use .half since the model is in fp16
@@ -175,7 +177,7 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
         # print(f"logits.shape: {logits.shape}")
 
         # measure accuracy
-        if args.method == "equitune":
+        if args.method == "equitune" or args.method == "attention":
             output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
         elif args.method == "equizero":
             equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)

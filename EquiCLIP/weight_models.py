@@ -30,7 +30,7 @@ class WeightNet(nn.Module):
         return x  # dim [B, 1]
 
 
-class AttentionAggregation(pl.LightningModule):
+class AttentionAggregation(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -56,7 +56,7 @@ class AttentionAggregation(pl.LightningModule):
         """
         queries = self.q(x)
         keys = self.k(x)
-        values = x
+        values = x.clone()
 
         # Scaled dot-product attention
         scores = torch.matmul(queries, keys.transpose(-2, -1)) / torch.sqrt(

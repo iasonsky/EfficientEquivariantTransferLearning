@@ -121,6 +121,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                 # dim [batch_size, feat_size]
                 # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
                 image_features = attention_net(image_features.float()).half()
+                # back to group_size * batch_size, feat_size
+                image_features = image_features.view(-1, image_features.shape[-1])
             else:
                 if not weight_net is None:
                     # use .half since the model is in fp16
@@ -143,7 +145,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             # print(f"logits.shape: {logits.shape}")
 
             # measure accuracy
-            if args.method == "equitune":
+            if args.method == "equitune" or args.method == "attention":
                 acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
             elif args.method == "equizero":
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)

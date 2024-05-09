@@ -54,8 +54,7 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
 
     if args.method == "attention":
-        # todo: test adam
-        optimizer1 = optim.SGD(attention_aggregation.parameters(), lr=args.prelr, momentum=0.9)
+        optimizer1 = optim.Adam(attention_aggregation.parameters(), lr=args.prelr)
     else:
         # only weight_net is trained not the model itself
         optimizer1 = optim.SGD(weight_net.parameters(), lr=args.prelr, momentum=0.9)
@@ -87,6 +86,7 @@ def main(args):
     train_kwargs = val_kwargs.copy()
     train_kwargs["num_iterations"] = args.iter_per_prefinetune
     train_kwargs["iter_print_freq"] = args.iter_print_freq
+    del train_kwargs["weight_net"]
 
     if os.path.isfile(MODEL_PATH) and not args.method == "attention":
         weight_net.load_state_dict(torch.load(MODEL_PATH))
