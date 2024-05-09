@@ -11,9 +11,9 @@ class WeightNet(nn.Module):
         if args.model_name == "RN50":
             self.fc1 = nn.Linear(1024, 100)
         else:
-            self.fc1 = nn.Linear(512, 100)
+            self.fc1 = nn.Linear(512, 100)  # thats for clip
         self.fc2 = nn.Linear(100, 100)
-        self.fc3 = nn.Linear(100, 1)
+        self.fc3 = nn.Linear(100, 1)  # just makes an integer
         self.dp1 = nn.Dropout(0.5)
         self.relu = nn.ReLU()
 

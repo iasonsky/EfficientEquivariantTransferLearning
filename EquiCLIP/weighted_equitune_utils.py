@@ -108,6 +108,8 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
         # use .half since the model is in fp16
         # normalize group weights proportional to size of group_size
         group_weights = weight_net(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
+        # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
+
         # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
         # group_weights = F.softmax(group_weights, dim=0)
         # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
@@ -116,7 +118,9 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
         # group_size = group_sizes[args.group_name]
         # group_weights = group_size * (group_weights / weight_sum)
         # group_weights = group_weights.reshape(-1, 1)
-        image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
+        group_weights = group_weights.squeeze(1)
+        image_features = image_features_ * group_weights
+        # image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
 
 
         # zeroshot weights correspond to text features for all possible classes
