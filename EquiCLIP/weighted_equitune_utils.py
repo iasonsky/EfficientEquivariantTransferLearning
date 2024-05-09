@@ -134,16 +134,14 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
             image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
             image_features_ = image_features_ / image_features_norm_
 
-
         if args.method == "attention":
             group_size = group_images_shape[0]
             # to B, N, D form
             image_features = image_features.view(-1, group_size, image_features.shape[-1])
             # dim [batch_size, feat_size]
             # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-            image_features = attention_net(image_features.float()).half()
-            # back to group_size * batch_size, feat_size
-            image_features = image_features.view(-1, image_features.shape[-1])
+            combined_features = attention_net(image_features.float()).half()  # dim [batch_size, feat_size]
+            logits = combined_features @ zeroshot_weights
         else:
             # weighted image features
             # use .half since the model is in fp16
@@ -164,25 +162,23 @@ def weighted_equitune_clip(args, model: CLIP, weight_net, optimizer, criterion,
             # i think this is the same as the einsum, but lets stick to the original code
             image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
 
+            # zeroshot weights correspond to text features for all possible classes
+            # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
 
-        # zeroshot weights correspond to text features for all possible classes
-        # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
+            # IMPORTANT NOTE: higher logit factors automatically biases the model towards the one with higher scores, hence,
+            # acts like (un)equituning naturally even without lambda
+            logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
 
-        # IMPORTANT NOTE: higher logit factors automatically biases the model towards the one with higher scores, hence,
-        # acts like (un)equituning naturally even without lambda
-        logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-
-        # logits = torch.nn.functional.softmax(logits, dim=-1)
-        # print(f"logits.shape: {logits.shape}")
 
         # measure accuracy
-        if args.method == "equitune" or args.method == "attention":
+        if args.method == "equitune":
             output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
         elif args.method == "equizero":
             equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)
             equi0_output = get_equi0_output(logits, target, topk=(1,), group_name=group_name)
             output = equitune_output + (equi0_output - equitune_output).detach()
+        elif args.method == "attention":
+            output = logits
         else:
             output = get_equi0_output(logits, target, topk=(1,), group_name="")
 

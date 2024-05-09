@@ -49,7 +49,7 @@ class AttentionAggregation(nn.Module):
         """
 
         Args:
-            x: features of shape [B, N, D]
+            x: features of shape [B, N, D], where N is cardinality of the group
 
         Returns:
 
@@ -65,8 +65,8 @@ class AttentionAggregation(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
 
         # Multiply weights with values
-        output = torch.matmul(attention_weights, values)
-        return output
+        output = torch.matmul(attention_weights, values)  # dim [B, N, D]
+        return output.mean(dim=1)
 
 
 if __name__ == "__main__":

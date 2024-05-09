@@ -120,9 +120,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                 image_features = image_features.view(-1, group_size, image_features.shape[-1])
                 # dim [batch_size, feat_size]
                 # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-                image_features = attention_net(image_features.float()).half()
-                # back to group_size * batch_size, feat_size
-                image_features = image_features.view(-1, image_features.shape[-1])
+                combined_features = attention_net(image_features.float()).half()  # dim [batch_size, feat_size]
+                logits = args.logit_factor * combined_features @ zeroshot_weights
             else:
                 if not weight_net is None:
                     # use .half since the model is in fp16
@@ -136,19 +135,17 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                     # weighted image features
                     image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
 
-            # zeroshot weights correspond to text features for all possible classes
-            # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-            logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-
-            logits = torch.nn.functional.softmax(logits, dim=-1)
-            # print(f"logits.shape: {logits.shape}")
+                    # zeroshot weights correspond to text features for all possible classes
+                    # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
+                    logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
 
             # measure accuracy
-            if args.method == "equitune" or args.method == "attention":
+            if args.method == "equitune":
                 acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
             elif args.method == "equizero":
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+            elif args.method == "attention":
+                acc1, acc5 = accuracy(logits, target, topk=(1, 5))
             else:
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name="")
             top1 += acc1
