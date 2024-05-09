@@ -118,7 +118,7 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
         # group_size = group_sizes[args.group_name]
         # group_weights = group_size * (group_weights / weight_sum)
         # group_weights = group_weights.reshape(-1, 1)
-        group_weights = group_weights.squeeze(1)
+        group_weights = group_weights.reshape(group_weights.shape[0])
         image_features = image_features_ * group_weights
         # image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
 
