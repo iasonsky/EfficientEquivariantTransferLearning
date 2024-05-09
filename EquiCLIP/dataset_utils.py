@@ -306,10 +306,10 @@ def get_dataloader(args, preprocess):
         from torchvision.datasets import CIFAR100
         dataset = CIFAR100("./data", transform=preprocess, download=True, train=False)
     elif args.dataset_name == "ISIC2018":
-        train_img_dir = 'data/ISIC2018_Task3_Training_Input'
-        train_label_file = 'data/ISIC2018_Task3_Training_GroundTruth.csv'
+        train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
+        train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
         dataset = ISICDataset(train_img_dir, train_label_file, transform=preprocess)
-        dataloader = get_balanced_dataloader(dataset, method='oversample', batch_size=32, num_workers=1)
+        dataloader = get_balanced_dataloader(dataset, method='undersample', batch_size=32, num_workers=1)
         return dataloader   
     else:
         raise NotImplementedError("Dataset not recognized.")
@@ -323,7 +323,18 @@ def get_ft_dataloader(args, preprocess):
 
         cifar100_eval = CIFAR100("./data", transform=preprocess, download=True, train=False)
         eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=32, num_workers=2)
+    elif args.dataset_name == "ISIC2018":
+        # Load the training and validation datasets
+        train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
+        train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
+        val_img_dir = 'data/ISIC2018/ISIC2018_Task3_Validation_Input'
+        val_label_file = 'data/ISIC2018/ISIC2018_Task3_Validation_GroundTruth.csv'
+        
+        isic2018_train = ISICDataset(train_img_dir, train_label_file, transform=preprocess)
+        train_loader = get_balanced_dataloader(isic2018_train, method='undersample', batch_size=32, num_workers=1)
 
+        isic2018_val = ISICDataset(val_img_dir, val_label_file, transform=preprocess)
+        eval_loader = get_balanced_dataloader(isic2018_val, method='undersample', batch_size=32, num_workers=1)
     else:
         raise NotImplementedError
     return train_loader, eval_loader

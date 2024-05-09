@@ -28,7 +28,7 @@ def main(args):
     dataloader = get_dataloader(args, preprocess)
 
     # create text weights for different classes
-    zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True')
+    zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
 
     # zeroshot prediction
     import time
