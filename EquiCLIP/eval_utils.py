@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from tqdm import tqdm
 
-from EquiCLIP.weighted_equitune_utils import compute_logits
+from weighted_equitune_utils import compute_logits
 from exp_utils import group_transform_images, random_transformed_images
 
 
