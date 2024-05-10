@@ -114,10 +114,10 @@ def main(args):
     # val=True only for choosing the best lambda weights using the trainloader
     eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
 
-    # optimizer2 = optim.SGD(list(model.parameters()) + list(weight_net.parameters()), lr=args.lr, momentum=0.9)
-    optimizer2 = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    # eval_clip(args, model, zeroshot_weights, eval_loader, data_transformations=args.data_transformations,
-    #           group_name=args.group_name, device=args.device, weight_net=weight_net, val=False)
+    if args.full_finetune:
+        optimizer2 = optim.Adam(list(model.parameters()) + list(feature_combination_module.parameters()), lr=args.lr)
+    else:
+        optimizer2 = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
     for i in range(args.num_finetunes):
         print(f"Model finetune step number: {i}/{args.num_finetunes}")
@@ -155,6 +155,7 @@ if __name__ == "__main__":
     parser.add_argument("--softmax", action='store_true')
     parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
+    parser.add_argument("--full_finetune", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
