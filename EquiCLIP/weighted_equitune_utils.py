@@ -133,7 +133,6 @@ def weighted_equitune_clip(args, model: CLIP,
         iter_print_freq:
         device:
         model_:
-        attention_net: a module that combines features by using attention within the group
 
     Returns:
 
