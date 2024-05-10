@@ -3,6 +3,7 @@ import argparse
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
+import pytorch_lightning as pl
 
 
 class WeightNet(nn.Module):
@@ -11,9 +12,9 @@ class WeightNet(nn.Module):
         if args.model_name == "RN50":
             self.fc1 = nn.Linear(1024, 100)
         else:
-            self.fc1 = nn.Linear(512, 100)
+            self.fc1 = nn.Linear(512, 100)  # thats for clip
         self.fc2 = nn.Linear(100, 100)
-        self.fc3 = nn.Linear(100, 1)
+        self.fc3 = nn.Linear(100, 1)  # just makes an integer
         self.dp1 = nn.Dropout(0.5)
         self.relu = nn.ReLU()
 
@@ -27,6 +28,49 @@ class WeightNet(nn.Module):
         # x = torch.exp(-0.0 * x)
         # x = torch.exp(-0.1 * self.k * x)
         return x  # dim [B, 1]
+
+
+class AttentionAggregation(nn.Module):
+    def __init__(self, args):
+        super().__init__()
+        if args.model_name == "RN50":
+            dim = 1024
+        else:
+            dim = 512
+        self.dim = dim
+        self.q = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, dim)
+        )
+        self.k = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, dim)
+        )
+
+    def forward(self, x):
+        """
+
+        Args:
+            x: features of shape [B, N, D], where N is cardinality of the group
+
+        Returns:
+
+        """
+        queries = self.q(x)
+        keys = self.k(x)
+        values = x.clone()
+
+        # Scaled dot-product attention
+        scores = torch.matmul(queries, keys.transpose(-2, -1)) / torch.sqrt(
+            torch.tensor(self.dim, dtype=torch.float32))
+
+        attention_weights = F.softmax(scores, dim=-1)
+
+        # Multiply weights with values
+        output = torch.matmul(attention_weights, values)  # dim [B, N, D]
+        return output.mean(dim=1)
 
 
 if __name__ == "__main__":
