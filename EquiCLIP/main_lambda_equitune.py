@@ -118,7 +118,7 @@ def main(args):
     eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
 
     if args.full_finetune:
-        optimizer2 = optim.Adam(list(model.parameters()) + list(feature_combination_module.parameters()), lr=args.lr)
+        optimizer2 = optim.SGD(list(model.parameters()) + list(feature_combination_module.parameters()), lr=args.lr, momentum=0.9)
     else:
         optimizer2 = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
