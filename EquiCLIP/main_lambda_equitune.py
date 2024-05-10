@@ -12,6 +12,7 @@ import argparse
 import pytorch_lightning as pl
 import torch.nn as nn
 import torch.optim as optim
+import logging
 
 from tqdm import tqdm
 from weight_models import WeightNet, AttentionAggregation
@@ -21,6 +22,7 @@ from dataset_utils import imagenet_classes, imagenet_templates, get_labels_textp
     get_ft_dataloader
 from zeroshot_weights import zeroshot_classifier
 from eval_utils import eval_clip
+from logging_setup import setup_logging
 
 print("Torch version:", torch.__version__)
 
@@ -111,6 +113,7 @@ def main(args):
 
     # zeroshot eval on validation data
     print(f"Validation accuracy!")
+    logging.info(f"Validation accuracy!")
     # val=True only for choosing the best lambda weights using the trainloader
     eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
 
@@ -121,6 +124,7 @@ def main(args):
 
     for i in range(args.num_finetunes):
         print(f"Model finetune step number: {i}/{args.num_finetunes}")
+        logging.info(f"Model finetune step number: {i}/{args.num_finetunes}")
 
         model = weighted_equitune_clip(args, model, feature_combination_module,
                                        optimizer2, criterion, zeroshot_weights, train_loader,
@@ -161,6 +165,7 @@ if __name__ == "__main__":
     args.verbose = True
 
     pl.seed_everything(args.seed)
+    setup_logging(args)
     main(args)
 
 # python main_weighted_equitune.py  --dataset_name CIFAR100  --logit_factor 1.0  --iter_per_finetune 500 --method equitune --group_name rot90 --data_transformations rot90  --model_name 'ViT-B/16' --lr 0.000005 --num_finetunes 8 --num_prefinetunes 20 --k -10 --prelr 0.33
