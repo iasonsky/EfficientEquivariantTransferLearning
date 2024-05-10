@@ -31,18 +31,11 @@ def main(args):
     model, preprocess = load_model(args)
     model_, preprocess_ = load_model(args)
 
-    if args.model_name == "RN50":
-        dim = 1024
+    if args.method == "attention":
+        feature_combination_module = AttentionAggregation(args)
     else:
-        dim = 512
-
-    # init attention
-    attention_aggregation = AttentionAggregation(dim)
-    attention_aggregation.to(args.device)
-
-    # load weight network
-    weight_net = WeightNet(args)
-    weight_net.to(args.device)
+        feature_combination_module = WeightNet(args)
+    feature_combination_module.to(args.device)
 
     # get labels and text prompts
     classnames, templates = get_labels_textprompts(args)
@@ -54,16 +47,18 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
 
     if args.method == "attention":
-        optimizer1 = optim.Adam(attention_aggregation.parameters(), lr=args.prelr)
+        if args.prelr > 0.01:
+            print("Attention model is being trained with a high learning rate. This is not recommended.")
+        optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr)
     else:
         # only weight_net is trained not the model itself
-        optimizer1 = optim.SGD(weight_net.parameters(), lr=args.prelr, momentum=0.9)
+        optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
 
     # create text weights for different classes
     zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
 
     best_top1 = 0.0
-    best_model_weights = copy.deepcopy(weight_net.state_dict())
+    best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
     MODEL_DIR = "saved_weight_net_models"
 
     if not os.path.isdir(MODEL_DIR):
@@ -79,8 +74,7 @@ def main(args):
 
     val_kwargs = {
         "data_transformations": args.data_transformations, "group_name": args.group_name,
-        "device": args.device, "weight_net": weight_net, "model_": model_,
-        "attention_net": attention_aggregation
+        "device": args.device, "feature_combination_module": feature_combination_module, "model_": model_,
     }
 
     train_kwargs = val_kwargs.copy()
@@ -88,8 +82,8 @@ def main(args):
     train_kwargs["iter_print_freq"] = args.iter_print_freq
     del train_kwargs["weight_net"]
 
-    if os.path.isfile(MODEL_PATH) and not args.method == "attention":
-        weight_net.load_state_dict(torch.load(MODEL_PATH))
+    if os.path.isfile(MODEL_PATH) and args.load:
+        feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
     else:
         for i in range(args.num_prefinetunes):
             if args.method == "attention":
@@ -106,14 +100,14 @@ def main(args):
 
             if top1 > best_top1:
                 best_top1 = top1
-                best_model_weights = copy.deepcopy(weight_net.state_dict())
+                best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
 
             # finetune prediction
-            model = weighted_equitune_clip(args, model, weight_net, optimizer1, criterion, zeroshot_weights,
+            model = weighted_equitune_clip(args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
                                            train_loader, **train_kwargs)
 
         torch.save(best_model_weights, MODEL_PATH)
-        weight_net.load_state_dict(torch.load(MODEL_PATH))
+        feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
 
     # zeroshot eval on validation data
     print(f"Validation accuracy!")
@@ -128,7 +122,7 @@ def main(args):
     for i in range(args.num_finetunes):
         print(f"Model finetune step number: {i}/{args.num_finetunes}")
 
-        model = weighted_equitune_clip(args, model, weight_net,
+        model = weighted_equitune_clip(args, model, feature_combination_module,
                                        optimizer2, criterion, zeroshot_weights, train_loader,
                                        **train_kwargs)
         eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
@@ -158,6 +152,9 @@ if __name__ == "__main__":
                                                                             'ViT-L/14', 'ViT-L/14@336px']))
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=str(["ImagenetV2", "CIFAR100"]))
     parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--softmax", action='store_true')
+    parser.add_argument("--use_underscore", action='store_true')
+    parser.add_argument("--load", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True

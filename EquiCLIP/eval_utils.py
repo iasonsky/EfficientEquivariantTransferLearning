@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 
 from tqdm import tqdm
+
+from EquiCLIP.weighted_equitune_utils import compute_logits
 from exp_utils import group_transform_images, random_transformed_images
 
 
@@ -78,7 +80,7 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
-              weight_net=None, val=False, model_=None, attention_net=None):
+              feature_combination_module=None, val=False, model_=None):
     import time
     since = time.time()
     with torch.no_grad():
@@ -114,30 +116,9 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                 image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
                 image_features_ = image_features_ / image_features_norm_
 
-            if args.method == "attention":
-                group_size = group_images_shape[0]
-                # to B, N, D form
-                image_features = image_features.view(-1, group_size, image_features.shape[-1])
-                # dim [batch_size, feat_size]
-                # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-                combined_features = attention_net(image_features.float()).half()  # dim [batch_size, feat_size]
-                logits = args.logit_factor * combined_features @ zeroshot_weights
-            else:
-                if not weight_net is None:
-                    # use .half since the model is in fp16
-                    group_weights = weight_net(image_features_.float()).half()  # dim [group_size * batch_size, 512]
-                    # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
-                    # group_weights = F.softmax(group_weights, dim=0)
-                    # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
-                    # group_size = group_sizes[args.group_name]
-                    # group_weights = group_size * (group_weights / weight_sum)
-                    # group_weights = group_weights.reshape(-1, 1)
-                    # weighted image features
-                    image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
-
-                    # zeroshot weights correspond to text features for all possible classes
-                    # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-                    logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
+            logits = compute_logits(args, feature_combination_module,
+                                    image_features, image_features_,
+                                    zeroshot_weights, group_images_shape[0])
 
             # measure accuracy
             if args.method == "equitune":

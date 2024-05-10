@@ -31,8 +31,12 @@ class WeightNet(nn.Module):
 
 
 class AttentionAggregation(nn.Module):
-    def __init__(self, dim):
+    def __init__(self, args):
         super().__init__()
+        if args.model_name == "RN50":
+            dim = 1024
+        else:
+            dim = 512
         self.dim = dim
         self.q = nn.Sequential(
             nn.Linear(dim, dim),
