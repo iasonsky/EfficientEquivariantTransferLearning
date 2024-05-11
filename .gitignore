@@ -2,3 +2,4 @@ data
 ImageNetV2-matched-frequency*
 __pycache__
 results
+*.out

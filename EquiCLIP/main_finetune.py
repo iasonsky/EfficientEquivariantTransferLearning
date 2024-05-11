@@ -42,13 +42,13 @@ def main(args):
         # zeroshot prediction
         eval_clip(args, model, zeroshot_weights, eval_loader, data_transformations=args.data_transformations,
                   group_name=args.group_name, device=args.device)
-
+        print("zeroshot prediction done")
         # finetune prediction
+        print("Begin finetuning..")
         model = finetune_clip(args, model, optimizer, criterion, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
                   group_name=args.group_name, num_iterations=args.iter_per_finetune,
                               iter_print_freq=args.iter_print_freq, device=args.device)
-
-
+        print(f"Finetuning step {i} done")
 
 
 
