@@ -1,12 +1,19 @@
+from typing import Optional, Union
+
 import torch
 import torch.nn.functional as F
+from clip.model import CLIP
 
 from tqdm import tqdm
+
+from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
 def cycle(iterable):
+    # this does not reset the iterable,
+    # so it hangs the process with an infinite loop when iterable reaches the end (i think)
     while True:
         for x in iterable:
             yield x
@@ -57,8 +64,79 @@ def get_equitune_output(output, target, topk=(1,), group_name=""):
         raise NotImplementedError
 
 
-def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zeroshot_weights, loader, data_transformations="", group_name="",
-                           num_iterations=100, iter_print_freq=10, device="cuda:0", model_=None):
+def compute_logits(args,
+                   feature_combination_module: Union[WeightNet, AttentionAggregation],
+                   image_features, image_features_,
+                   zeroshot_weights,
+                   group_size):
+    if not args.use_underscore:
+        image_features_ = image_features
+    if args.method == "attention":
+        # to B, N, D form
+        image_features = image_features.view(-1, group_size, image_features.shape[-1])
+        # dim [batch_size, feat_size]
+        # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
+        combined_features = feature_combination_module(image_features.float()).half()  # dim [batch_size, feat_size]
+        logits = combined_features @ zeroshot_weights
+    else:
+        # weighted image features
+        # use .half since the model is in fp16
+        # normalize group weights proportional to size of group_size
+        group_weights = feature_combination_module(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
+        # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
+
+        # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
+        # group_weights = F.softmax(group_weights, dim=0)
+        # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
+        # print(f"weight_sum: {weight_sum}")
+        # print(f"group weights: {group_weights.permute(1, 0, 2)}")
+        # group_size = group_sizes[args.group_name]
+        # group_weights = group_size * (group_weights / weight_sum)
+        # group_weights = group_weights.reshape(-1, 1)
+
+        # image_features = image_features_ * torch.broadcast_to(group_weights, image_features_.shape)
+        # i think this is the same as the einsum, but lets stick to the original code
+        image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
+
+        # zeroshot weights correspond to text features for all possible classes
+        # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
+
+        # IMPORTANT NOTE: higher logit factors automatically biases the model towards the one with higher scores, hence,
+        # acts like (un)equituning naturally even without lambda
+        logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
+
+        if args.softmax:
+            logits = torch.nn.functional.softmax(logits, dim=-1)
+    return logits
+
+
+def weighted_equitune_clip(args, model: CLIP,
+                           feature_combination_module: Union[WeightNet, AttentionAggregation],
+                           optimizer, criterion,
+                           zeroshot_weights, loader,
+                           data_transformations="", group_name="",
+                           num_iterations=100, iter_print_freq=10, device="cuda:0",
+                           model_=None):
+    """
+    Trains either model (clip), or weightnet, or both, depending on the optimizer
+    Args:
+        args:
+        model: clip with the model_name that you specified. Here, it only runs the vision encoder (like RN50)
+        feature_combination_module: a NN module that takes all features from a group
+        optimizer:
+        criterion:
+        zeroshot_weights: embeddings of text prompts
+        loader:
+        data_transformations:
+        group_name:
+        num_iterations: steps to train
+        iter_print_freq:
+        device:
+        model_:
+
+    Returns:
+
+    """
     import time
     torch.autograd.set_detect_anomaly(True)
     since = time.time()
@@ -102,33 +180,8 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
             image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
             image_features_ = image_features_ / image_features_norm_
 
-
-
-        # weighted image features
-        # use .half since the model is in fp16
-        # normalize group weights proportional to size of group_size
-        group_weights = weight_net(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
-        # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
-        # group_weights = F.softmax(group_weights, dim=0)
-        # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
-        # print(f"weight_sum: {weight_sum}")
-        # print(f"group weights: {group_weights.permute(1, 0, 2)}")
-        # group_size = group_sizes[args.group_name]
-        # group_weights = group_size * (group_weights / weight_sum)
-        # group_weights = group_weights.reshape(-1, 1)
-        image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
-
-
-        # zeroshot weights correspond to text features for all possible classes
-        # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-        # IMPORTANT NOTE: higher logit factors automatically biases the model towards the one with higher scores, hence,
-        # acts like (un)equituning naturally even without lambda
-        logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-
-        logits = torch.nn.functional.softmax(logits, dim=-1)
-        # print(f"logits.shape: {logits.shape}")
+        logits = compute_logits(args, feature_combination_module, image_features, image_features_,
+                                zeroshot_weights, group_images_shape[0])
 
         # measure accuracy
         if args.method == "equitune":
@@ -137,6 +190,8 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
             equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)
             equi0_output = get_equi0_output(logits, target, topk=(1,), group_name=group_name)
             output = equitune_output + (equi0_output - equitune_output).detach()
+        elif args.method == "attention":
+            output = logits
         else:
             output = get_equi0_output(logits, target, topk=(1,), group_name="")
 
@@ -144,6 +199,5 @@ def weighted_equitune_clip(args, model, weight_net, optimizer, criterion, zerosh
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
-
 
     return model
