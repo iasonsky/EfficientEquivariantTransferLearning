@@ -1,4 +1,6 @@
-
+"""
+Script for processing the word lists used for ensuring group theoretic fairness in NLG.
+"""
 
 def process_neutral_words(filename):
     """
@@ -35,8 +37,8 @@ def process_equality_words(filename1, filename2):
 # gender_equality_words_sets_small = process_equality_words("EquiNLG/dataset/fairness_words/male_words_small.txt",
 #                                                            "EquiNLG/dataset/fairness_words/female_words_small.txt")
 
-gender_equality_words_sets = process_equality_words("EquiNLG/dataset/fairness_words/male_words_medium.txt",
-                                                           "EquiNLG/dataset/fairness_words/female_words_medium.txt")
+gender_equality_words_sets = process_equality_words("./dataset/fairness_words/male_words.txt",
+                                                           "./dataset/fairness_words/female_words.txt")
 
 
 # occupation_neutral_words_gender = process_neutral_words('EquiNLG/dataset/fairness_words/occupation_neutral_words_gender.txt')

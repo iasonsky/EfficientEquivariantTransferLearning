@@ -14,6 +14,7 @@ color_equality_words_sets = [[' Black', ' White']]
 sexuality_equality_words_sets = [[' gay', ' straight']]
 
 def generate_equi_text(args):
+    print(f"Starting text generation with context: {args.context} and seed: {args.seed}")
 
     set_seed(args.seed)
     tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer)
@@ -29,6 +30,7 @@ def generate_equi_text(args):
 
     model = EquiLLM(pre_model=pre_model, tokenizer=tokenizer, group_size=group_size,
                     vocab_size=vocab_size, eq_word_indices=eq_word_indices)
+    print(f"Using model: {model}")
     model.eval()
 
     context = torch.tensor([tokenizer.encode(args.context)]).to(device)
@@ -55,6 +57,7 @@ def generate_equi_text(args):
 
         # truncate generated text at '\n' endoftext
         prev_decoded = tokenizer.decode(prev.tolist())
+        print(f"Generated token: {prev_decoded}")
         if prev_decoded == '\n' or prev_decoded == '<|endoftext|>':
             break
         else:
@@ -68,6 +71,7 @@ def generate_equi_text(args):
     # print(f"Average surprise: {average_suprise}")
     # print(f"Average perplexity: {2 ** average_suprise}")
     total_generated_text = tokenizer.decode(tokenizer.encode(args.context) + generated)
+    print(f"Generated text: {total_generated_text}")
     return total_generated_text
 
 

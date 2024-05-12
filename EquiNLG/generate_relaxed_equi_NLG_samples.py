@@ -65,11 +65,11 @@ if __name__ == '__main__':
 
     # set general words and equality words
     args.general_words = general_words
-    if args.demographic_group in [MAN, WOMAN]:
+    if args.demographic_group in ["MAN", "WOMAN"]:
         args.equality_word_sets = gender_equality_words_sets
-    elif args.demographic_group in [BLACK, WHITE]:
+    elif args.demographic_group in ["BLACK", "WHITE"]:
         args.equality_word_sets = color_equality_words_sets
-    elif args.demographic_group in [GAY, STRAIGHT]:
+    elif args.demographic_group in ["GAY", "STRAIGHT"]:
         args.equality_word_sets = sexuality_equality_words_sets
     else:
         raise NotImplementedError

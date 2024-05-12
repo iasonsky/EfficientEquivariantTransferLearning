@@ -29,6 +29,7 @@ def generate_samples(args, dir, filepath):
                 for respect_bias_context in respect_contexts:
                     context = THE + SPACE + args.demographic_group + SPACE + respect_bias_context
                     args.context = context
+                    print(f"Generating text for context: {context}, seed: {seed}")
                     sample = generate_text(args)
                     f.write(sample + '\n')
         elif args.bias_context == 'occupation':
@@ -37,6 +38,7 @@ def generate_samples(args, dir, filepath):
                 for occupation_bias_contexts in occupation_contexts:
                     context = THE + SPACE + args.demographic_group + SPACE + occupation_bias_contexts
                     args.context = context
+                    print(f"Generating text for context: {context}, seed: {seed}")
                     sample = generate_text(args)
                     f.write(sample + '\n')
 
@@ -59,9 +61,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    print(f"Arguments: {args}")
+
     # define the filename where the samples will be stored
     dir = "generated_samples/GPT2/"
     filepath = dir + args.bias_context + '_' + args.demographic_group.split(' ')[0] + '.txt'
+
+    print(f"Output directory: {dir}")
+    print(f"Output file path: {filepath}")
 
     # generate samples
     generate_samples(args, dir, filepath)

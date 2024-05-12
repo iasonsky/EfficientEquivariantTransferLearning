@@ -50,6 +50,7 @@ class EquiLLM(nn.Module):
 
     def forward(self, input_ids, return_dict=True, labels=None):
         transformed_context = g_transform_data(input_ids, self.in_G, device)  # dim: [|G|, batch_size, seq_length]
+        print(f"Transformed context: {transformed_context}")
 
         # get transformed outputs
         transformed_logits = []
@@ -60,8 +61,13 @@ class EquiLLM(nn.Module):
 
         # inverse transform the texts corresponding to each of the transformed contexts
         transformed_logits = torch.stack(transformed_logits)
+        print(f"Transformed logits before inverse transformation: {transformed_logits}")
+
         group_logits = g_inv_transform_prob_data(transformed_logits, G=self.out_G)
+        print(f"Group logits after inverse transformation: {group_logits}")
+
         logits = torch.mean(group_logits, dim=0, keepdim=False)  # dim [batch_size, seq_len, vocab_size]
+        print(f"Final logits: {logits}")
 
         loss = self.compute_loss(logits, labels)
 

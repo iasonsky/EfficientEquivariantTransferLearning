@@ -64,13 +64,14 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', action='store_true')
 
     args = parser.parse_args()
+    print(f"Arguments: {args}")
 
-    if args.demographic_group in [MAN, WOMAN]:
+    if args.demographic_group in ["MAN", "WOMAN"]:
         # args.equality_word_sets = gender_equality_words_sets
         pass
-    elif args.demographic_group in [BLACK, WHITE]:
+    elif args.demographic_group in ["BLACK", "WHITE"]:
         args.equality_word_sets = color_equality_words_sets
-    elif args.demographic_group in [GAY, STRAIGHT]:
+    elif args.demographic_group in ["GAY", "STRAIGHT"]:
         args.equality_word_sets = sexuality_equality_words_sets
     else:
         raise NotImplementedError
@@ -78,6 +79,9 @@ if __name__ == '__main__':
     # define the filename where the samples will be stored
     dir = "generated_samples/equiGPT2/"
     filepath = dir + args.bias_context + '_' + args.demographic_group.split(' ')[0] + '.txt'
+
+    print(f"Output directory: {dir}")
+    print(f"Output file path: {filepath}")
 
     # generate samples
     generate_samples(args, dir, filepath)
