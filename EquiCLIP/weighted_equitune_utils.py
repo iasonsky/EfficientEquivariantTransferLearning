@@ -78,6 +78,10 @@ def compute_logits(args,
         # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
         combined_features = feature_combination_module(image_features.float()).half()  # dim [batch_size, feat_size]
         logits = combined_features @ zeroshot_weights
+    elif args.method == "vanilla" or feature_combination_module is None:
+        logits = args.logit_factor * image_features @ zeroshot_weights
+        if args.softmax:
+            logits = torch.nn.functional.softmax(logits, dim=-1)
     else:
         # weighted image features
         # use .half since the model is in fp16

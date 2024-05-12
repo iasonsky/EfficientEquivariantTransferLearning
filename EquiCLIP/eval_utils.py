@@ -81,7 +81,7 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
-              feature_combination_module=None, val=False, model_=None):
+              feature_combination_module=None, val=False, model_=None, save_scores=False):
     import time
     since = time.time()
     with torch.no_grad():
@@ -152,13 +152,14 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
         print(message)
 
     # Save the top-1 accuracy in a folder 
-    folder = f"results/{args.dataset_name}/{args.model_name}/{args.method}/{args.data_transformations}"
-    os.makedirs(folder, exist_ok=True)
-    with open(f"{folder}/top1_accuracy.txt", "w") as f:
-        f.write(f"{top1:.2f}")
-    # save the top-5 accuracy as well
-    with open(f"{folder}/top5_accuracy.txt", "w") as f:
-        f.write(f"{top5:.2f}")
+    if save_scores:
+        folder = f"results/{args.dataset_name}/{args.model_name}/{args.method}/{args.data_transformations}"
+        os.makedirs(folder, exist_ok=True)
+        with open(f"{folder}/top1_accuracy.txt", "w") as f:
+            f.write(f"{top1:.2f}")
+        # save the top-5 accuracy as well
+        with open(f"{folder}/top5_accuracy.txt", "w") as f:
+            f.write(f"{top5:.2f}")
     current_time = time.time()
     time_elapsed = current_time - since
     print(f"time elapsed: {time_elapsed}")
