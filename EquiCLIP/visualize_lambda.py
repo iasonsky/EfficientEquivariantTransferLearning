@@ -79,48 +79,64 @@ def main(args):
                  f"_steps_{args.num_prefinetunes}.pt"
     MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
+    if args.method == "attention":
+        feature_combination_module = AttentionAggregation(args)
+    else:
+        feature_combination_module = WeightNet(args)
+    feature_combination_module.to(args.device)
+
     if os.path.isfile(MODEL_PATH):
         weight_net.load_state_dict(torch.load(MODEL_PATH))
 
     else:
-        for i in range(args.num_prefinetunes):
-            print(f"weighted equitune number: {i}")
-            # zeroshot prediction
-            # add weight_net save code for the best model
+        raise Exception(f"Please train a model first (using main_lambda_equitune.py?)")
+        # for i in range(args.num_prefinetunes):
+        #     print(f"weighted equitune number: {i}")
+        #     # zeroshot prediction
+        #     # add weight_net save code for the best model
 
-            # evaluating for only 50 steps using val=True
-            top1 = eval_clip(args, model, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
-                      group_name=args.group_name, device=args.device, weight_net=weight_net, val=True, model_=model_)
+        #     # evaluating for only 50 steps using val=True
+        #     top1 = eval_clip(args, model, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
+        #               group_name=args.group_name, device=args.device, 
+        #               # weight_net=weight_net, 
+        #               feature_combination_module=feature_combination_module,
+        #               val=True, model_=model_)
 
-            if top1 > best_top1:
-                best_top1 = top1
-                best_model_weights = copy.deepcopy(weight_net.state_dict())
+        #     if top1 > best_top1:
+        #         best_top1 = top1
+        #         best_model_weights = copy.deepcopy(weight_net.state_dict())
 
-            # finetune prediction
-            model = weighted_equitune_clip(args, model, weight_net, optimizer1, criterion, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
-                                           group_name=args.group_name, num_iterations=args.iter_per_prefinetune,
-                                           iter_print_freq=args.iter_print_freq, device=args.device, model_=model_)
+        #     # finetune prediction
+        #     model = weighted_equitune_clip(args, model, weight_net, optimizer1, criterion, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
+        #                                    group_name=args.group_name, num_iterations=args.iter_per_prefinetune,
+        #                                    iter_print_freq=args.iter_print_freq, device=args.device, model_=model_)
 
 
-        torch.save(best_model_weights, MODEL_PATH)
-        weight_net.load_state_dict(torch.load(MODEL_PATH))
+        # torch.save(best_model_weights, MODEL_PATH)
+        # weight_net.load_state_dict(torch.load(MODEL_PATH))
 
+    all_weights = []
     # compute lambda for different transformed images
     writer = SummaryWriter()
-    for i, data in enumerate(eval_loader):
+    for i, data in enumerate(tqdm(eval_loader)):
         x, y = data   # we only care about 1 image not the entire batch
         x = x.to(args.device)
-        print(f"y: {y}")
         x_group = []
+        weights_for_all_trafos = []
         for j in range(4):
             x = torch.rot90(x, k=1, dims=(-1, -2))
             x_group.append(x)
             image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
             weights = weight_net(image_features.float()).half()
+            assert weights.shape[-1] == 1
             for k in range(len(weights)):
-                weight = weights[k]
-                writer.add_scalar(f'lambda{k}', weight, j)
-        break
+               weight = weights[k]
+               writer.add_scalar(f'lambda{k}', weight, j)
+            weights_for_all_trafos.append(weights[:, 0].detach().cpu().numpy())
+        weights_for_all_trafos = np.stack(weights_for_all_trafos)
+        all_weights.append(weights_for_all_trafos)
+        #if i > 10000:
+        #    break
 
     for i, data in enumerate(viz_eval_loader):
         x, y = data  # we only care about 1 image not the entire batch
@@ -135,10 +151,57 @@ def main(args):
         break
     writer.close()
 
+    all_weights = np.concatenate(all_weights, axis=-1)
+    print(all_weights.shape)
 
+    output_dir = "results/lambda_weights"
+    os.makedirs(output_dir, exist_ok=True)
+    np.save(f"{output_dir}/lambda_weights_{MODEL_NAME}.npy", all_weights)
 
+    plot_all_weights(all_weights, output_dir, args)
+    
 
+def plot_all_weights(all_weights, output_dir, args):
+    fig, ax = plt.subplots(figsize=(100, 5))
+    im = ax.imshow(all_weights)
 
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax)
+    cbar.ax.set_ylabel("colors", rotation=-90, va="bottom")
+
+    # Show all ticks and label them with the respective list entries
+    #ax.set_xticks(np.arange(len(farmers)), labels=farmers)
+    #ax.set_yticks(np.arange(len(vegetables)), labels=vegetables)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+            rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    # for i in range(len(vegetables)):
+    #     for j in range(len(farmers)):
+    #         text = ax.text(j, i, harvest[i, j],
+    #                     ha="center", va="center", color="w")
+
+    # ax.set_title("Harvest of local farmers (in tons/year)")
+    fig.tight_layout()
+    plt.savefig(f"{output_dir}/weight_viz.png")
+
+    fig, ax = plt.subplots()
+
+    weights_mean = np.mean(all_weights.astype(np.float64), axis=-1)
+    weights_std = np.std(all_weights.astype(np.float64), axis=-1)
+
+    print(weights_mean.shape)
+
+    plt.errorbar(range(0, 4), weights_mean, yerr=weights_std, fmt='o')
+
+    plt.title(f"Mean±std of unnormalized lambda weights in {args.dataset_name} for {args.model_name}")
+    plt.xticks([0, 1, 2, 3], ["90°", "180°", "270°", "0°"])
+    plt.xlabel(f"Group transormation of input")
+    plt.ylabel(f"Lambda weight for the transformed input")
+
+    plt.savefig(f"{output_dir}/weight_mean_viz.png")
 
 
 if __name__ == "__main__":
@@ -163,6 +226,10 @@ if __name__ == "__main__":
                                                                         'ViT-L/14', 'ViT-L/14@336px'])
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100"])
     parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--softmax", action='store_true')
+    parser.add_argument("--use_underscore", action='store_true')
+    parser.add_argument("--load", action='store_true')
+    parser.add_argument("--full_finetune", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True

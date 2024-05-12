@@ -86,7 +86,7 @@ def main(args):
     if os.path.isfile(MODEL_PATH) and args.load:
         feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
     else:
-        for i in range(args.num_prefinetunes):
+        for i in range(tqdm(args.num_prefinetunes, desc="Pre-fine tunes")):
             if args.method == "attention":
                 print(f"Learning attention weights: {i}/{args.num_prefinetunes}")
             else:
@@ -121,7 +121,7 @@ def main(args):
     else:
         optimizer2 = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
-    for i in range(args.num_finetunes):
+    for i in range(tqdm(args.num_finetunes, desc="Fine tunes")):
         print(f"Model finetune step number: {i}/{args.num_finetunes}")
         logging.info(f"Model finetune step number: {i}/{args.num_finetunes}")
 
