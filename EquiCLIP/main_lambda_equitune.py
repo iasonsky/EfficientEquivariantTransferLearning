@@ -80,7 +80,6 @@ def main(args):
     }
 
     train_kwargs = val_kwargs.copy()
-    train_kwargs["num_iterations"] = args.iter_per_prefinetune
     train_kwargs["iter_print_freq"] = args.iter_print_freq
     del train_kwargs["feature_combination_module"]
 
@@ -106,7 +105,7 @@ def main(args):
 
             # finetune prediction
             model = weighted_equitune_clip(args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
-                                           train_loader, **train_kwargs)
+                                           train_loader, num_iterations=args.iter_per_prefinetune, **train_kwargs)
 
         torch.save(best_model_weights, MODEL_PATH)
         feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
@@ -128,6 +127,7 @@ def main(args):
 
         model = weighted_equitune_clip(args, model, feature_combination_module,
                                        optimizer2, criterion, zeroshot_weights, train_loader,
+                                       num_iterations=args.iter_per_finetune,
                                        **train_kwargs)
         eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
 
