@@ -72,7 +72,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--device", default='cuda:0', type=str)
     parser.add_argument("--num_finetunes", default=8, type=int) # 10
-    parser.add_argument("--iter_per_prefinetune", default=100, type=int)
     parser.add_argument("--iter_per_finetune", default=500, type=int) # 25 for isic2018
     parser.add_argument("--iter_print_freq", default=50, type=int)
     parser.add_argument("--logit_factor", default=1., type=float)
