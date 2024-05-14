@@ -2,6 +2,7 @@
 
 #SBATCH --partition=gpu
 #SBATCH --gpus=1
+#SBATCH --job-name=MNIST_eq
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:50:00
@@ -29,4 +30,5 @@ source activate lambda_equitune
 #     done
 # done
 
-srun python EquiCLIP/main_finetune.py  --dataset_name CIFAR100  --method equitune --group_name rot90 --data_transformations rot90  --model_name 'RN50'
+# srun python EquiCLIP/main_finetune.py  --dataset_name ISIC2018  --method equitune --group_name rot90 --data_transformations rot90  --model_name 'RN50' --iter_per_finetune 25 --lr 0.03
+srun python EquiCLIP/main_finetune.py  --dataset_name MNIST  --method equitune --group_name rot90 --data_transformations rot90  --model_name 'RN50'

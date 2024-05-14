@@ -129,7 +129,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             elif args.method == "attention":
                 acc1, acc5 = accuracy(logits, target, topk=(1, 5))
             else:
-                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name="")
+                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name) 
             top1 += acc1
             top5 += acc5
             n += images.size(0)

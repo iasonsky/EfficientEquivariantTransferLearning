@@ -82,13 +82,15 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", default="RN50", type=str, help=['RN50', 'RN101', 'RN50x4', 'RN50x16',
                                                                         'RN50x64', 'ViT-B/32', 'ViT-B/16',
                                                                         'ViT-L/14', 'ViT-L/14@336px'])
-    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100", "ISIC2018"])
+    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100", "ISIC2018", "MNIST"])
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--softmax", action='store_true')
     parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--save_scores", action='store_true')
+    parser.add_argument("--undersample", action='store_true')
+    parser.add_argument("--oversample", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
