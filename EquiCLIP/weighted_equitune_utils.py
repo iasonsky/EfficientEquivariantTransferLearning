@@ -69,7 +69,7 @@ def compute_logits(args,
                    image_features, image_features_,
                    zeroshot_weights,
                    group_size):
-    if not args.use_underscore:
+    if getattr(args, 'use_underscore', False) is False:
         image_features_ = image_features
     if args.method == "attention":
         # to B, N, D form

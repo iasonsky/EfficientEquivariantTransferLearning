@@ -27,7 +27,6 @@ def main(args):
     # load model and preprocess
     model: CLIP
     model, preprocess = load_model(args)
-    model_, preprocess_ = load_model(args)
 
     # get labels and text prompts
     classnames, templates = get_labels_textprompts(args)
@@ -44,13 +43,12 @@ def main(args):
     
     val_kwargs = {
         "data_transformations": args.data_transformations, "group_name": args.group_name,
-        "device": args.device, "model_": model_, "save_scores": args.save_scores,
+        "device": args.device, "save_scores": args.save_scores,
     }
 
     train_kwargs = val_kwargs.copy()
     train_kwargs["num_iterations"] = args.iter_per_finetune
     train_kwargs["iter_print_freq"] = args.iter_print_freq
-    del train_kwargs["model_"]
     del train_kwargs["save_scores"]
 
     for i in range(args.num_finetunes):
@@ -85,9 +83,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100", "ISIC2018", "MNIST"])
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--softmax", action='store_true')
-    parser.add_argument("--use_underscore", action='store_true')
-    parser.add_argument("--load", action='store_true')
-    parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--save_scores", action='store_true')
     parser.add_argument("--undersample", action='store_true')
     parser.add_argument("--oversample", action='store_true')

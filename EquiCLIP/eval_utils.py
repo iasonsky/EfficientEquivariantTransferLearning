@@ -86,10 +86,10 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
     since = time.time()
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
+        image_features_ = None
         for i, (images, target) in enumerate(tqdm(loader)):
             if val and i == 50:
                 break
-
             images = images.to(device)  # dim [batch_size, c_in, H, H]
             images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
