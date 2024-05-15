@@ -37,13 +37,41 @@ class AttentionAggregation(nn.Module):
             raise NotImplementedError
         self.in_dims = [2048, 7, 7]
         self.dim = 50
+
+        # the task of this thing is to encode the general "direction" of features
+        self.per_channel_query_preprocessing = nn.Sequential(
+            nn.Conv2d(1, 64, padding=1, kernel_size=3),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3),
+            nn.ReLU(),
+        ).half()
+
+        self.pre_query_projection = nn.Sequential(
+            nn.Linear(64 * 5 * 5, 16),
+            nn.ReLU()
+        ).half()
+
+        self.per_channel_key_preprocessing = nn.Sequential(
+            nn.Conv2d(1, 64, padding=1, kernel_size=3),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3),
+            nn.ReLU(),
+        ).half()
+
+        self.pre_key_projection = nn.Sequential(
+            nn.Linear(64 * 5 * 5, 16),
+            nn.ReLU()
+        ).half()
+
+        self.attn_in = 2048 * 16
+
         self.q = nn.Sequential(
-            nn.Linear(2048 * 7 * 7, 50),
+            nn.Linear(self.attn_in, 50),
             nn.ReLU(),
             nn.Linear(50, self.dim)
         ).half()
         self.k = nn.Sequential(
-            nn.Linear(2048 * 7 * 7, 50),
+            nn.Linear(self.attn_in, 50),
             nn.ReLU(),
             nn.Linear(50, self.dim)
         ).half()
@@ -58,9 +86,22 @@ class AttentionAggregation(nn.Module):
 
         """
         original_shape = x.shape
-        queries = self.q(x.flatten(start_dim=2))
-        keys = self.k(x.flatten(start_dim=2))
+
         values = x.clone().flatten(start_dim=2)
+
+        # preprocess the queries and keys
+        x = x.reshape(-1, 1, self.in_dims[1], self.in_dims[2])
+        queries = self.per_channel_query_preprocessing(x)
+        keys = self.per_channel_key_preprocessing(x)
+
+        queries = self.pre_query_projection(queries.flatten(start_dim=1))
+        keys = self.pre_key_projection(keys.flatten(start_dim=1))
+
+        queries = queries.view(original_shape[0], original_shape[1], self.attn_in)
+        keys = keys.view(original_shape[0], original_shape[1], self.attn_in)
+
+        queries = self.q(queries)
+        keys = self.k(keys)
 
         # Scaled dot-product attention
         scores = torch.matmul(queries, keys.transpose(-2, -1)) / torch.sqrt(
