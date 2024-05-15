@@ -6,3 +6,4 @@ results
 *.log
 *.txt
 visualize_dataset.py
+wandb

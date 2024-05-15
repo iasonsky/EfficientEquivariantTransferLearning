@@ -1,5 +1,6 @@
 import logging
 import os
+from sklearn.metrics import precision_score
 import torch
 import torch.nn.functional as F
 
@@ -79,6 +80,47 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
     else:
         raise NotImplementedError
 
+def equi0_precision(output, target, group_name=""):
+    if group_name == "":
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    elif group_name == "rot90":
+        group_size = 4
+        output_shape = output.shape
+        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+        output, _ = torch.max(output, dim=0, keepdim=False)  # Max over group dimensions
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    elif group_name == "flip":
+        group_size = 2
+        output_shape = output.shape
+        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+        output, _ = torch.max(output, dim=0, keepdim=False)  # Max over group dimensions
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    else:
+        raise NotImplementedError
+
+def equitune_precision(output, target, group_name=""):
+    if group_name == "":
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    elif group_name == "rot90":
+        group_size = 4
+        output_shape = output.shape
+        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+        output = torch.mean(output, dim=0, keepdim=False)  # Mean over group dimensions
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    elif group_name == "flip":
+        group_size = 2
+        output_shape = output.shape
+        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+        output = torch.mean(output, dim=0, keepdim=False)  # Mean over group dimensions
+        pred = output.argmax(dim=1)
+        return precision_score(target.cpu().numpy(), pred.cpu().numpy(), average='macro')
+    else:
+        raise NotImplementedError  
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
               feature_combination_module=None, val=False, model_=None, save_scores=False):
@@ -124,12 +166,16 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             # measure accuracy
             if args.method == "equitune":
                 acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+                precision = equitune_precision(logits, target, group_name=group_name)
             elif args.method == "equizero":
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+                precision = equi0_precision(logits, target, group_name=group_name)
             elif args.method == "attention":
                 acc1, acc5 = accuracy(logits, target, topk=(1, 5))
+                precision = precision_score(target.cpu().numpy(), logits.argmax(dim=1).cpu().numpy(), average='macro')
             else:
-                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name) 
+                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+                precision = equi0_precision(logits, target, group_name=group_name) 
             top1 += acc1
             top5 += acc5
             n += images.size(0)
@@ -145,6 +191,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
         f"Data transformation: {args.data_transformations}",
         f"Top-1 accuracy: {top1:.2f}",
         f"Top-5 accuracy: {top5:.2f}"
+        f"Precision: {precision:.2f}"
     ]
 
     for message in info:
@@ -165,4 +212,4 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
     print(f"time elapsed: {time_elapsed}")
 
     if val:
-        return top1
+        return top1, top5, precision
