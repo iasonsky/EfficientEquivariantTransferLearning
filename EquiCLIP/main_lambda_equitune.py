@@ -31,7 +31,6 @@ def main(args):
     # load model and preprocess
     model: CLIP
     model, preprocess = load_model(args)
-    model_, preprocess_ = load_model(args)
 
     if args.method == "attention":
         feature_combination_module = AttentionAggregation(args)

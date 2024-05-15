@@ -2,12 +2,12 @@ from typing import Optional, Union
 
 import torch
 import torch.nn.functional as F
-from clip.model import CLIP
+from clip.model import CLIP, ModifiedResNet
 
 from tqdm import tqdm
 
 from weight_models import AttentionAggregation, WeightNet
-from exp_utils import group_transform_images, random_transformed_images
+from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
@@ -64,23 +64,63 @@ def get_equitune_output(output, target, topk=(1,), group_name=""):
         raise NotImplementedError
 
 
-def compute_logits(args,
-                   feature_combination_module: Union[WeightNet, AttentionAggregation],
-                   image_features,
-                   zeroshot_weights,
-                   group_size):
+def conv_forward(resnet: ModifiedResNet, x):
+    def stem(x):
+        x = resnet.relu1(resnet.bn1(resnet.conv1(x)))
+        x = resnet.relu2(resnet.bn2(resnet.conv2(x)))
+        x = resnet.relu3(resnet.bn3(resnet.conv3(x)))
+        x = resnet.avgpool(x)
+        return x
+
+    x = x.type(resnet.conv1.weight.dtype)
+    x = stem(x)
+    x = resnet.layer1(x)
+    x = resnet.layer2(x)
+    x = resnet.layer3(x)
+    x = resnet.layer4(x)
+    return x
+
+
+def finish_resnet_forward(resnet: ModifiedResNet, x):
+    x = resnet.attnpool(x)
+    return x
+
+
+def compute_logits(
+        args,
+        model: CLIP,
+        feature_combination_module: Union[WeightNet, AttentionAggregation],
+        group_images,
+        zeroshot_weights,
+        group_name,
+):
     if args.method == "attention":
-        # to B, N, D form
-        image_features = image_features.view(-1, group_size, image_features.shape[-1])
-        # dim [batch_size, feat_size]
-        # or [group_size * batch_size, feat_size] if we run their weird logit averaging setup
-        combined_features = feature_combination_module(image_features.float()).half()  # dim [batch_size, feat_size]
-        logits = combined_features @ zeroshot_weights
+        image_features = conv_forward(model.visual, group_images.type(model.dtype))  # dim [group_size * batch_size, *feat_dims]
+        # feature dims are [2048, 7, 7] for RN50
+
+        # unrotate
+        image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
+
+        # to B, N, D form. where D is [C, H, H], and N is the group size
+        image_features = image_features.transpose(0, 1)
+
+        # combined_features = feature_combination_module(image_features.float()).half()  # dim [batch_size, feat_size]
+
+        # take the avg
+        combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
+
+        # we now have EQUIVARIANT features
+
+        final_features = finish_resnet_forward(model.visual, combined_features)
+
+        logits = final_features @ zeroshot_weights  # B, num_classes
     elif args.method == "vanilla" or feature_combination_module is None:
+        image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
         logits = args.logit_factor * image_features @ zeroshot_weights
         if args.softmax:
             logits = torch.nn.functional.softmax(logits, dim=-1)
     else:
+        image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
         # weighted image features
         # use .half since the model is in fp16
         # normalize group weights proportional to size of group_size
@@ -131,24 +171,14 @@ def weighted_equitune_clip(
     Returns:
 
     """
-    import time
     torch.autograd.set_detect_anomaly(True)
-    since = time.time()
-    top1, top5, n = 0., 0., 0.
     training_iterator = cycle(iter(loader))
-    # for i, (images, target) in enumerate(tqdm(loader)):
-    import time
-    st_time = time.time()
-    for i in range(num_iterations):
-        if (i+1)%iter_print_freq == 0:
-            print(f"iteration number: {i+1}")
-            curr_time = time.time()
-            print(f"time elapsed per iter: {(curr_time - st_time) / (i + 1)}")
+
+    for _ in tqdm(range(num_iterations)):
         (images, target) = next(training_iterator)
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
-        # images = torch.rot90(images, k=1, dims=(-2, -1))
         group_images = group_transform_images(images,
                                               group_name=group_name)  # dim [group_size, batch_size, c_in, H, H]
         group_images_shape = group_images.shape
@@ -161,11 +191,8 @@ def weighted_equitune_clip(
         # zero the parameter gradients
         optimizer.zero_grad()
 
-        # predict
-        image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-
-        logits = compute_logits(args, feature_combination_module, image_features,
-                                zeroshot_weights, group_images_shape[0])
+        logits = compute_logits(args, model, feature_combination_module, group_images,
+                                zeroshot_weights, group_name)
 
         # measure accuracy
         if args.method == "equitune":

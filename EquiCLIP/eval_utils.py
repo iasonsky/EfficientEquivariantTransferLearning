@@ -104,12 +104,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             target = target.to(device)
             # print(f"target.shape: {target.shape}")
 
-            # predict
-            image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-
-            logits = compute_logits(args, feature_combination_module,
-                                    image_features,
-                                    zeroshot_weights, group_images_shape[0])
+            logits = compute_logits(args, model, feature_combination_module, group_images,
+                                    zeroshot_weights, group_name)
 
             # measure accuracy
             if args.method == "equitune":
