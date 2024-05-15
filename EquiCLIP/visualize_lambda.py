@@ -25,6 +25,8 @@ from zeroshot_weights import zeroshot_classifier
 from eval_utils import eval_clip
 from torch.utils.tensorboard import SummaryWriter
 
+import pandas as pd
+
 print("Torch version:", torch.__version__)
 
 # observed lambda_values
@@ -43,33 +45,16 @@ def plot_lambda_weights():
 def main(args):
     # load model and preprocess
     model, preprocess = load_model(args)
-    model_, preprocess_ = load_model(args)
 
     # load weight network
-    weight_net = WeightNet(args)
-    weight_net.to(args.device)
-
-    # get labels and text prompts
-    classnames, templates = get_labels_textprompts(args)
+    weight_net = WeightNet(args).to(args.device)
 
     # get dataloader
     train_loader, eval_loader = get_ft_dataloader(args, preprocess)
     viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess)
 
-    # optimizer and loss criterion
-    criterion = nn.CrossEntropyLoss()
-    # only weight_net is trained not the model itself
-    optimizer1 = optim.SGD(weight_net.parameters(), lr=args.prelr, momentum=0.9)
-
-    # create text weights for different classes
-    zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
-
-    best_top1 = 0.0
-    best_model_weights = copy.deepcopy(weight_net.state_dict())
     MODEL_DIR = "saved_weight_net_models"
 
-    if not os.path.isdir(MODEL_DIR):
-        os.mkdir(MODEL_DIR)
     if args.model_name in ['ViT-B/32', 'ViT-B/16']:
         args.save_model_name = ''.join(args.model_name.split('/'))
     else:
@@ -86,47 +71,30 @@ def main(args):
     feature_combination_module.to(args.device)
 
     if os.path.isfile(MODEL_PATH):
+        print(f"Loading model from {MODEL_PATH}")
         weight_net.load_state_dict(torch.load(MODEL_PATH))
-
     else:
-        raise Exception(f"Please train a model first (using main_lambda_equitune.py?)")
-        # for i in range(args.num_prefinetunes):
-        #     print(f"weighted equitune number: {i}")
-        #     # zeroshot prediction
-        #     # add weight_net save code for the best model
-
-        #     # evaluating for only 50 steps using val=True
-        #     top1 = eval_clip(args, model, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
-        #               group_name=args.group_name, device=args.device, 
-        #               # weight_net=weight_net, 
-        #               feature_combination_module=feature_combination_module,
-        #               val=True, model_=model_)
-
-        #     if top1 > best_top1:
-        #         best_top1 = top1
-        #         best_model_weights = copy.deepcopy(weight_net.state_dict())
-
-        #     # finetune prediction
-        #     model = weighted_equitune_clip(args, model, weight_net, optimizer1, criterion, zeroshot_weights, train_loader, data_transformations=args.data_transformations,
-        #                                    group_name=args.group_name, num_iterations=args.iter_per_prefinetune,
-        #                                    iter_print_freq=args.iter_print_freq, device=args.device, model_=model_)
-
-
-        # torch.save(best_model_weights, MODEL_PATH)
-        # weight_net.load_state_dict(torch.load(MODEL_PATH))
+        raise Exception(f"Please train a model first (using main_lambda_equitune.py)")
 
     all_weights = []
     # compute lambda for different transformed images
     writer = SummaryWriter()
     for i, data in enumerate(tqdm(eval_loader)):
-        x, y = data   # we only care about 1 image not the entire batch
+        x, y = data
         x = x.to(args.device)
         x_group = []
         weights_for_all_trafos = []
         for j in range(4):
             x = torch.rot90(x, k=1, dims=(-1, -2))
             x_group.append(x)
-            image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
+            if args.visualize_features:
+                # Image 'features' here are really the image embeddings produced by CLIP, which are invariant
+                # `internal_features` are the output of the last convolution layer of the backbone, 
+                # where we expect to see actual equivariance
+                image_features, internal_features = model.encode_image(x, return_internal_features=True)  # dim [group_size * batch_size, feat_size=512]
+                writer.add_image(f'internal features {k}', grid, j)
+            else:
+                image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
             weights = weight_net(image_features.float()).half()
             assert weights.shape[-1] == 1
             for k in range(len(weights)):
@@ -135,11 +103,11 @@ def main(args):
             weights_for_all_trafos.append(weights[:, 0].detach().cpu().numpy())
         weights_for_all_trafos = np.stack(weights_for_all_trafos)
         all_weights.append(weights_for_all_trafos)
-        #if i > 10000:
-        #    break
 
+    # Save actual images to Tensorboard - this use a different data loader, skipping some preprocessing steps,
+    # that's why it is a separate loop
     for i, data in enumerate(viz_eval_loader):
-        x, y = data  # we only care about 1 image not the entire batch
+        x, y = data
         x = x.to(args.device)
         for j in range(4):
             x = torch.rot90(x, k=1, dims=(-1, -2))
@@ -151,73 +119,30 @@ def main(args):
         break
     writer.close()
 
-    all_weights = np.concatenate(all_weights, axis=-1)
-    print(all_weights.shape)
+    all_weights = np.concatenate(all_weights, axis=-1).astype(np.float32)
+    df = pd.DataFrame(all_weights.T, columns=["90", "180", "270", "0"]).loc[:, ["0", "90", "180", "270"]]
+    df["model_name"] = args.model_name
+    df["dataset_name"] = args.dataset_name
+    df["group_name"] = args.group_name
+    df["data_transformations"] = args.data_transformations
+    df["full_finetune"] = args.full_finetune
+    df["method"] = args.method
 
     output_dir = "results/lambda_weights"
     os.makedirs(output_dir, exist_ok=True)
-    np.save(f"{output_dir}/lambda_weights_{MODEL_NAME}.npy", all_weights)
-
-    plot_all_weights(all_weights, output_dir, args)
-    
-
-def plot_all_weights(all_weights, output_dir, args):
-    fig, ax = plt.subplots(figsize=(100, 5))
-    im = ax.imshow(all_weights)
-
-    # Create colorbar
-    cbar = ax.figure.colorbar(im, ax=ax)
-    cbar.ax.set_ylabel("colors", rotation=-90, va="bottom")
-
-    # Show all ticks and label them with the respective list entries
-    #ax.set_xticks(np.arange(len(farmers)), labels=farmers)
-    #ax.set_yticks(np.arange(len(vegetables)), labels=vegetables)
-
-    # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-            rotation_mode="anchor")
-
-    # Loop over data dimensions and create text annotations.
-    # for i in range(len(vegetables)):
-    #     for j in range(len(farmers)):
-    #         text = ax.text(j, i, harvest[i, j],
-    #                     ha="center", va="center", color="w")
-
-    # ax.set_title("Harvest of local farmers (in tons/year)")
-    fig.tight_layout()
-    plt.savefig(f"{output_dir}/weight_viz.png")
-
-    fig, ax = plt.subplots()
-
-    weights_mean = np.mean(all_weights.astype(np.float64), axis=-1)
-    weights_std = np.std(all_weights.astype(np.float64), axis=-1)
-
-    print(weights_mean.shape)
-
-    plt.errorbar(range(0, 4), weights_mean, yerr=weights_std, fmt='o')
-
-    plt.title(f"Mean±std of unnormalized lambda weights in {args.dataset_name} for {args.model_name}")
-    plt.xticks([0, 1, 2, 3], ["90°", "180°", "270°", "0°"])
-    plt.xlabel(f"Group transormation of input")
-    plt.ylabel(f"Lambda weight for the transformed input")
-
-    plt.savefig(f"{output_dir}/weight_mean_viz.png")
+    # np.save(f"{output_dir}/lambda_weights_{MODEL_NAME}.npy", all_weights)
+    df.to_csv(f"{output_dir}/lambda_weights_{MODEL_NAME}.csv")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Weighted equituning')
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--device", default='cuda:0', type=str)
-    parser.add_argument("--k", default=1., type=int)
     parser.add_argument("--img_num", default=0, type=int)
     parser.add_argument("--num_prefinetunes", default=10, type=int, help="num of iterations for learning the lambda weights")
-    parser.add_argument("--num_finetunes", default=8, type=int)
-    parser.add_argument("--iter_per_prefinetune", default=100, type=int)
-    parser.add_argument("--iter_per_finetune", default=500, type=int)
-    parser.add_argument("--iter_print_freq", default=50, type=int)
-    parser.add_argument("--logit_factor", default=1., type=float)
-    parser.add_argument("--prelr", default=0.33, type=float)
-    parser.add_argument("--lr", default=0.001, type=float)
+    # parser.add_argument("--num_finetunes", default=8, type=int)
+    # parser.add_argument("--iter_per_prefinetune", default=100, type=int)
+    # parser.add_argument("--iter_per_finetune", default=500, type=int)
     parser.add_argument("--data_transformations", default="", type=str, help=["", "flip", "rot90"])
     parser.add_argument("--group_name", default="", type=str, help=["", "flip", "rot90"])
     parser.add_argument("--method", default="equitune", type=str, help=["vanilla", "equitune", "equizero"])
@@ -230,6 +155,8 @@ if __name__ == "__main__":
     parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
+    parser.add_argument("--visualize_features", action='store_true', 
+        help="Visualize intermediate features on top of the lambda weights")
     args = parser.parse_args()
 
     args.verbose = True
