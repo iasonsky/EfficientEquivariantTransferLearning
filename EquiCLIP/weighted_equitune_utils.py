@@ -111,7 +111,7 @@ def compute_logits(
 
         # we now have EQUIVARIANT features
 
-        final_features = finish_resnet_forward(model.visual, combined_features)
+        final_features = finish_resnet_forward(model.visual, combined_features.type(model.dtype))
 
         logits = final_features @ zeroshot_weights  # B, num_classes
     elif args.method == "vanilla" or feature_combination_module is None:

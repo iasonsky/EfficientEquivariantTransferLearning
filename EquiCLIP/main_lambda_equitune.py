@@ -51,9 +51,10 @@ def main(args):
     if args.method == "attention":
         if args.prelr > 0.01:
             print("Attention model is being trained with a high learning rate. This is not recommended.")
-        # optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
-        optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr, eps=1e-4)
-        lr_scheduler = optim.lr_scheduler.LinearLR(optimizer1, start_factor=0.01, total_iters=100)
+        optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
+        # optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr, eps=1e-5)
+        # warmup scheduler
+        # lr_scheduler = optim.lr_scheduler.LinearLR(optimizer1, start_factor=0.01, total_iters=100)
     else:
         # only weight_net is trained not the model itself
         optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)

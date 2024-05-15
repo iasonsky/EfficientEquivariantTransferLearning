@@ -36,45 +36,51 @@ class AttentionAggregation(nn.Module):
         if model_name != "RN50":
             raise NotImplementedError
         self.in_dims = [2048, 7, 7]
-        self.dim = 50
+        self.dim = 128
+
+        self.per_channel_out = 8
+        self.per_channel_channels = 32
+        self.dtype = torch.float32
 
         # the task of this thing is to encode the general "direction" of features
         self.per_channel_query_preprocessing = nn.Sequential(
-            nn.Conv2d(1, 64, padding=1, kernel_size=3),
+            nn.Conv2d(1, self.per_channel_channels, kernel_size=3),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3),
-            nn.ReLU(),
-        ).half()
+            # nn.Conv2d(self.per_channel_channels, self.per_channel_channels, kernel_size=3),
+            # nn.ReLU(),
+        ).type(self.dtype)
 
         self.pre_query_projection = nn.Sequential(
-            nn.Linear(64 * 5 * 5, 16),
+            nn.Linear(self.per_channel_channels * 5 * 5, self.per_channel_out),
             nn.ReLU()
-        ).half()
+        ).type(self.dtype)
 
         self.per_channel_key_preprocessing = nn.Sequential(
-            nn.Conv2d(1, 64, padding=1, kernel_size=3),
+            nn.Conv2d(1, self.per_channel_channels, kernel_size=3),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3),
-            nn.ReLU(),
-        ).half()
+            # nn.Conv2d(self.per_channel_channels, self.per_channel_channels, kernel_size=3),
+            # nn.ReLU(),
+        ).type(self.dtype)
 
         self.pre_key_projection = nn.Sequential(
-            nn.Linear(64 * 5 * 5, 16),
+            nn.Linear(self.per_channel_channels * 5 * 5, self.per_channel_out),
             nn.ReLU()
-        ).half()
+        ).type(self.dtype)
 
-        self.attn_in = 2048 * 16
+        self.attn_in = 2048 * self.per_channel_out
 
         self.q = nn.Sequential(
-            nn.Linear(self.attn_in, 50),
+            nn.Linear(self.attn_in, self.dim),
             nn.ReLU(),
-            nn.Linear(50, self.dim)
-        ).half()
+            nn.Linear(self.dim, self.dim)
+        ).type(self.dtype)
         self.k = nn.Sequential(
-            nn.Linear(self.attn_in, 50),
+            nn.Linear(self.attn_in, self.dim),
             nn.ReLU(),
-            nn.Linear(50, self.dim)
-        ).half()
+            nn.Linear(self.dim, self.dim)
+        ).type(self.dtype)
+
+        # todo: second attention layer
 
     def forward(self, x):
         """
@@ -85,6 +91,7 @@ class AttentionAggregation(nn.Module):
         Returns:
 
         """
+        x = x.type(self.dtype)
         original_shape = x.shape
 
         values = x.clone().flatten(start_dim=2)
