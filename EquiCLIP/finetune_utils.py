@@ -97,7 +97,8 @@ def finetune_clip(args, model, optimizer, criterion, zeroshot_weights, loader, d
         # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
         logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
         # logits = -torch.nn.functional.softmax(-logits, dim=-1)
-        logits = torch.nn.functional.softmax(logits, dim=-1)
+        if args.softmax:
+            logits = torch.nn.functional.softmax(logits, dim=-1)
         # print(f"logits.shape: {logits.shape}")
 
         # measure accuracy
