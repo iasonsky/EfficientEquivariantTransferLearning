@@ -81,12 +81,11 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
-              feature_combination_module=None, val=False, model_=None, save_scores=False):
+              feature_combination_module=None, val=False, save_scores=False):
     import time
     since = time.time()
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
-        image_features_ = None
         for i, (images, target) in enumerate(tqdm(loader)):
             if val and i == 50:
                 break
@@ -107,18 +106,9 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
 
             # predict
             image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-            if not model_ is None:
-                image_features_ = model_.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-
-            # print(f"image_features.shape: {image_features.shape}")
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-
-            if not model_ is None:
-                image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
-                image_features_ = image_features_ / image_features_norm_
 
             logits = compute_logits(args, feature_combination_module,
-                                    image_features, image_features_,
+                                    image_features,
                                     zeroshot_weights, group_images_shape[0])
 
             # measure accuracy

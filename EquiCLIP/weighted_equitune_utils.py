@@ -66,11 +66,9 @@ def get_equitune_output(output, target, topk=(1,), group_name=""):
 
 def compute_logits(args,
                    feature_combination_module: Union[WeightNet, AttentionAggregation],
-                   image_features, image_features_,
+                   image_features,
                    zeroshot_weights,
                    group_size):
-    if getattr(args, 'use_underscore', False) is False:
-        image_features_ = image_features
     if args.method == "attention":
         # to B, N, D form
         image_features = image_features.view(-1, group_size, image_features.shape[-1])
@@ -86,17 +84,8 @@ def compute_logits(args,
         # weighted image features
         # use .half since the model is in fp16
         # normalize group weights proportional to size of group_size
-        group_weights = feature_combination_module(image_features_.float()).half()  # dim [group_size * batch_size, feat_size]
+        group_weights = feature_combination_module(image_features.float()).half()  # dim [group_size * batch_size, feat_size]
         # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
-
-        # group_weights = group_weights.reshape(group_images_shape[0], -1, 1)
-        # group_weights = F.softmax(group_weights, dim=0)
-        # weight_sum = torch.sum(group_weights, dim=0, keepdim=True)
-        # print(f"weight_sum: {weight_sum}")
-        # print(f"group weights: {group_weights.permute(1, 0, 2)}")
-        # group_size = group_sizes[args.group_name]
-        # group_weights = group_size * (group_weights / weight_sum)
-        # group_weights = group_weights.reshape(-1, 1)
 
         # image_features = image_features_ * torch.broadcast_to(group_weights, image_features_.shape)
         # i think this is the same as the einsum, but lets stick to the original code
@@ -114,13 +103,14 @@ def compute_logits(args,
     return logits
 
 
-def weighted_equitune_clip(args, model: CLIP,
-                           feature_combination_module: Union[WeightNet, AttentionAggregation],
-                           optimizer, criterion,
-                           zeroshot_weights, loader,
-                           data_transformations="", group_name="",
-                           num_iterations=100, iter_print_freq=10, device="cuda:0",
-                           model_=None):
+def weighted_equitune_clip(
+        args, model: CLIP,
+        feature_combination_module: Union[WeightNet, AttentionAggregation],
+        optimizer, criterion,
+        zeroshot_weights, loader,
+        data_transformations="", group_name="",
+        num_iterations=100, iter_print_freq=10, device="cuda:0",
+):
     """
     Trains either model (clip), or weightnet, or both, depending on the optimizer
     Args:
@@ -173,18 +163,8 @@ def weighted_equitune_clip(args, model: CLIP,
 
         # predict
         image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-        if not model_ is None:
-            image_features_ = model_.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
 
-        # print(f"image_features.shape: {image_features.shape}")
-        image_features_norm = image_features.clone().norm(dim=-1, keepdim=True)
-        image_features = image_features / image_features_norm
-
-        if not model_ is None:
-            image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
-            image_features_ = image_features_ / image_features_norm_
-
-        logits = compute_logits(args, feature_combination_module, image_features, image_features_,
+        logits = compute_logits(args, feature_combination_module, image_features,
                                 zeroshot_weights, group_images_shape[0])
 
         # measure accuracy

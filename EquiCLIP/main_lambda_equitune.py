@@ -76,7 +76,7 @@ def main(args):
 
     val_kwargs = {
         "data_transformations": args.data_transformations, "group_name": args.group_name,
-        "device": args.device, "feature_combination_module": feature_combination_module, "model_": model_,
+        "device": args.device, "feature_combination_module": feature_combination_module,
     }
 
     train_kwargs = val_kwargs.copy()
