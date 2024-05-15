@@ -104,10 +104,10 @@ def compute_logits(
         # to B, N, D form. where D is [C, H, H], and N is the group size
         image_features = image_features.transpose(0, 1)
 
-        # combined_features = feature_combination_module(image_features.float()).half()  # dim [batch_size, feat_size]
+        combined_features = feature_combination_module(image_features)  # dim [batch_size, feat_size]
 
         # take the avg
-        combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
+        # combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
 
         # we now have EQUIVARIANT features
 
@@ -149,7 +149,7 @@ def weighted_equitune_clip(
         optimizer, criterion,
         zeroshot_weights, loader,
         data_transformations="", group_name="",
-        num_iterations=100, iter_print_freq=10, device="cuda:0",
+        num_iterations=100, device="cuda:0", lr_scheduler=None
 ):
     """
     Trains either model (clip), or weightnet, or both, depending on the optimizer
@@ -164,9 +164,7 @@ def weighted_equitune_clip(
         data_transformations:
         group_name:
         num_iterations: steps to train
-        iter_print_freq:
         device:
-        model_:
 
     Returns:
 
@@ -210,5 +208,8 @@ def weighted_equitune_clip(
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+        if lr_scheduler is not None:
+            # print(lr_scheduler.get_last_lr())
+            lr_scheduler.step()
 
     return model

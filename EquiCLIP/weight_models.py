@@ -31,23 +31,22 @@ class WeightNet(nn.Module):
 
 
 class AttentionAggregation(nn.Module):
-    def __init__(self, args):
+    def __init__(self, model_name):
         super().__init__()
-        if args.model_name == "RN50":
-            dim = 1024
-        else:
-            dim = 512
-        self.dim = dim
+        if model_name != "RN50":
+            raise NotImplementedError
+        self.in_dims = [2048, 7, 7]
+        self.dim = 50
         self.q = nn.Sequential(
-            nn.Linear(dim, dim),
+            nn.Linear(2048 * 7 * 7, 50),
             nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
+            nn.Linear(50, self.dim)
+        ).half()
         self.k = nn.Sequential(
-            nn.Linear(dim, dim),
+            nn.Linear(2048 * 7 * 7, 50),
             nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
+            nn.Linear(50, self.dim)
+        ).half()
 
     def forward(self, x):
         """
@@ -58,9 +57,10 @@ class AttentionAggregation(nn.Module):
         Returns:
 
         """
-        queries = self.q(x)
-        keys = self.k(x)
-        values = x.clone()
+        original_shape = x.shape
+        queries = self.q(x.flatten(start_dim=2))
+        keys = self.k(x.flatten(start_dim=2))
+        values = x.clone().flatten(start_dim=2)
 
         # Scaled dot-product attention
         scores = torch.matmul(queries, keys.transpose(-2, -1)) / torch.sqrt(
@@ -70,7 +70,8 @@ class AttentionAggregation(nn.Module):
 
         # Multiply weights with values
         output = torch.matmul(attention_weights, values)  # dim [B, N, D]
-        return output.mean(dim=1)
+        output = output.mean(dim=1)
+        return output.view(original_shape[0], *original_shape[-3:])
 
 
 if __name__ == "__main__":

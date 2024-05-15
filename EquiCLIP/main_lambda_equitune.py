@@ -33,7 +33,7 @@ def main(args):
     model, preprocess = load_model(args)
 
     if args.method == "attention":
-        feature_combination_module = AttentionAggregation(args)
+        feature_combination_module = AttentionAggregation(args.model_name)
     else:
         feature_combination_module = WeightNet(args)
     feature_combination_module.to(args.device)
@@ -47,10 +47,12 @@ def main(args):
     # optimizer and loss criterion
     criterion = nn.CrossEntropyLoss()
 
+    lr_scheduler = None
     if args.method == "attention":
         if args.prelr > 0.01:
             print("Attention model is being trained with a high learning rate. This is not recommended.")
-        optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr)
+        optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
+        # lr_scheduler = optim.lr_scheduler.LinearLR(optimizer1, start_factor=0.01, total_iters=100)
     else:
         # only weight_net is trained not the model itself
         optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
@@ -79,7 +81,6 @@ def main(args):
     }
 
     train_kwargs = val_kwargs.copy()
-    train_kwargs["iter_print_freq"] = args.iter_print_freq
     del train_kwargs["feature_combination_module"]
 
     if os.path.isfile(MODEL_PATH) and args.load:
@@ -103,8 +104,11 @@ def main(args):
                 best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
 
             # finetune prediction
-            model = weighted_equitune_clip(args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
-                                           train_loader, num_iterations=args.iter_per_prefinetune, **train_kwargs)
+            model = weighted_equitune_clip(
+                args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
+                train_loader, num_iterations=args.iter_per_prefinetune, lr_scheduler=lr_scheduler,
+                **train_kwargs
+            )
 
         torch.save(best_model_weights, MODEL_PATH)
         feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
@@ -142,7 +146,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_finetunes", default=8, type=int, help="number of finetune steps")
     parser.add_argument("--iter_per_prefinetune", default=100, type=int)
     parser.add_argument("--iter_per_finetune", default=500, type=int)
-    parser.add_argument("--iter_print_freq", default=50, type=int)
     parser.add_argument("--logit_factor", default=1., type=float)
     parser.add_argument("--prelr", default=0.33, type=float)
     parser.add_argument("--lr", default=0.000005, type=float)

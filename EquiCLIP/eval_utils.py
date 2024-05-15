@@ -82,8 +82,6 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
               feature_combination_module=None, val=False, save_scores=False):
-    import time
-    since = time.time()
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
         for i, (images, target) in enumerate(tqdm(loader)):
@@ -146,9 +144,6 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
         # save the top-5 accuracy as well
         with open(f"{folder}/top5_accuracy.txt", "w") as f:
             f.write(f"{top5:.2f}")
-    current_time = time.time()
-    time_elapsed = current_time - since
-    print(f"time elapsed: {time_elapsed}")
 
     if val:
         return top1
