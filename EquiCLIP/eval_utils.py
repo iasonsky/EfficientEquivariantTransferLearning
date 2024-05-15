@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn.functional as F
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 from weighted_equitune_utils import compute_logits
 from exp_utils import group_transform_images, random_transformed_images
@@ -88,7 +88,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
         image_features_ = None
-        for i, (images, target) in enumerate(tqdm(loader)):
+        for i, (images, target) in enumerate(tqdm(loader, desc="Evaluating CLIP")):
             if val and i == 50:
                 break
             images = images.to(device)  # dim [batch_size, c_in, H, H]
@@ -117,6 +117,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             if not model_ is None:
                 image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
                 image_features_ = image_features_ / image_features_norm_
+            else:
+                image_features_ = image_features
 
             logits = compute_logits(args, feature_combination_module,
                                     image_features, image_features_,
