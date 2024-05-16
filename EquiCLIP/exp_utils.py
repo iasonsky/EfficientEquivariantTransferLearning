@@ -47,8 +47,8 @@ def inverse_transform_images(images, group_name="rot90"):
     if group_name == "":
         return images
     elif group_name == "rot90":
-        assert len(images.shape) == 4  # for batch+group, channel, height, width
-        images = images.view(4, -1, images.shape[-3], images.shape[-2], images.shape[-1])
+        if len(images.shape) == 4:
+            images = images.view(4, -1, images.shape[-3], images.shape[-2], images.shape[-1])
         for i in range(4):
             images[i].rot90(k=-i, dims=(-2, -1))
         return images  # [4, B, C, H, W]

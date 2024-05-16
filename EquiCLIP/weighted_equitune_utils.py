@@ -100,6 +100,9 @@ def compute_logits(
 
         # unrotate
         # image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
+        # but the reshape should stay
+        assert len(image_features.shape) == 4  # for batch+group, channel, height, width
+        image_features = image_features.view(4, -1, image_features.shape[-3], image_features.shape[-2], image_features.shape[-1])
 
         # to B, N, D form. where D is [C, H, H], and N is the group size
         image_features = image_features.transpose(0, 1)
