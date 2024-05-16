@@ -1,9 +1,12 @@
+*.job
 data
 ImageNetV2-matched-frequency*
 __pycache__
-results
+runs/*
+results/*
+logs/*
+
 *.out
 *.log
 *.txt
-visualize_dataset.py
 wandb

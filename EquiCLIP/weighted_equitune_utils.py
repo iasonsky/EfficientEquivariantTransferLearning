@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from clip.model import CLIP
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm, trange
 
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images
@@ -128,11 +128,11 @@ def weighted_equitune_clip(args, model: CLIP,
     # for i, (images, target) in enumerate(tqdm(loader)):
     import time
     st_time = time.time()
-    for i in range(num_iterations):
-        if (i+1)%iter_print_freq == 0:
-            print(f"iteration number: {i+1}")
-            curr_time = time.time()
-            print(f"time elapsed per iter: {(curr_time - st_time) / (i + 1)}")
+    for i in trange(num_iterations, desc="Training CLIP and/or WeightNet"):
+        # if (i+1)%iter_print_freq == 0:
+        #     print(f"iteration number: {i+1}")
+        #     curr_time = time.time()
+        #     print(f"time elapsed per iter: {(curr_time - st_time) / (i + 1)}")
         (images, target) = next(training_iterator)
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
@@ -162,6 +162,8 @@ def weighted_equitune_clip(args, model: CLIP,
         if not model_ is None:
             image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
             image_features_ = image_features_ / image_features_norm_
+        else:
+            image_features_ = None  # filled in by compute_logits when it is empty
 
         logits = compute_logits(args, feature_combination_module, image_features, image_features_,
                                 zeroshot_weights, group_images_shape[0])
@@ -180,5 +182,8 @@ def weighted_equitune_clip(args, model: CLIP,
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+
+        # zero the parameter gradients - do it here to save a bit of VRAM before the next iteration
+        optimizer.zero_grad()
 
     return model
