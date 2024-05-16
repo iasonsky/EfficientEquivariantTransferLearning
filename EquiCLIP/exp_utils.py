@@ -47,11 +47,14 @@ def inverse_transform_images(images, group_name="rot90"):
     if group_name == "":
         return images
     elif group_name == "rot90":
-        if len(images.shape) == 4:
-            images = images.view(4, -1, images.shape[-3], images.shape[-2], images.shape[-1])
+        # expects [B, 4, C, H, W]
+        assert len(images.shape) == 5
+        assert images.shape[1] == 4, f"images.shape: {images.shape}"
         for i in range(4):
-            images[i].rot90(k=-i, dims=(-2, -1))
-        return images  # [4, B, C, H, W]
+            images[:, i, :, :, :].rot90(k=-i, dims=(-2, -1))
+            # i have no idea why but i get the same results when there is a bug in this code
+            # images[i].rot90(k=-i, dims=(-2, -1)) # this is wrong because this rotates part of the batch
+        return images  # [B, 4, C, H, W]
     else:
         raise NotImplementedError
 

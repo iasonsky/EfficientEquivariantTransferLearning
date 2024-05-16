@@ -29,15 +29,15 @@ class WeightNet(nn.Module):
         ).type(self.dtype)
 
         self.full_in = 2048 * self.per_channel_out
+        self.hidden = 128
 
         self.main = nn.Sequential(
-            nn.Linear(self.full_in, 512),
+            nn.Linear(self.full_in, self.hidden),
             nn.ReLU(),
-            nn.Linear(512, 512),
+            nn.Linear(self.hidden, self.hidden),
             nn.ReLU(),
-            nn.Linear(512, 1)
+            nn.Linear(self.hidden, 1)
         ).type(self.dtype)
-
 
     def forward(self, x):
         # takes [B, G, *feature_dims]
@@ -104,10 +104,9 @@ class AttentionAggregation(nn.Module):
             nn.Linear(self.dim, self.dim)
         ).type(self.dtype)
 
-        # todo: second attention layer
-
     def forward(self, x):
         """
+        This function only computes attention weights
 
         Args:
             x: features of shape [B, N, D], where N is cardinality of the group
@@ -117,8 +116,6 @@ class AttentionAggregation(nn.Module):
         """
         x = x.type(self.dtype)
         original_shape = x.shape
-
-        values = x.clone().flatten(start_dim=2)
 
         # preprocess the queries and keys
         x = x.reshape(-1, 1, self.in_dims[1], self.in_dims[2])
@@ -140,11 +137,7 @@ class AttentionAggregation(nn.Module):
             torch.tensor(self.dim, dtype=torch.float32))
 
         attention_weights = F.softmax(scores, dim=-1)
-
-        # Multiply weights with values
-        output = torch.matmul(attention_weights, values)  # dim [B, N, D]
-        output = output.mean(dim=1)
-        return output.view(original_shape[0], *original_shape[-3:])
+        return attention_weights
 
 
 if __name__ == "__main__":

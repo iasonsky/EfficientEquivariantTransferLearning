@@ -95,38 +95,52 @@ def compute_logits(
         group_name,
 ):
     if args.method == "attention" or args.method == "equitune":
+        group_size = int(group_sizes[group_name])
         image_features = conv_forward(model.visual, group_images.type(model.dtype))  # dim [group_size * batch_size, *feat_dims]
         # feature dims are [2048, 7, 7] for RN50
 
-        # unrotate
-        # image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
-        # but the reshape should stay
+        # convert to batch-first representation because i like it
         assert len(image_features.shape) == 4  # for batch+group, channel, height, width
         image_features = image_features.view(4, -1, image_features.shape[-3], image_features.shape[-2], image_features.shape[-1])
-
-        # to B, N, D form. where D is [C, H, H], and N is the group size
+        # to B, G, *D form. where D is [C, H, H], and G is the group size
         image_features = image_features.transpose(0, 1)
 
         if args.method == "attention":
-            raise NotImplementedError("no inverse transform is applied. should implement like discussed with Milan.")
-            combined_features = feature_combination_module(image_features)  # dim [batch_size, *feat_size]
+            original_shape = image_features.shape
+
+            attention_weights = feature_combination_module(image_features)  # dim [batch_size, group_size, group_size]
+            assert len(attention_weights.shape) == 3 and attention_weights.shape[1] == attention_weights.shape[2]
+
+            image_features = inverse_transform_images(image_features, group_name=group_name)  # [B, G, C, H, H]
+            assert image_features.shape[1] == group_size
+
+            # Finish applying attention
+            values = image_features.flatten(start_dim=2).type(feature_combination_module.dtype)  # [B, G, C*H*H]
+            combined_features = torch.matmul(attention_weights, values)  # dim [B, N, D]
+            combined_features = combined_features.view(original_shape)
+
+            # mean features over the group
+            combined_features = combined_features.mean(dim=1)
+            # verify it looks like one feature set
+            assert combined_features.shape[0] == original_shape[0]
+            assert combined_features.shape[-3:] == original_shape[-3:]
+            assert len(combined_features.shape) == 4
         else:
             weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
-            weights = weights.reshape(-1, int(group_sizes[group_name]))  # dim [batch_size, group_size]
+            weights = weights.reshape(-1, group_size)  # dim [batch_size, group_size]
             # this softmax normalizes the weights for each group
             weights = F.softmax(weights, dim=-1)  # dim [batch_size, group_size]
 
             weights = weights.unsqueeze(2).unsqueeze(3).unsqueeze(4).type(image_features.dtype)
 
             # unrotate after the weights have been calculated
-            image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
+            image_features = inverse_transform_images(image_features, group_name=group_name)  # [B, G, C, H, H]
+            assert image_features.shape[1] == group_size
 
             # to verify: is this truly equivariant?
 
             # sum and not mean because they normalized anyway
             combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
-        # take the avg
-        # combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
 
         # we now have EQUIVARIANT features (correction: they are not actually)
 
