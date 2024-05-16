@@ -99,12 +99,13 @@ def compute_logits(
         # feature dims are [2048, 7, 7] for RN50
 
         # unrotate
-        image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
+        # image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
 
         # to B, N, D form. where D is [C, H, H], and N is the group size
         image_features = image_features.transpose(0, 1)
 
         if args.method == "attention":
+            raise NotImplementedError("no inverse transform is applied. should implement like discussed with Milan.")
             combined_features = feature_combination_module(image_features)  # dim [batch_size, *feat_size]
         else:
             weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
@@ -113,6 +114,11 @@ def compute_logits(
             weights = F.softmax(weights, dim=-1)  # dim [batch_size, group_size]
 
             weights = weights.unsqueeze(2).unsqueeze(3).unsqueeze(4).type(image_features.dtype)
+
+            # unrotate after the weights have been calculated
+            image_features = inverse_transform_images(image_features, group_name=group_name)  # [group_size, B, C, H, H]
+
+            # to verify: is this truly equivariant?
 
             # sum and not mean because they normalized anyway
             combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
