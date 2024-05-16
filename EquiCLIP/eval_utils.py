@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn.functional as F
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 from weighted_equitune_utils import compute_logits
 from exp_utils import group_transform_images, random_transformed_images
@@ -81,13 +81,14 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
-              feature_combination_module=None, val=False, model_=None, save_scores=False):
+              feature_combination_module=None, # FIXME this is not an optional parameter, but the following ones are and I didn't want to change the order of parameters
+              val=False, model_=None, save_scores=False):
     import time
     since = time.time()
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
         image_features_ = None
-        for i, (images, target) in enumerate(tqdm(loader)):
+        for i, (images, target) in enumerate(tqdm(loader, desc="Evaluating CLIP")):
             if val and i == 50:
                 break
             images = images.to(device)  # dim [batch_size, c_in, H, H]
@@ -116,6 +117,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             if not model_ is None:
                 image_features_norm_ = image_features_.clone().norm(dim=-1, keepdim=True)
                 image_features_ = image_features_ / image_features_norm_
+            else:
+                image_features_ = image_features
 
             logits = compute_logits(args, feature_combination_module,
                                     image_features, image_features_,
@@ -129,7 +132,7 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             elif args.method == "attention":
                 acc1, acc5 = accuracy(logits, target, topk=(1, 5))
             else:
-                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name) 
+                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
             top1 += acc1
             top5 += acc5
             n += images.size(0)
