@@ -113,6 +113,29 @@ def compute_logits(args,
             logits = torch.nn.functional.softmax(logits, dim=-1)
     return logits
 
+def get_output(output, group_name="", reduction="mean"):
+
+    if group_name == "":
+        return output
+    
+    if group_name == "rot90":
+        group_size = 4
+    elif group_name == "flip":
+        group_size = 2
+    else:
+        raise NotImplementedError
+    
+    output_shape = output.shape
+    output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+    
+    if reduction == "mean":
+        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
+    elif reduction == "max":
+        output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
+    else:
+        raise ValueError("Unsupported reduction type. Use 'mean' or 'max'.")
+    
+    return output
 
 def weighted_equitune_clip(args, model: CLIP,
                            feature_combination_module: Union[WeightNet, AttentionAggregation],
