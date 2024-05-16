@@ -87,7 +87,14 @@ def main(args):
         for j in range(4):
             x = torch.rot90(x, k=1, dims=(-1, -2))
             x_group.append(x)
-            image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
+            if args.visualize_features:
+                # Image 'features' here are really the image embeddings produced by CLIP, which are invariant
+                # `internal_features` are the output of the last convolution layer of the backbone, 
+                # where we expect to see actual equivariance
+                image_features, internal_features = model.encode_image(x, return_internal_features=True)  # dim [group_size * batch_size, feat_size=512]
+                writer.add_image(f'internal features {k}', grid, j)
+            else:
+                image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
             weights = weight_net(image_features.float()).half()
             assert weights.shape[-1] == 1
             for k in range(len(weights)):
@@ -148,6 +155,8 @@ if __name__ == "__main__":
     parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
+    parser.add_argument("--visualize_features", action='store_true', 
+        help="Visualize intermediate features on top of the lambda weights")
     args = parser.parse_args()
 
     args.verbose = True

@@ -6,7 +6,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-print(f"MY CLIP IMPORTED")
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -136,7 +135,7 @@ class ModifiedResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x, return_internal_features=False):
         def stem(x):
             x = self.relu1(self.bn1(self.conv1(x)))
             x = self.relu2(self.bn2(self.conv2(x)))
@@ -144,15 +143,26 @@ class ModifiedResNet(nn.Module):
             x = self.avgpool(x)
             return x
 
+        # print("input ", x.shape)
         x = x.type(self.conv1.weight.dtype)
+        # print("type conv ", x.shape)
         x = stem(x)
+        # print("stem ", x.shape)
         x = self.layer1(x)
+        # print("l1 ", x.shape)
         x = self.layer2(x)
+        # print("l2 ", x.shape)
         x = self.layer3(x)
+        # print("l3 ", x.shape)
         x = self.layer4(x)
-        x = self.attnpool(x)
+        # print("l4 ", x.shape)
+        out = self.attnpool(x)
+        # print("attnpool ", out.shape)
 
-        return x
+        if return_internal_features:
+            return out, x
+        else:
+            return out
 
 
 class LayerNorm(nn.LayerNorm):
@@ -338,8 +348,8 @@ class CLIP(nn.Module):
     def dtype(self):
         return self.visual.conv1.weight.dtype
 
-    def encode_image(self, image):
-        return self.visual(image.type(self.dtype))
+    def encode_image(self, image, return_internal_features=False):
+        return self.visual(image.type(self.dtype), return_internal_features=return_internal_features)
 
     def encode_text(self, text):
         x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
