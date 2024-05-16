@@ -105,10 +105,10 @@ def compute_logits(
         image_features = image_features.transpose(0, 1)
 
         if args.method == "attention":
-            combined_features = feature_combination_module(image_features)  # dim [batch_size, feat_size]
+            combined_features = feature_combination_module(image_features)  # dim [batch_size, *feat_size]
         else:
             weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
-            weights = weights.reshape(-1, group_sizes[group_name])  # dim [batch_size, group_size]
+            weights = weights.reshape(-1, int(group_sizes[group_name]))  # dim [batch_size, group_size]
             # this softmax normalizes the weights for each group
             weights = F.softmax(weights, dim=-1)  # dim [batch_size, group_size]
 
