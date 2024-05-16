@@ -210,6 +210,5 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
     current_time = time.time()
     time_elapsed = current_time - since
     print(f"time elapsed: {time_elapsed}")
-
-    if val:
-        return top1, top5, precision
+    
+    return top1, top5, precision

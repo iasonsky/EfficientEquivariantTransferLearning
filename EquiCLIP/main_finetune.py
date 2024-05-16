@@ -59,7 +59,7 @@ def main(args):
         # zeroshot prediction on validation set
         print(f"Validation accuracy!")
         logging.info(f"Validation accuracy!")
-        top1_val_accuracy, top5_val_accuracy, precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
+        top1_val_accuracy, top5_val_accuracy, precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
         wandb.log({"top1_val_accuracy": top1_val_accuracy, "top5_val_accuracy": top5_val_accuracy, "precision": precision})
         # finetune prediction
         logging.info(f"Model finetune step number: {i+1}/{args.num_finetunes}")
