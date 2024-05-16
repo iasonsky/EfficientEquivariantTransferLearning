@@ -6,6 +6,7 @@ import torch
 import clip
 import argparse
 import pytorch_lightning as pl
+import wandb
 
 from tqdm import tqdm
 from pkg_resources import packaging
@@ -18,6 +19,9 @@ from eval_utils import eval_clip
 print("Torch version:", torch.__version__)
 
 def main(args):
+    # Initialize wandb
+    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
+    wandb.run.name = f"zs_{args.method}_{args.dataset_name}_{args.model_name}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model, preprocess = load_model(args)
 
@@ -33,10 +37,12 @@ def main(args):
     # zeroshot prediction
     import time
     st_time = time.time()
-    eval_clip(args, model, zeroshot_weights, dataloader, data_transformations=args.data_transformations,
+    zeroshot_top1_acc, zeroshot_top5_acc, zeroshot_precision = eval_clip(args, model, zeroshot_weights, dataloader, data_transformations=args.data_transformations,
               group_name=args.group_name)
+    wandb.log({"zeroshot_top1_acc": zeroshot_top1_acc, "zeroshot_top5_acc": zeroshot_top5_acc, "zeroshot_precision": zeroshot_precision})
     end_time = time.time()
     print(f"time taken: {end_time - st_time}")
+    wandb.finish()
 
 
 if __name__ == "__main__":
