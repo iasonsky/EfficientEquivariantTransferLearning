@@ -119,7 +119,7 @@ def compute_logits(
         # take the avg
         # combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
 
-        # we now have EQUIVARIANT features
+        # we now have EQUIVARIANT features (correction: they are not actually)
 
         final_features = finish_resnet_forward(model.visual, combined_features.type(model.dtype))
 
@@ -130,26 +130,7 @@ def compute_logits(
         if args.softmax:
             logits = torch.nn.functional.softmax(logits, dim=-1)
     else:
-        image_features = model.encode_image(group_images)  # dim [group_size * batch_size, feat_size=512]
-        # weighted image features
-        # use .half since the model is in fp16
-        # normalize group weights proportional to size of group_size
-        group_weights = feature_combination_module(image_features.float()).half()  # dim [group_size * batch_size, feat_size]
-        # but that should reduce the dim to [group_size * batch_size, 1], no? then that k in einsum makes sense
-
-        # image_features = image_features_ * torch.broadcast_to(group_weights, image_features_.shape)
-        # i think this is the same as the einsum, but lets stick to the original code
-        image_features = torch.einsum('ij, ik -> ij', image_features.clone(), group_weights)
-
-        # zeroshot weights correspond to text features for all possible classes
-        # logits = 100. * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-        # IMPORTANT NOTE: higher logit factors automatically biases the model towards the one with higher scores, hence,
-        # acts like (un)equituning naturally even without lambda
-        logits = args.logit_factor * image_features @ zeroshot_weights  # dim [group_size * batch_size, num_classes=1000]
-
-        if args.softmax:
-            logits = torch.nn.functional.softmax(logits, dim=-1)
+        raise NotImplementedError
     return logits
 
 
@@ -203,13 +184,13 @@ def weighted_equitune_clip(
                                 zeroshot_weights, group_name)
 
         # measure accuracy
-        if args.method == "equitune":
-            output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
-        elif args.method == "equizero":
+        # if args.method == "equitune":
+        #     output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
+        if args.method == "equizero":
             equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)
             equi0_output = get_equi0_output(logits, target, topk=(1,), group_name=group_name)
             output = equitune_output + (equi0_output - equitune_output).detach()
-        elif args.method == "attention":
+        elif args.method == "attention" or args.method == "equitune":
             output = logits
         else:
             output = get_equi0_output(logits, target, topk=(1,), group_name="")

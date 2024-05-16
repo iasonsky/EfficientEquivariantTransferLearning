@@ -106,11 +106,11 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                                     zeroshot_weights, group_name)
 
             # measure accuracy
-            if args.method == "equitune":
-                acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
-            elif args.method == "equizero":
+            # if args.method == "equitune":
+            #     acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+            if args.method == "equizero":
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
-            elif args.method == "attention":
+            elif args.method == "attention" or args.method == "equitune":
                 acc1, acc5 = accuracy(logits, target, topk=(1, 5))
             else:
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name) 
