@@ -94,7 +94,7 @@ def compute_logits(
         zeroshot_weights,
         group_name,
 ):
-    if args.method == "attention":
+    if args.method == "attention" or args.method == "equitune":
         image_features = conv_forward(model.visual, group_images.type(model.dtype))  # dim [group_size * batch_size, *feat_dims]
         # feature dims are [2048, 7, 7] for RN50
 
@@ -104,8 +104,18 @@ def compute_logits(
         # to B, N, D form. where D is [C, H, H], and N is the group size
         image_features = image_features.transpose(0, 1)
 
-        combined_features = feature_combination_module(image_features)  # dim [batch_size, feat_size]
+        if args.method == "attention":
+            combined_features = feature_combination_module(image_features)  # dim [batch_size, feat_size]
+        else:
+            weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
+            weights = weights.reshape(-1, group_sizes[group_name])  # dim [batch_size, group_size]
+            # this softmax normalizes the weights for each group
+            weights = F.softmax(weights, dim=-1)  # dim [batch_size, group_size]
 
+            weights = weights.unsqueeze(2).unsqueeze(3).unsqueeze(4).type(image_features.dtype)
+
+            # sum and not mean because they normalized anyway
+            combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
         # take the avg
         # combined_features = image_features.mean(dim=1)  # dim [batch_size, **feat_dims]
 
