@@ -31,7 +31,7 @@ print("Torch version:", torch.__version__)
 def main(args):
     # Initialize wandb
     wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
-    wandb.run.name = f"lambda_{args.method}_{args.dataset_name}_{args.model_name}_{args.group_name}_{args.data_transformations}"
+    wandb.run.name = f"lambda_{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
     model, preprocess = load_model(args)
@@ -99,11 +99,11 @@ def main(args):
             # add weight_net save code for the best model
 
             # evaluating for only 50 steps using val=True
-            prefinetune_top1_acc, prefinetune_top1_acc, prefinetune_precision = eval_clip(
+            prefinetune_top1_acc, prefinetune_top1_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
                 args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
             )
-            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top1_acc,
-                       "prefinetune_precision": prefinetune_precision})
+            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top1_acc, "prefinetune_precision": prefinetune_precision, 
+                       "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
             if prefinetune_top1_acc > best_top1:
                 best_top1 = prefinetune_top1_acc
                 best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
@@ -119,8 +119,8 @@ def main(args):
     print(f"Validation accuracy!")
     logging.info(f"Validation accuracy!")
     # val=True only for choosing the best lambda weights using the trainloader
-    val_top1_acc, val_top5_acc, val_precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
-    wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision})
+    val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
+    wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
     if args.full_finetune:
         optimizer2 = optim.SGD(list(model.parameters()) + list(feature_combination_module.parameters()), lr=args.lr, momentum=0.9)
     else:
@@ -134,10 +134,11 @@ def main(args):
                                        optimizer2, criterion, zeroshot_weights, train_loader,
                                        num_iterations=args.iter_per_finetune,
                                        **train_kwargs)
-        finetune_top1_acc, finetune_top5_acc, finetune_precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
-        wandb.log({"finetune_top1_acc": finetune_top1_acc, "finetune_top5_acc": finetune_top5_acc, "finetune_precision": finetune_precision})
-    final_top1_acc, final_top5_acc, final_precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
-    wandb.log({"final_top1_acc": final_top1_acc, "final_top5_acc": final_top5_acc, "final_precision": final_precision})
+        finetune_top1_acc, finetune_top5_acc, finetune_precision, finetune_recall, finetune_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
+        wandb.log({"finetune_top1_acc": finetune_top1_acc, "finetune_top5_acc": finetune_top5_acc, "finetune_precision": finetune_precision,
+                    "finetune_recall": finetune_recall, "finetune_f1_score": finetune_f1_score})
+    final_top1_acc, final_top5_acc, final_precision, final_recall, final_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
+    wandb.log({"final_top1_acc": final_top1_acc, "final_top5_acc": final_top5_acc, "final_precision": final_precision, "final_recall": final_recall, "final_f1_score": final_f1_score})
     wandb.finish()
 
 if __name__ == "__main__":

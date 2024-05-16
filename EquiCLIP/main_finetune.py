@@ -27,7 +27,7 @@ print("Torch version:", torch.__version__)
 def main(args):
     # Initialize wandb
     wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
-    wandb.run.name = f"{args.method}_{args.dataset_name}_{args.model_name}_{args.group_name}_{args.data_transformations}"
+    wandb.run.name = f"{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
     model, preprocess = load_model(args)
@@ -59,8 +59,8 @@ def main(args):
         # zeroshot prediction on validation set
         print(f"Validation accuracy!")
         logging.info(f"Validation accuracy!")
-        top1_val_accuracy, top5_val_accuracy, precision = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
-        wandb.log({"top1_val_accuracy": top1_val_accuracy, "top5_val_accuracy": top5_val_accuracy, "precision": precision})
+        top1_val_accuracy, top5_val_accuracy, precision, recall, f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
+        wandb.log({"top1_val_accuracy": top1_val_accuracy, "top5_val_accuracy": top5_val_accuracy, "precision": precision, "recall": recall, "f1_score": f1_score})
         # finetune prediction
         logging.info(f"Model finetune step number: {i+1}/{args.num_finetunes}")
         model = finetune_clip(args, model, optimizer, criterion, zeroshot_weights, train_loader, **train_kwargs)
