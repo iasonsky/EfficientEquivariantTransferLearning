@@ -1,4 +1,5 @@
 import torch
+import wandb
 
 from tqdm import tqdm
 from exp_utils import group_transform_images, random_transformed_images
@@ -77,5 +78,6 @@ def finetune_clip(args, model, optimizer, criterion, zeroshot_weights, loader, d
         loss.backward()
         optimizer.step()
 
+        wandb.log({"loss": loss.item()})
 
     return model

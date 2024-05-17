@@ -3,7 +3,7 @@ from typing import Optional, Union
 import torch
 import torch.nn.functional as F
 from clip.model import CLIP
-
+import wandb
 from tqdm.autonotebook import tqdm, trange
 
 from weight_models import AttentionAggregation, WeightNet
@@ -183,6 +183,7 @@ def weighted_equitune_clip(args, model: CLIP,
         loss.backward()
         optimizer.step()
 
+        wandb.log({"loss": loss.item()})
         # zero the parameter gradients - do it here to save a bit of VRAM before the next iteration
         optimizer.zero_grad()
 
