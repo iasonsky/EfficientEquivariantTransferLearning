@@ -81,7 +81,7 @@ def equitune_accuracy(output, target, topk=(1,), group_name=""):
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
-              feature_combination_module=None, # FIXME this is not an optional parameter, but the following ones are and I didn't want to change the order of parameters
+              feature_combination_module=None,
               val=False, save_scores=False):
     with torch.no_grad():
         top1, top5, n = 0., 0., 0.
