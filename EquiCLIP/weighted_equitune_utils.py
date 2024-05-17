@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from clip.model import CLIP, ModifiedResNet
 
-from tqdm import tqdm
+from tqdm.autonotebook import trange
 
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images, verify_equivariance
@@ -188,7 +188,7 @@ def weighted_equitune_clip(
     torch.autograd.set_detect_anomaly(True)
     training_iterator = cycle(iter(loader))
 
-    for _ in tqdm(range(num_iterations)):
+    for _ in trange(num_iterations, desc="Training CLIP and/or WeightNet"):
         (images, target) = next(training_iterator)
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
@@ -209,8 +209,6 @@ def weighted_equitune_clip(
                                 zeroshot_weights, group_name)
 
         # measure accuracy
-        # if args.method == "equitune":
-        #     output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
         if args.method == "equizero":
             equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)
             equi0_output = get_equi0_output(logits, target, topk=(1,), group_name=group_name)
@@ -227,5 +225,8 @@ def weighted_equitune_clip(
         if lr_scheduler is not None:
             # print(lr_scheduler.get_last_lr())
             lr_scheduler.step()
+
+        # zero the parameter gradients - do it here to save a bit of VRAM before the next iteration
+        optimizer.zero_grad()
 
     return model

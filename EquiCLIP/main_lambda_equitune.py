@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.optim as optim
 import logging
 
-from tqdm import tqdm
+from tqdm.autonotebook import trange
 from weight_models import WeightNet, AttentionAggregation
 from load_model import load_model
 from weighted_equitune_utils import weighted_equitune_clip
@@ -82,8 +82,10 @@ def main(args):
     MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
     val_kwargs = {
-        "data_transformations": args.data_transformations, "group_name": args.group_name,
-        "device": args.device, "feature_combination_module": feature_combination_module,
+        "data_transformations": args.data_transformations,
+        "group_name": args.group_name,
+        "device": args.device,
+        "feature_combination_module": feature_combination_module,
     }
 
     train_kwargs = val_kwargs.copy()
@@ -92,7 +94,7 @@ def main(args):
     if os.path.isfile(MODEL_PATH) and args.load:
         feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
     else:
-        for i in range(args.num_prefinetunes):
+        for i in trange(args.num_prefinetunes, desc="Pre-fine tunes"):
             if args.method == "attention":
                 print(f"Learning attention weights: {i}/{args.num_prefinetunes}")
             else:
@@ -102,7 +104,7 @@ def main(args):
 
             # evaluating for only 50 steps using val=True
             top1 = eval_clip(
-                args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
+               args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
             )
 
             if top1 > best_top1:
@@ -130,7 +132,7 @@ def main(args):
     else:
         optimizer2 = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
-    for i in range(args.num_finetunes):
+    for i in trange(args.num_finetunes, desc="Fine tunes"):
         print(f"Model finetune step number: {i}/{args.num_finetunes}")
         logging.info(f"Model finetune step number: {i}/{args.num_finetunes}")
 
@@ -165,7 +167,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=str(["ImagenetV2", "CIFAR100", "ISIC2018", "MNIST"]))
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--softmax", action='store_true')
-    parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--undersample", action='store_true')

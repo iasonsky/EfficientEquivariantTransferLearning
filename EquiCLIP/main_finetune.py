@@ -55,7 +55,7 @@ def main(args):
         # zeroshot prediction on validation set
         print(f"Validation accuracy!")
         logging.info(f"Validation accuracy!")
-        eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
+        eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
         print("zeroshot prediction done")
         # finetune prediction
         logging.info(f"Model finetune step number: {i+1}/{args.num_finetunes}")
