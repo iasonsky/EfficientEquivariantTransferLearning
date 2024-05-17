@@ -88,7 +88,15 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             if val and i == 50:
                 break
             images = images.to(device)  # dim [batch_size, c_in, H, H]
-            images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
+
+            if args.validate_equivariance:
+                # for verification apply group transformations a predictable manner, duplicating the batch
+                original_shape = images.shape
+                images = group_transform_images(images, group_name=group_name)
+                images = images.view(-1, *original_shape[1:])
+                # now we have somthing like [up1, up2, right1, right2, down1, down2, left1, left2]
+            else:
+                images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
             # images = torch.rot90(images, k=1, dims=(-2, -1))
             group_images = group_transform_images(images,
@@ -103,11 +111,11 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             # print(f"target.shape: {target.shape}")
 
             logits = compute_logits(args, model, feature_combination_module, group_images,
-                                    zeroshot_weights, group_name)
+                                    zeroshot_weights, group_name, validate_equivariance=args.validate_equivariance)
 
-            # measure accuracy
-            # if args.method == "equitune":
-            #     acc1, acc5 = equitune_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+            if args.validate_equivariance:
+                target = target.repeat(int(group_sizes[group_name]))
+
             if args.method == "equizero":
                 acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
             elif args.method == "attention" or args.method == "equitune":

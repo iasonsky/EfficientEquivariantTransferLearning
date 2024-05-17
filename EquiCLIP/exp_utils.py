@@ -59,6 +59,33 @@ def inverse_transform_images(images, group_name="rot90"):
         raise NotImplementedError
 
 
+def verify_equivariance(image_features, group_name="rot90"):
+    """
+    Verify that features of [i] and [j*(batch//group_size) + i] are the same up to a rotation
+    Args:
+        image_features: image features of shape [G*B, C, H, H]
+        group_name:
+
+    Returns:
+
+    """
+    if group_name != "rot90":
+        raise NotImplementedError
+
+    group_size = 4
+    batch_size = image_features.shape[0]
+    primary_batch = batch_size // group_size
+    assert len(image_features.shape) == 4, f"image_features.shape: {image_features.shape}"
+    for i in range(1, group_size):
+        for j in range(primary_batch):
+            idx1 = j
+            idx2 = i * primary_batch + j
+            assert torch.allclose(image_features[idx1], image_features[idx2], rtol=1e-3), \
+                (f"idx1: {idx1}, idx2: {idx2},\n"
+                 f"features1: {image_features[idx1]},\n\nfeatures2: {image_features[idx2]}")
+    print("Successfully verified equivariance!")
+
+
 class RandomRot90(object):
     """
     Random rotation along given axis in multiples of 90
