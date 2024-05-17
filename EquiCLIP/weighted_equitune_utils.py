@@ -7,7 +7,8 @@ from clip.model import CLIP, ModifiedResNet
 from tqdm.autonotebook import trange
 
 from weight_models import AttentionAggregation, WeightNet
-from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images, verify_equivariance
+from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images, verify_invariance, \
+    verify_weight_equivariance
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
@@ -142,7 +143,13 @@ def compute_logits(
             combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
 
         if validate_equivariance:
-            verify_equivariance(combined_features, group_name=group_name)
+            # actually verify invariance of combined features because that is much easier
+            # than verifying equivariance of the attention weights
+            verify_invariance(combined_features, group_name=group_name)
+            # for weightnet we can do that though
+            if args.method == "equitune":
+                weights = weights.reshape(-1, group_size)
+                verify_weight_equivariance(weights, group_name=group_name)
 
         # we now have EQUIVARIANT features (correction: they are not actually)
 
