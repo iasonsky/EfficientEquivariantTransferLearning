@@ -151,8 +151,6 @@ def compute_logits(
                 weights = weights.reshape(-1, group_size)
                 verify_weight_equivariance(weights, group_name=group_name)
 
-        # we now have EQUIVARIANT features (correction: they are not actually)
-
         final_features = finish_resnet_forward(model.visual, combined_features.type(model.dtype))
 
         logits = final_features @ zeroshot_weights  # B, num_classes
