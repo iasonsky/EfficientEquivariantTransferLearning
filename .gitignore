@@ -10,3 +10,4 @@ logs/*
 *.log
 *.txt
 wandb
+!compare_original_updated.job

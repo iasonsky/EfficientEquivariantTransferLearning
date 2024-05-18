@@ -25,7 +25,9 @@ def accuracy(output, target, topk=(1,)):
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
 
 def get_output(output, group_name="", reduction="mean"):
-    if group_name == "rot90":
+    if group_name == "":
+        return output
+    elif group_name == "rot90":
         group_size = 4
     elif group_name == "flip":
         group_size = 2

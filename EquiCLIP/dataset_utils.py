@@ -328,6 +328,13 @@ def get_ft_dataloader(args, preprocess):
 
         mnist_eval = MNIST("./data", transform=preprocess, download=True, train=False)
         eval_loader = torch.utils.data.DataLoader(mnist_eval, batch_size=32, num_workers=2)
+    elif args.dataset_name == "ImagenetV2":
+        from imagenetv2_pytorch import ImageNetV2Dataset
+        train_dataset = ImageNetV2Dataset(transform=preprocess) #  variant="matched-frequency"
+        train_dataset, eval_dataset = torch.utils.data.random_split(train_dataset, [8000, 2000]) 
+        # Not sure about this but the 'val' variant was much larger than the one used in the paper 
+        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
+        eval_loader = DataLoader(eval_dataset, batch_size=32, shuffle=True, num_workers=2)
     else:
         raise NotImplementedError
     return train_loader, eval_loader
