@@ -3,7 +3,7 @@ from typing import Optional, Union
 import torch
 import torch.nn.functional as F
 from clip.model import CLIP
-
+import wandb
 from tqdm.autonotebook import tqdm, trange
 
 from weight_models import AttentionAggregation, WeightNet
@@ -24,45 +24,25 @@ def accuracy(output, target, topk=(1,)):
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
 
-
-def get_equi0_output(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-      return output
-    elif group_name == "rot90":
-      group_size = 4
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      return output
-    elif group_name == "flip":
-      group_size = 2
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      return output
-    else:
-      raise NotImplementedError
-
-
-def get_equitune_output(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-        pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
-        return output
-    elif group_name=="rot90":
+def get_output(output, group_name="", reduction="mean"):
+    if group_name == "rot90":
         group_size = 4
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        return output
     elif group_name == "flip":
         group_size = 2
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        return output
     else:
         raise NotImplementedError
-
+    
+    output_shape = output.shape
+    output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
+    
+    if reduction == "mean":
+        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
+    elif reduction == "max":
+        output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
+    else:
+        raise ValueError("Unsupported reduction type. Use 'mean' or 'max'.")
+    
+    return output
 
 def compute_logits(args,
                    feature_combination_module: Union[WeightNet, AttentionAggregation],
@@ -112,7 +92,6 @@ def compute_logits(args,
         if args.softmax:
             logits = torch.nn.functional.softmax(logits, dim=-1)
     return logits
-
 
 def weighted_equitune_clip(args, model: CLIP,
                            feature_combination_module: Union[WeightNet, AttentionAggregation],
@@ -191,21 +170,20 @@ def weighted_equitune_clip(args, model: CLIP,
 
         # measure accuracy
         if args.method == "equitune":
-            output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)  # dim [batch_size, num_classes=1000]
+            output = get_output(logits, group_name=group_name, reduction="mean")
         elif args.method == "equizero":
-            equitune_output = get_equitune_output(logits, target, topk=(1,), group_name=group_name)
-            equi0_output = get_equi0_output(logits, target, topk=(1,), group_name=group_name)
+            equitune_output = get_output(logits, group_name=group_name, reduction="mean")
+            equi0_output = get_output(logits, group_name=group_name, reduction="max")
             output = equitune_output + (equi0_output - equitune_output).detach()
-        elif args.method == "attention":
-            output = logits
         else:
-            output = get_equi0_output(logits, target, topk=(1,), group_name="")
+            output = logits
 
         ## backprop
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
 
+        wandb.log({"loss": loss.item()})
         # zero the parameter gradients - do it here to save a bit of VRAM before the next iteration
         optimizer.zero_grad()
 

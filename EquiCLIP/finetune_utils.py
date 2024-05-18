@@ -1,7 +1,9 @@
 import torch
+import wandb
 
 from tqdm import tqdm
 from exp_utils import group_transform_images, random_transformed_images
+from weighted_equitune_utils import get_output
 
 def cycle(iterable):
     while True:
@@ -13,46 +15,6 @@ def accuracy(output, target, topk=(1,)):
     pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-
-
-def get_equi0_output(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-      return output
-    elif group_name == "rot90":
-      group_size = 4
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      return output
-    elif group_name == "flip":
-      group_size = 2
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      return output
-    else:
-      raise NotImplementedError
-
-
-def get_equitune_output(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-        pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
-        return output
-    elif group_name=="rot90":
-        group_size = 4
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        return output
-    elif group_name == "flip":
-        group_size = 2
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        return output
-    else:
-        raise NotImplementedError
-
 
 def finetune_clip(args, model, optimizer, criterion, zeroshot_weights, loader, data_transformations="", group_name="",
                   num_iterations=100, iter_print_freq=10, device="cuda:0"):
@@ -103,18 +65,19 @@ def finetune_clip(args, model, optimizer, criterion, zeroshot_weights, loader, d
 
         # measure accuracy
         if args.method == "equitune":
-            output = get_equitune_output(logits, target, topk=(1, 5), group_name=group_name)  # dim [batch_size, num_classes=1000]
+            output = get_output(logits, group_name=group_name, reduction="mean")
         elif args.method == "equizero":
-            equitune_output = get_equitune_output(logits, target, topk=(1, 5), group_name=group_name)
-            equi0_output = get_equi0_output(logits, target, topk=(1, 5), group_name=group_name)
+            equitune_output = get_output(logits, group_name=group_name, reduction="mean")
+            equi0_output = get_output(logits, group_name=group_name, reduction="max")
             output = equitune_output + (equi0_output - equitune_output).detach()
         else:
-            output = get_equi0_output(logits, target, topk=(1, 5), group_name="")
+            output = logits
 
         ## backprop
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
 
+        wandb.log({"loss": loss.item()})
 
     return model
