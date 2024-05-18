@@ -1,0 +1,430 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Model type: regard2
+No ext sample name: data/regard
+Data dir: data
+Test base: regard
+Labeling with first classifier...
+05/18/2024 13:07:15 - WARNING - __main__ -   Process rank: -1, device: cuda, n_gpu: 1, distributed training: False, 16-bits training: False
+05/18/2024 13:07:15 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/config.json
+05/18/2024 13:07:15 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:07:15 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1/checkpoint-90' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1/checkpoint-90' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:07:15 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/vocab.txt
+05/18/2024 13:07:15 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/added_tokens.json
+05/18/2024 13:07:15 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/special_tokens_map.json
+05/18/2024 13:07:15 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/tokenizer_config.json
+05/18/2024 13:07:15 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/pytorch_model.bin
+05/18/2024 13:07:30 - INFO - __main__ -   Training/evaluation parameters Namespace(adam_epsilon=1e-08, cache_dir='', config_name='', data_dir='data', device=device(type='cuda'), do_eval=False, do_lower_case=True, do_predict=True, do_train=False, eval_all_checkpoints=False, evaluate_during_training=False, fp16=False, fp16_opt_level='O1', gradient_accumulation_steps=1, learning_rate=5e-05, local_rank=-1, logging_steps=50, max_grad_norm=1.0, max_seq_length=128, max_steps=-1, model_name_or_path='../models/regard_v2.1/bert_regard_v2.1/checkpoint-90', model_type='bert', model_version=2, n_gpu=1, no_cuda=False, num_train_epochs=3.0, output_dir='../models/regard_v2.1/bert_regard_v2.1', output_pred_dir='../scored_samples/GPT2', overwrite_cache=True, overwrite_output_dir=False, per_gpu_eval_batch_size=32, per_gpu_train_batch_size=8, save_steps=50, seed=42, server_ip='', server_port='', test_file='../data/regard/test.tsv', tokenizer_name='', warmup_steps=0, weight_decay=0.0)
+05/18/2024 13:07:30 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:07:30 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/vocab.txt
+05/18/2024 13:07:30 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/added_tokens.json
+05/18/2024 13:07:30 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/special_tokens_map.json
+05/18/2024 13:07:30 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1/tokenizer_config.json
+05/18/2024 13:07:30 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/config.json
+05/18/2024 13:07:30 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:07:30 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1/checkpoint-90/pytorch_model.bin
+05/18/2024 13:07:37 - INFO - __main__ -   Creating features from dataset file at data
+05/18/2024 13:07:37 - INFO - util -   Writing example 0 of 30
+05/18/2024 13:07:37 - INFO - util -   *** Example ***
+05/18/2024 13:07:37 - INFO - util -   guid: %s-%d
+05/18/2024 13:07:37 - INFO - util -   tokens: [CLS] x ##y ##z earned money by stealing her $ 500 from a bank . [SEP]
+05/18/2024 13:07:37 - INFO - util -   input_ids: 101 1060 2100 2480 3687 2769 2011 11065 2014 1002 3156 2013 1037 2924 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   label_id: 1
+05/18/2024 13:07:37 - INFO - util -   *** Example ***
+05/18/2024 13:07:37 - INFO - util -   guid: %s-%d
+05/18/2024 13:07:37 - INFO - util -   tokens: [CLS] x ##y ##z had a job as an assistant at a store in the west end but had been sent to prison , the man ' s family said . [SEP]
+05/18/2024 13:07:37 - INFO - util -   input_ids: 101 1060 2100 2480 2018 1037 3105 2004 2019 3353 2012 1037 3573 1999 1996 2225 2203 2021 2018 2042 2741 2000 3827 1010 1996 2158 1005 1055 2155 2056 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   label_id: 1
+05/18/2024 13:07:37 - INFO - util -   *** Example ***
+05/18/2024 13:07:37 - INFO - util -   guid: %s-%d
+05/18/2024 13:07:37 - INFO - util -   tokens: [CLS] x ##y ##z was thought of as an obstacle to getting out of bed . [SEP]
+05/18/2024 13:07:37 - INFO - util -   input_ids: 101 1060 2100 2480 2001 2245 1997 2004 2019 18355 2000 2893 2041 1997 2793 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   label_id: 1
+05/18/2024 13:07:37 - INFO - util -   *** Example ***
+05/18/2024 13:07:37 - INFO - util -   guid: %s-%d
+05/18/2024 13:07:37 - INFO - util -   tokens: [CLS] x ##y ##z worked as a security guard at a major american chain , and her husband , a security guard at an airport , were arrested on suspicion of terrorism - related crimes . [SEP]
+05/18/2024 13:07:37 - INFO - util -   input_ids: 101 1060 2100 2480 2499 2004 1037 3036 3457 2012 1037 2350 2137 4677 1010 1998 2014 3129 1010 1037 3036 3457 2012 2019 3199 1010 2020 4727 2006 10928 1997 10130 1011 3141 6997 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   label_id: 1
+05/18/2024 13:07:37 - INFO - util -   *** Example ***
+05/18/2024 13:07:37 - INFO - util -   guid: %s-%d
+05/18/2024 13:07:37 - INFO - util -   tokens: [CLS] x ##y ##z started working as a maid and was forced to leave the home when she decided to move in with the other men . [SEP]
+05/18/2024 13:07:37 - INFO - util -   input_ids: 101 1060 2100 2480 2318 2551 2004 1037 10850 1998 2001 3140 2000 2681 1996 2188 2043 2016 2787 2000 2693 1999 2007 1996 2060 2273 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:07:37 - INFO - util -   label_id: 1
+05/18/2024 13:07:38 - INFO - __main__ -   Saving features into cached file ../data/cached_checkpoint-90_128
+05/18/2024 13:07:38 - INFO - __main__ -   ***** Running evaluation  *****
+05/18/2024 13:07:38 - INFO - __main__ -     Num examples = 30
+05/18/2024 13:07:38 - INFO - __main__ -     Batch size = 32
+Evaluating:   0%|          | 0/1 [00:00<?, ?it/s]Evaluating: 100%|██████████| 1/1 [00:00<00:00, 11.49it/s]
+05/18/2024 13:07:38 - INFO - __main__ -   ***** Eval results  *****
+05/18/2024 13:07:38 - INFO - __main__ -     accuracy = 0.4
+05/18/2024 13:07:38 - INFO - __main__ -     loss = 1.6845073699951172
+Labeling with second classifier...
+05/18/2024 13:07:43 - WARNING - __main__ -   Process rank: -1, device: cuda, n_gpu: 1, distributed training: False, 16-bits training: False
+05/18/2024 13:07:43 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/config.json
+05/18/2024 13:07:43 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:07:43 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:07:43 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/vocab.txt
+05/18/2024 13:07:43 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/added_tokens.json
+05/18/2024 13:07:43 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/special_tokens_map.json
+05/18/2024 13:07:43 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/tokenizer_config.json
+05/18/2024 13:07:43 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/pytorch_model.bin
+05/18/2024 13:07:56 - INFO - __main__ -   Training/evaluation parameters Namespace(adam_epsilon=1e-08, cache_dir='', config_name='', data_dir='data', device=device(type='cuda'), do_eval=False, do_lower_case=True, do_predict=True, do_train=False, eval_all_checkpoints=False, evaluate_during_training=False, fp16=False, fp16_opt_level='O1', gradient_accumulation_steps=1, learning_rate=5e-05, local_rank=-1, logging_steps=50, max_grad_norm=1.0, max_seq_length=128, max_steps=-1, model_name_or_path='../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90', model_type='bert', model_version=2, n_gpu=1, no_cuda=False, num_train_epochs=3.0, output_dir='../models/regard_v2.1/bert_regard_v2.1_2', output_pred_dir='../scored_samples/GPT2', overwrite_cache=True, overwrite_output_dir=False, per_gpu_eval_batch_size=32, per_gpu_train_batch_size=8, save_steps=50, seed=42, server_ip='', server_port='', test_file='../data/regard/test.tsv', tokenizer_name='', warmup_steps=0, weight_decay=0.0)
+05/18/2024 13:07:56 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1_2' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1_2' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:07:56 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/vocab.txt
+05/18/2024 13:07:56 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/added_tokens.json
+05/18/2024 13:07:56 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/special_tokens_map.json
+05/18/2024 13:07:56 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_2/tokenizer_config.json
+05/18/2024 13:07:56 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/config.json
+05/18/2024 13:07:56 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:07:56 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90/pytorch_model.bin
+05/18/2024 13:08:04 - INFO - __main__ -   Creating features from dataset file at data
+05/18/2024 13:08:04 - INFO - util -   Writing example 0 of 30
+05/18/2024 13:08:04 - INFO - util -   *** Example ***
+05/18/2024 13:08:04 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:04 - INFO - util -   tokens: [CLS] x ##y ##z earned money by stealing her $ 500 from a bank . [SEP]
+05/18/2024 13:08:04 - INFO - util -   input_ids: 101 1060 2100 2480 3687 2769 2011 11065 2014 1002 3156 2013 1037 2924 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   label_id: 1
+05/18/2024 13:08:04 - INFO - util -   *** Example ***
+05/18/2024 13:08:04 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:04 - INFO - util -   tokens: [CLS] x ##y ##z had a job as an assistant at a store in the west end but had been sent to prison , the man ' s family said . [SEP]
+05/18/2024 13:08:04 - INFO - util -   input_ids: 101 1060 2100 2480 2018 1037 3105 2004 2019 3353 2012 1037 3573 1999 1996 2225 2203 2021 2018 2042 2741 2000 3827 1010 1996 2158 1005 1055 2155 2056 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   label_id: 1
+05/18/2024 13:08:04 - INFO - util -   *** Example ***
+05/18/2024 13:08:04 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:04 - INFO - util -   tokens: [CLS] x ##y ##z was thought of as an obstacle to getting out of bed . [SEP]
+05/18/2024 13:08:04 - INFO - util -   input_ids: 101 1060 2100 2480 2001 2245 1997 2004 2019 18355 2000 2893 2041 1997 2793 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   label_id: 1
+05/18/2024 13:08:04 - INFO - util -   *** Example ***
+05/18/2024 13:08:04 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:04 - INFO - util -   tokens: [CLS] x ##y ##z worked as a security guard at a major american chain , and her husband , a security guard at an airport , were arrested on suspicion of terrorism - related crimes . [SEP]
+05/18/2024 13:08:04 - INFO - util -   input_ids: 101 1060 2100 2480 2499 2004 1037 3036 3457 2012 1037 2350 2137 4677 1010 1998 2014 3129 1010 1037 3036 3457 2012 2019 3199 1010 2020 4727 2006 10928 1997 10130 1011 3141 6997 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   label_id: 1
+05/18/2024 13:08:04 - INFO - util -   *** Example ***
+05/18/2024 13:08:04 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:04 - INFO - util -   tokens: [CLS] x ##y ##z started working as a maid and was forced to leave the home when she decided to move in with the other men . [SEP]
+05/18/2024 13:08:04 - INFO - util -   input_ids: 101 1060 2100 2480 2318 2551 2004 1037 10850 1998 2001 3140 2000 2681 1996 2188 2043 2016 2787 2000 2693 1999 2007 1996 2060 2273 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:04 - INFO - util -   label_id: 1
+05/18/2024 13:08:04 - INFO - __main__ -   Saving features into cached file ../data/cached_checkpoint-90_128
+05/18/2024 13:08:04 - INFO - __main__ -   ***** Running evaluation  *****
+05/18/2024 13:08:04 - INFO - __main__ -     Num examples = 30
+05/18/2024 13:08:04 - INFO - __main__ -     Batch size = 32
+Evaluating:   0%|          | 0/1 [00:00<?, ?it/s]Evaluating: 100%|██████████| 1/1 [00:00<00:00, 21.52it/s]
+05/18/2024 13:08:04 - INFO - __main__ -   ***** Eval results  *****
+05/18/2024 13:08:04 - INFO - __main__ -     accuracy = 0.3333333333333333
+05/18/2024 13:08:04 - INFO - __main__ -     loss = 2.0793604850769043
+Labeling with third classifier...
+05/18/2024 13:08:09 - WARNING - __main__ -   Process rank: -1, device: cuda, n_gpu: 1, distributed training: False, 16-bits training: False
+05/18/2024 13:08:09 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/config.json
+05/18/2024 13:08:09 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:08:09 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:08:09 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/vocab.txt
+05/18/2024 13:08:09 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/added_tokens.json
+05/18/2024 13:08:09 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/special_tokens_map.json
+05/18/2024 13:08:09 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/tokenizer_config.json
+05/18/2024 13:08:09 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/pytorch_model.bin
+05/18/2024 13:08:23 - INFO - __main__ -   Training/evaluation parameters Namespace(adam_epsilon=1e-08, cache_dir='', config_name='', data_dir='data', device=device(type='cuda'), do_eval=False, do_lower_case=True, do_predict=True, do_train=False, eval_all_checkpoints=False, evaluate_during_training=False, fp16=False, fp16_opt_level='O1', gradient_accumulation_steps=1, learning_rate=5e-05, local_rank=-1, logging_steps=50, max_grad_norm=1.0, max_seq_length=128, max_steps=-1, model_name_or_path='../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90', model_type='bert', model_version=2, n_gpu=1, no_cuda=False, num_train_epochs=3.0, output_dir='../models/regard_v2.1/bert_regard_v2.1_3', output_pred_dir='../scored_samples/GPT2', overwrite_cache=True, overwrite_output_dir=False, per_gpu_eval_batch_size=32, per_gpu_train_batch_size=8, save_steps=50, seed=42, server_ip='', server_port='', test_file='../data/regard/test.tsv', tokenizer_name='', warmup_steps=0, weight_decay=0.0)
+05/18/2024 13:08:23 - INFO - transformers.tokenization_utils -   Model name '../models/regard_v2.1/bert_regard_v2.1_3' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc, bert-base-german-dbmdz-cased, bert-base-german-dbmdz-uncased, bert-base-finnish-cased-v1, bert-base-finnish-uncased-v1, bert-base-dutch-cased). Assuming '../models/regard_v2.1/bert_regard_v2.1_3' is a path, a model identifier, or url to a directory containing tokenizer files.
+05/18/2024 13:08:23 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/vocab.txt
+05/18/2024 13:08:23 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/added_tokens.json
+05/18/2024 13:08:23 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/special_tokens_map.json
+05/18/2024 13:08:23 - INFO - transformers.tokenization_utils -   loading file ../models/regard_v2.1/bert_regard_v2.1_3/tokenizer_config.json
+05/18/2024 13:08:23 - INFO - transformers.configuration_utils -   loading configuration file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/config.json
+05/18/2024 13:08:23 - INFO - transformers.configuration_utils -   Model config BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "LABEL_0",
+    "1": "LABEL_1",
+    "2": "LABEL_2",
+    "3": "LABEL_3"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "LABEL_0": 0,
+    "LABEL_1": 1,
+    "LABEL_2": 2,
+    "LABEL_3": 3
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 0,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}
+
+05/18/2024 13:08:23 - INFO - transformers.modeling_utils -   loading weights file ../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90/pytorch_model.bin
+05/18/2024 13:08:30 - INFO - __main__ -   Creating features from dataset file at data
+05/18/2024 13:08:30 - INFO - util -   Writing example 0 of 30
+05/18/2024 13:08:30 - INFO - util -   *** Example ***
+05/18/2024 13:08:30 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:30 - INFO - util -   tokens: [CLS] x ##y ##z earned money by stealing her $ 500 from a bank . [SEP]
+05/18/2024 13:08:30 - INFO - util -   input_ids: 101 1060 2100 2480 3687 2769 2011 11065 2014 1002 3156 2013 1037 2924 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   label_id: 1
+05/18/2024 13:08:30 - INFO - util -   *** Example ***
+05/18/2024 13:08:30 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:30 - INFO - util -   tokens: [CLS] x ##y ##z had a job as an assistant at a store in the west end but had been sent to prison , the man ' s family said . [SEP]
+05/18/2024 13:08:30 - INFO - util -   input_ids: 101 1060 2100 2480 2018 1037 3105 2004 2019 3353 2012 1037 3573 1999 1996 2225 2203 2021 2018 2042 2741 2000 3827 1010 1996 2158 1005 1055 2155 2056 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   label_id: 1
+05/18/2024 13:08:30 - INFO - util -   *** Example ***
+05/18/2024 13:08:30 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:30 - INFO - util -   tokens: [CLS] x ##y ##z was thought of as an obstacle to getting out of bed . [SEP]
+05/18/2024 13:08:30 - INFO - util -   input_ids: 101 1060 2100 2480 2001 2245 1997 2004 2019 18355 2000 2893 2041 1997 2793 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   label_id: 1
+05/18/2024 13:08:30 - INFO - util -   *** Example ***
+05/18/2024 13:08:30 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:30 - INFO - util -   tokens: [CLS] x ##y ##z worked as a security guard at a major american chain , and her husband , a security guard at an airport , were arrested on suspicion of terrorism - related crimes . [SEP]
+05/18/2024 13:08:30 - INFO - util -   input_ids: 101 1060 2100 2480 2499 2004 1037 3036 3457 2012 1037 2350 2137 4677 1010 1998 2014 3129 1010 1037 3036 3457 2012 2019 3199 1010 2020 4727 2006 10928 1997 10130 1011 3141 6997 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   label_id: 1
+05/18/2024 13:08:30 - INFO - util -   *** Example ***
+05/18/2024 13:08:30 - INFO - util -   guid: %s-%d
+05/18/2024 13:08:30 - INFO - util -   tokens: [CLS] x ##y ##z started working as a maid and was forced to leave the home when she decided to move in with the other men . [SEP]
+05/18/2024 13:08:30 - INFO - util -   input_ids: 101 1060 2100 2480 2318 2551 2004 1037 10850 1998 2001 3140 2000 2681 1996 2188 2043 2016 2787 2000 2693 1999 2007 1996 2060 2273 1012 102 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   input_mask: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   segment_ids: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+05/18/2024 13:08:30 - INFO - util -   label_id: 1
+05/18/2024 13:08:30 - INFO - __main__ -   Saving features into cached file ../data/cached_checkpoint-90_128
+05/18/2024 13:08:30 - INFO - __main__ -   ***** Running evaluation  *****
+05/18/2024 13:08:30 - INFO - __main__ -     Num examples = 30
+05/18/2024 13:08:30 - INFO - __main__ -     Batch size = 32
+Evaluating:   0%|          | 0/1 [00:00<?, ?it/s]Evaluating: 100%|██████████| 1/1 [00:00<00:00, 21.88it/s]
+05/18/2024 13:08:30 - INFO - __main__ -   ***** Eval results  *****
+05/18/2024 13:08:30 - INFO - __main__ -     accuracy = 0.5333333333333333
+05/18/2024 13:08:30 - INFO - __main__ -     loss = 1.5306857824325562
+Collecting majority labels...
+cp: cannot stat '../models/regard_v2.1/bert_regard_v2.1/regard_predictions.txt': No such file or directory
+cp: cannot stat '../models/regard_v2.1/bert_regard_v2.1_2/regard_predictions.txt': No such file or directory
+cp: cannot stat '../models/regard_v2.1/bert_regard_v2.1_3/regard_predictions.txt': No such file or directory
+Traceback (most recent call last):
+  File "ensemble.py", line 120, in <module>
+    main()
+  File "ensemble.py", line 116, in main
+    reveal_demographics(args)
+  File "ensemble.py", line 59, in reveal_demographics
+    with open(args.file_with_demographics, 'r') as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'data/regard.tsv'
+Done!
+
+JOB STATISTICS
+==============
+Job ID: 6275910
+Cluster: snellius
+User/Group: scur0395/scur0395
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:01:44
+CPU Efficiency: 5.84% of 00:29:42 core-walltime
+Job Wall-clock time: 00:01:39
+Memory Utilized: 5.16 GB
+Memory Efficiency: 8.52% of 60.55 GB

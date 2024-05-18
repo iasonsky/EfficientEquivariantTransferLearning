@@ -338,10 +338,10 @@ def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, data_fi
 		torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
 	# Load data features from cache or dataset file
-	cached_features_file = os.path.join(
+	cached_features_file = os.path.join( "../",
 		args.data_dir,
-		"cached_{}_{}_{}".format(
-			data_file, list(filter(None, args.model_name_or_path.split("/"))).pop(), str(args.max_seq_length)
+		"cached_{}_{}".format(
+			list(filter(None, args.model_name_or_path.split("/"))).pop(), str(args.max_seq_length)
 		),
 	)
 	if os.path.exists(cached_features_file) and not args.overwrite_cache:
@@ -406,7 +406,8 @@ def main():
 
 	parser.add_argument(
 		"--output_pred_dir",
-		default="EquiNLG/scored_samples/GPT2",
+		# default="EquiNLG/scored_samples/GPT2",
+		default="../scored_samples/GPT2",
 		type=str,
 		required=False,
 		help="The output directory where the predictions will be written.",
@@ -690,8 +691,10 @@ def main():
 		test_file_basename = os.path.basename(test_file).split('.')[0]
 		# Save predictions
 		output_test_predictions_file = os.path.join(args.output_pred_dir, test_file_basename + "_predictions.txt")
+		print("HERE HERE output_test_predictions_file:", output_test_predictions_file)
 		with open(output_test_predictions_file, "w") as writer:
-			with open(os.path.join(args.data_dir, test_file), "r") as f:
+			# with open(os.path.join(args.data_dir, test_file), "r") as f:
+			with open(test_file, "r") as f:
 				for example_id, line in enumerate(f):
 					output_line = str(predictions[example_id]) + '\t' + line.split('\t')[-1].strip() + "\n"
 					writer.write(output_line)
