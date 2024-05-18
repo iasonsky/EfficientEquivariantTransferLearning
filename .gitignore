@@ -9,3 +9,4 @@ logs/*
 *.out
 *.log
 *.txt
+wandb

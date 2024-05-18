@@ -1,5 +1,6 @@
 import logging
 import os
+from sklearn.metrics import f1_score, precision_score, recall_score
 import torch
 import torch.nn.functional as F
 
@@ -7,7 +8,7 @@ from tqdm.autonotebook import tqdm
 
 from weighted_equitune_utils import compute_logits
 from exp_utils import group_transform_images, random_transformed_images
-
+from weighted_equitune_utils import get_output
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
@@ -18,73 +19,33 @@ def accuracy(output, target, topk=(1,)):
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
 
 
-def equi0_accuracy(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-      pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
-      correct = pred.eq(target.view(1, -1).expand_as(pred))  # dim [max_topk, batch_size]
-      return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    elif group_name == "rot90":
-      group_size = 4
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      # pred_values, pred_indices = output.topk(max(topk), 2, True, True)[0],\
-      #                             output.topk(max(topk), 2, True, True)[1]  # dim [group_size, batch_size, max_topk]
-      # correct = pred_indices[0].t().eq(target.view(1, -1).expand_as(pred_indices[0].t()))  # dim [max_topk, group_size * batch_size]
-      # return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      pred_values, pred_indices = output.topk(max(topk), 1, True, True)[0].t(), \
-                                  output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, group_size, batch_size]
-      correct = pred_indices.eq(target.view(1, -1).expand_as(pred_indices))  # dim [max_topk, group_size * batch_size]
-      return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    elif group_name == "flip":
-      group_size = 2
-      output_shape = output.shape
-      output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-      # pred_values, pred_indices = output.topk(max(topk), 2, True, True)[0],\
-      #                             output.topk(max(topk), 2, True, True)[1]  # dim [group_size, batch_size, max_topk]
-      # correct = pred_indices[0].t().eq(target.view(1, -1).expand_as(pred_indices[0].t()))  # dim [max_topk, group_size * batch_size]
-      # return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-      output, _ = torch.max(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-      pred_values, pred_indices = output.topk(max(topk), 1, True, True)[0].t(), \
-                                  output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, group_size, batch_size]
-      correct = pred_indices.eq(target.view(1, -1).expand_as(pred_indices))  # dim [max_topk, group_size * batch_size]
-      return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    else:
-      raise NotImplementedError
+def compute_precision(output, target):
+    pred = output.argmax(dim=1).cpu().numpy()  # Get the index of the max log-probability
+    target = target.cpu().numpy()
+    precision = precision_score(target, pred, average='macro', zero_division=0.0)  # Use 'macro' for multi-class
+    return precision
 
 
-def equitune_accuracy(output, target, topk=(1,), group_name=""):
-    if group_name == "":
-        pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
-        correct = pred.eq(target.view(1, -1).expand_as(pred))  # dim [max_topk, batch_size]
-        return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    elif group_name=="rot90":
-        group_size = 4
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        pred_values, pred_indices = output.topk(max(topk), 1, True, True)[0].t(),\
-                                  output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, group_size, batch_size]
-        correct = pred_indices.eq(target.view(1, -1).expand_as(pred_indices))  # dim [max_topk, group_size * batch_size]
-        return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    elif group_name == "flip":
-        group_size = 2
-        output_shape = output.shape
-        output = output.reshape(group_size, output_shape[0] // group_size, output_shape[1])  # [group_size, batch_size, num_classes]
-        output = torch.mean(output, dim=0, keepdim=False)  # [batch_size, num_classes]
-        pred_values, pred_indices = output.topk(max(topk), 1, True, True)[0].t(),\
-                                  output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, group_size, batch_size]
-        correct = pred_indices.eq(target.view(1, -1).expand_as(pred_indices))  # dim [max_topk, group_size * batch_size]
-        return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) for k in topk]
-    else:
-        raise NotImplementedError
+def compute_recall(output, target):
+    pred = output.argmax(dim=1).cpu().numpy()  # Get the index of the max log-probability
+    target = target.cpu().numpy()
+    recall = recall_score(target, pred, average='macro', zero_division=0.0)  # Use 'macro' for multi-class
+    return recall
+
+
+def compute_f1(output, target):
+    pred = output.argmax(dim=1).cpu().numpy()  # Get the index of the max log-probability
+    target = target.cpu().numpy()
+    f1 = f1_score(target, pred, average='macro')  # Use 'macro' for multi-class
+    return f1
 
 
 def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", group_name="", device="cuda:0",
               feature_combination_module=None,
               val=False, save_scores=False):
     with torch.no_grad():
-        top1, top5, n = 0., 0., 0.
+        top1, top5, n_samples = 0., 0., 0
+        precision_total, recall_total, f1_total = 0., 0., 0.
         for i, (images, target) in enumerate(tqdm(loader, desc="Evaluating CLIP")):
             if val and i == 50:
                 break
@@ -118,17 +79,27 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
                 target = target.repeat(int(group_sizes[group_name]))
 
             if args.method == "equizero":
-                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
-            elif args.method == "attention" or args.method == "equitune":
-                acc1, acc5 = accuracy(logits, target, topk=(1, 5))
+                output = get_output(logits, group_name=group_name, reduction="max")
             else:
-                acc1, acc5 = equi0_accuracy(logits, target, topk=(1, 5), group_name=group_name)
+                output = logits
+
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            precision = compute_precision(output, target)
+            recall = compute_recall(output, target)
+            f1 = compute_f1(output, target)
+
             top1 += acc1
             top5 += acc5
-            n += images.size(0)
+            precision_total += precision
+            recall_total += recall
+            f1_total += f1
+            n_samples += images.size(0)
 
-    top1 = (top1 / n) * 100
-    top5 = (top5 / n) * 100
+    top1 = (top1 / n_samples) * 100
+    top5 = (top5 / n_samples) * 100
+    precision_avg = (precision_total / len(loader)) * 100
+    recall_avg = (recall_total / len(loader)) * 100
+    f1_avg = (f1_total / len(loader)) * 100
 
     info = [
         f"Dataset: {args.dataset_name}",
@@ -137,7 +108,10 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
         f"Group: {args.group_name}",
         f"Data transformation: {args.data_transformations}",
         f"Top-1 accuracy: {top1:.2f}",
-        f"Top-5 accuracy: {top5:.2f}"
+        f"Top-5 accuracy: {top5:.2f}",
+        f"Precision: {precision_avg:.2f}",
+        f"Recall: {recall_avg:.2f}",
+        f"F1 score: {f1_avg:.2f}",
     ]
 
     for message in info:
@@ -154,5 +128,4 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
         with open(f"{folder}/top5_accuracy.txt", "w") as f:
             f.write(f"{top5:.2f}")
 
-    if val:
-        return top1
+    return top1, top5, precision_avg, recall_avg, f1_avg
