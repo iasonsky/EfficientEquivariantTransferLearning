@@ -690,7 +690,8 @@ def main():
 		result, predictions = evaluate(args, model, tokenizer, labels, pad_token_label_id, mode=test_file, is_test=True)
 		test_file_basename = os.path.basename(test_file).split('.')[0]
 		# Save predictions
-		output_test_predictions_file = os.path.join(args.output_pred_dir, test_file_basename + "_predictions.txt")
+		# output_test_predictions_file = os.path.join(args.output_pred_dir, test_file_basename + "_predictions.txt")
+		output_test_predictions_file = os.path.join(args.output_pred_dir, "regard_predictions.txt")
 		print("HERE HERE output_test_predictions_file:", output_test_predictions_file)
 		with open(output_test_predictions_file, "w") as writer:
 			# with open(os.path.join(args.data_dir, test_file), "r") as f:
