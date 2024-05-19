@@ -9,10 +9,14 @@ Equivariance in deep learning refers to a model's ability to maintain consistent
 The most well-known equivariance in deep learning is the translation equivariance of Convolutional Neural Networks (CNNs) - an object in the upper left corner of an image has the same visual features as the same object in the lower right corner of an image. Convolutions are a particular layer type that exploit this property, by applying the same computation to different parts of their input. This leads to significantly smaller model sizes than comparable fully connected models due to the inherent weight sharing, and faster and more robust training, as data augmentation is not required to teach equivariance to the model.
 
 In more formal terms, equivariance of model $M$ on data $x$ to transformation $g$ means that 
-$$gM(x) = M(g(x))$$
+```math
+gM(x) = M(g(x))
+```
 
 A related property is invariance, when the output of the model stays the same, regardless of the transformation applied to its input.
-$$M(x) = M(g(x))$$
+```math
+M(x) = M(g(x))
+```
 
 There are however many problems where equivariance to transformations other than translation is desired. In medical image analysis, protein folding, etc. (add examples here) A lack of equivariance in these domains would mean that even if we know that the model works correctly for all the examples in our test set, it may fail at a slightly modified (e.g. rotated) version of the same inputs. 
 
@@ -25,7 +29,6 @@ Basu et al. introduced the equitune method as a solution to the challenge of lev
 The core idea behind equitune (SOURCE from previous paper) is to incorporate group averaging as a mechanism to align the features extracted from pretrained models with the desired group-equivariant properties. By averaging these features, the network can adapt to new tasks while maintaining group equivariance.
 Equitune represents a novel approach to enhancing the transfer learning capabilities of neural networks, particularly in scenarios where group equivariance is a crucial factor. It bridges the gap between pretrained models and group-equivariant architectures, enabling more efficient and reliable transfer learning processes.
 However, equitune is found to perform poorly when it comes to zero-shot tasks. For this reason, Basu et al. (SOURCE current paper) improve upon Kaba et al. (2022) and introduce equizero as the method that achieves comparatively better results for zero-shot and fine-tuning tasks, if used with the appropriate loss functions. Following up on equizero, the authors additionally propose λ-equitune as the solution to the observation that pretrained models provide better quality features for certain group transformations compared to others. λ-equitune learns importance weights directly from the data and uses them to perform a weighted group averaging, thus leading to better performance compared to simple equitune, and competing results to equizero used with the appropriate loss functions. 
-
 
 ### (Section: Equizero)
 ### Section: Equitune and λ-equitune
@@ -58,17 +61,23 @@ Our experiments show that removing the redundant softmax and adopting end-to-end
 Upon a closer inspection of the implementation of the EquiCLIP experiments, we also noticed an important discrepancy between the equations described in the paper and the actual algorithm implemented in the codebase. While the paper described lambda-equitune by performing a group inverse transformation on the output of each separate backbone model before averaging the feature maps, in practice the code implementation simply took an average of the logits calculated by each backbone without any inverse operation. Please see the equations below for a precise comparison of the mathematics of the paper and the code.
 
 Equations described in the publication
-$$\mathbf{M}_G^\lambda(x) = \frac{1}{\sum_{g \in G} \lambda(gx)} \sum_{g \in G}^{|G|} g^{-1} \lambda(gx) \mathbf{M}(gx).$$
-
+```math
+\mathbf{M}_G^\lambda(x) = \frac{1}{\sum_{g \in G} \lambda(gx)} \sum_{g \in G}^{|G|} g^{-1} \lambda(gx) \mathbf{M}(gx).
+```
 
 Equations the describe the code (derived by us):
-$$\mathbf{M}_{g\in G}^\lambda(x) = \lambda(\mathbf{M}(gx)) \mathbf{M}(gx)$$
-
-$$\text{class\_sim}_{g\in G}^\lambda = \text{prompt\_embeddings} \cdot \mathbf{M}_{g\in G}^\lambda(x)$$
-
+```math
+\mathbf{M}_{g\in G}^\lambda(x) = \lambda(\mathbf{M}(gx)) \mathbf{M}(gx) \\
+```
+```math
+\text{class\_sim}_{g\in G}^\lambda = \text{prompt\_embeddings} \cdot \mathbf{M}_{g\in G}^\lambda(x)
+```
+```math
 $$\text{logits}_{g\in G}^\lambda = softmax(\text{class\_sim}_{g\in G}^\lambda)$$
-
+```
+```math
 $$\text{output}_{G}^\lambda = \frac{1}{|G|} \sum_{g \in G}^{|G|} \text{logits}_{g}^\lambda$$
+```
 
 In a correspondence with the authors they shared that this is because the image classification experiments do not require equivariance, only invariance, and it was not even possible to apply the inverse group transformation to the logits (the final outputs) of the backbone models in this case, as those have no spatial meaning anymore. While we certainly agree with these observations, we were interested in understanding how the truly equivariant method (as described in the paper) would perform, so proceeded to make the necessary changes to the code. It is at this point that we would like to note that lambda-equitune was not implemented as a single generic framework that could be applied as a post-processing step on any backbone, but was copied and adapted for each experiment individually.
 
@@ -84,7 +93,9 @@ In the original work, the weights of features from $gx$ in the average are obtai
 
 We note that the only requirement for obtaining equivariant weights in the given setting is maintaining equivariance for permutation of feature sets. Specifically,
 
-$$\boldsymbol\pi(f([\forall g \in G: \mathbf{M_1}(gx))]) = f(\boldsymbol\pi([\forall g \in G: \mathbf{M_1}(gx))]))$$
+```math
+\boldsymbol\pi(f([\forall g \in G: \mathbf{M_1}(gx))]) = f(\boldsymbol\pi([\forall g \in G: \mathbf{M_1}(gx))]))
+```
 
 for an array permutation operator $\boldsymbol\pi$ and a function $f$ that produces an array weights from an array of features.
 
@@ -95,16 +106,24 @@ $$Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$
 
 for feature sets $H = [h_0, h_1, \dots, h_{|G|-1}]$ ($h$ because these are hiddens) and arbitrary index $i \in [0, |G|-1]$. $h_i$ is a feature set obtained by $\mathbf{M_1}(g_ix)$
 
-$$Q_i = QNet(h_i)$$
+```math
+Q_i = QNet(h_i)
+```
 
-$$K_i = KNet(h_i)$$
+```math
+K_i = KNet(h_i)
+```
 
-$$V_i = g_i^{-1}h_i$$
+```math
+V_i = g_i^{-1}h_i
+```
 
 where values $V$ are the inputs with the inverse transformation applied to them.
 
 Using the Attention as described above, we can calculate the final output of EquiAttention as follows:
-$$\mathbf{M}_G^A(x) = \mathbf{M}_2(\frac{1}{|G|}\sum_{g \in G}^{|G|} \text{Attention\_module}([\mathbf{M_1}(g_0x), \dots, \mathbf{M_1}(g_{|G|-1}x)]))$$
+```math
+\mathbf{M}_G^A(x) = \mathbf{M}_2(\frac{1}{|G|}\sum_{g \in G}^{|G|} \text{Attention\_module}([\mathbf{M_1}(g_0x), \dots, \mathbf{M_1}(g_{|G|-1}x)]))
+```
 
 where `Attention_module` takes the features sets and applies one attention operation as described above.
 
