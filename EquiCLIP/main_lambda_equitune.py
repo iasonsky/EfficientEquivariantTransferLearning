@@ -105,10 +105,10 @@ def main(args):
             # add weight_net save code for the best model
 
             # evaluating for only 50 steps using val=True
-            prefinetune_top1_acc, prefinetune_top1_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
+            prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
                 args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
             )
-            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top1_acc, "prefinetune_precision": prefinetune_precision, 
+            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision, 
                        "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
             if prefinetune_top1_acc > best_top1:
                 best_top1 = prefinetune_top1_acc
