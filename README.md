@@ -1,3 +1,10 @@
+# (Even More) Efficient Equivariant Transfer Learning from Pretrained Models
+
+Please see [Blogpost.md](Blogpost.md) for the submission for the DL2 course. All other parts of the readme will be updated before the final submission.
+
+Mikhail Vlasenko, Ádám Divák, Iason Skylitsis, Milan Miletić, Zoe Tzifa-Kratira
+
+-----
 
 Code for "Efficient Equivariant Transfer Learning from Pretrained Models", NeurIPS 2023
 
