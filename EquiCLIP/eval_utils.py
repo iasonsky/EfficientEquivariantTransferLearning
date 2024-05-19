@@ -103,9 +103,10 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
 
     top1 = (top1 / n_samples) * 100
     top5 = (top5 / n_samples) * 100
-    precision_avg = (precision_total / len(loader)) * 100
-    recall_avg = (recall_total / len(loader)) * 100
-    f1_avg = (f1_total / len(loader)) * 100
+    total_batches = 50 if val else len(loader)
+    precision_avg = (precision_total / total_batches) * 100
+    recall_avg = (recall_total / total_batches) * 100
+    f1_avg = (f1_total / total_batches) * 100
 
     info = [
         f"Dataset: {args.dataset_name}",
