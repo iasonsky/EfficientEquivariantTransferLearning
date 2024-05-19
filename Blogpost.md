@@ -8,6 +8,7 @@ The most well-known equivariance in deep learning is the translation equivarianc
 
 In more formal terms, equivariance of model $M$ on data $x$ to transformation $g$ means that 
 $$gM(x) = M(g(x))$$
+
 A related property is invariance, when the output of the model stays the same, regardless of the transformation applied to its input.
 $$M(x) = M(g(x))$$
 
@@ -43,18 +44,29 @@ First, a softmax function was applied to the logits before passing them into the
 
 Training was done in two phases: first only the weight network is trained, while keeping the backbone frozen (even the layers that come after the weight network), which is referred to as pre-finetuning. Then the whole network is fine-tuned, which is simply referred to as fine-tuning. The fine-tuning step is different from what the authors have originally used, as in this step they kept the weight network frozen and only trained the backbone. We found no theoretical justification for this approach, and also found it to perform worse in practice, so we kept the weight network trainable during finetuning. We report results after each step to make comparisons easier with the original publication, however we believe that results that only use pre-finetuning are more relevant and are more in line with how a method such as lambda-equitune would be used in practice. Especially when trying to achieve equivariance on a special task like medical segmentation, where typically only limited training samples are available, keeping the backbone network frozen and only training the weight network can seriously lower the risk of overfitting.
 
-Our experiments show that removing the redundant softmax and adopting end-to-end finetuning significantly improve performance. With these changes, along with using a lower learning rate of $5e-8$ for better training stability, we achieve results that surpass those reported in the original paper (put actual numbers + table here).
-Introducing equivariance into the CLIP image classification experiments
+Our experiments show that removing the redundant softmax and adopting end-to-end finetuning significantly improve performance. With these changes, along with using a lower learning rate of $5e-8$ for better training stability, we achieve results that surpass those reported in the original paper by a large margin. We achieved an increase of 12.5 percentage points (52.6%) in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight network (pre-finetuning), as can be seen in the table below. The increase of 5.95 percentage points (11.8%) is less pronounced but still significant in case of full finetuning, and a the results are equally satisfactory across all other tests we have performed.
+
+|    | Architecture-Transformation   |   CIFAR100 Original Prefinetune Top1 Acc |   CIFAR100 Updated Prefinetune Top1 Acc |   CIFAR100 Original Finetune Top1 Acc |   CIFAR100 Updated Finetune Top1 Acc |   ISIC2018 Original Prefinetune Top1 Acc |   ISIC2018 Updated Prefinetune Top1 Acc |   ISIC2018 Original Finetune Top1 Acc |   ISIC2018 Updated Finetune Top1 Acc |
+|---:|:------------------------------|-----------------------------------------:|----------------------------------------:|--------------------------------------:|-------------------------------------:|-----------------------------------------:|----------------------------------------:|--------------------------------------:|-------------------------------------:|
+|  0 | RN50 flip                     |                                    36.12 |                                   37.94 |                                 52.04 |                                56.49 |                                    12.94 |                                   13.38 |                                 35.75 |                                53.89 |
+|  1 | RN50 rot90                    |                                    23.75 |                                   36.25 |                                 50.63 |                                56.58 |                                    12.81 |                                   13.5  |                                 37.31 |                                54.4  |
+
+
+## Introducing equivariance into the CLIP image classification experiments
 Upon a closer inspection of the implementation of the EquiCLIP experiments, we also noticed an important discrepancy between the equations described in the paper and the actual algorithm implemented in the codebase. While the paper described lambda-equitune by performing a group inverse transformation on the output of each separate backbone model before averaging the feature maps, in practice the code implementation simply took an average of the logits calculated by each backbone without any inverse operation. Please see the equations below for a precise comparison of the mathematics of the paper and the code.
 
 Equations described in the publication
 $$\mathbf{M}_G^\lambda(x) = \frac{1}{\sum_{g \in G} \lambda(gx)} \sum_{g \in G}^{|G|} g^{-1} \lambda(gx) \mathbf{M}(gx).$$
 
+
 Equations the describe the code (derived by us):
-$$\mathbf{M}_{g\in G}^\lambda(x) = \lambda(\mathbf{M}(gx)) \mathbf{M}(gx)
-\text{class\_sim}_{g\in G}^\lambda = \text{prompt\_embeddings} \cdot \mathbf{M}_{g\in G}^\lambda(x)
-\text{logits}_{g\in G}^\lambda = softmax(\text{class\_sim}_{g\in G}^\lambda)
-\text{output}_{G}^\lambda = \frac{1}{|G|} \sum_{g \in G}^{|G|} \text{logits}_{g}^\lambda$$
+$$\mathbf{M}_{g\in G}^\lambda(x) = \lambda(\mathbf{M}(gx)) \mathbf{M}(gx)$$
+
+$$\text{class\_sim}_{g\in G}^\lambda = \text{prompt\_embeddings} \cdot \mathbf{M}_{g\in G}^\lambda(x)$$
+
+$$\text{logits}_{g\in G}^\lambda = softmax(\text{class\_sim}_{g\in G}^\lambda)$$
+
+$$\text{output}_{G}^\lambda = \frac{1}{|G|} \sum_{g \in G}^{|G|} \text{logits}_{g}^\lambda$$
 
 In a correspondence with the authors they shared that this is because the image classification experiments do not require equivariance, only invariance, and it was not even possible to apply the inverse group transformation to the logits (the final outputs) of the backbone models in this case, as those have no spatial meaning anymore. While we certainly agree with these observations, we were interested in understanding how the truly equivariant method (as described in the paper) would perform, so proceeded to make the necessary changes to the code. It is at this point that we would like to note that lambda-equitune was not implemented as a single generic framework that could be applied as a post-processing step on any backbone, but was copied and adapted for each experiment individually. For example in the NLG experiments, the inverse transformation was present, but did not function as intended.
 
@@ -62,7 +74,7 @@ In order to test true equivariance in an image processing setting, we modified t
 
 ![Architecture diagrams of a non-equivariant network, lambda-equitune using the original implementation and our version of it](images/architecture_diagrams.svg)
 
-By applying these changes and testing with 90 degree rotations as the group transformation, we achieved an increase of [xx points] in top-1 accuracy, as can be seen in [table x]. This underlines the fact that using a truly equivariant version of lambda-equitune outperforms the existing implementation even when tested on invariant tasks. 
+By applying these changes and testing with 90 degree rotations as the group transformation, we achieved an increase of xx in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight network (pre-finetuning), as can be seen in the table below. This underlines the fact that using a truly equivariant version of lambda-equitune outperforms the existing implementation even when tested on invariant tasks. 
 In (section x) we explore the performance of this method on truly equivariant tasks.
 
 ### EquiAttention: Using Attention as a feature combination method
@@ -81,16 +93,18 @@ $$Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$
 
 for feature sets $H = [h_0, h_1, \dots, h_{|G|-1}]$ ($h$ because these are hiddens) and arbitrary index $i \in [0, |G|-1]$. $h_i$ is a feature set obtained by $\mathbf{M_1}(g_ix)$
 
-$$Q_i = QNet(h_i) \
-K_i = KNet(h_i) \
-V_i = g_i^{-1}h_i$$
+$$Q_i = QNet(h_i)$$
+
+$$K_i = KNet(h_i)$$
+
+$$V_i = g_i^{-1}h_i$$
 
 where values $V$ are the inputs with the inverse transformation applied to them.
 
 Using the Attention as described above, we can calculate the final output of EquiAttention as follows:
 $$\mathbf{M}_G^A(x) = \mathbf{M}_2(\frac{1}{|G|}\sum_{g \in G}^{|G|} \text{Attention\_module}([\mathbf{M_1}(g_0x), \dots, \mathbf{M_1}(g_{|G|-1}x)]))$$
 
-where $\text{Attention\_module}$ takes the features sets and applies one attention operation as described above.
+where `Attention_module` takes the features sets and applies one attention operation as described above.
 
 Using the above described method of EquiAttention, we achieved a result of .. (insert results here)
 
