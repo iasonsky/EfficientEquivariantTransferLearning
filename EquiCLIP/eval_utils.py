@@ -21,13 +21,13 @@ def accuracy(output, target, topk=(1,)):
 def compute_precision(output, target):
     pred = output.argmax(dim=1).cpu().numpy()  # Get the index of the max log-probability
     target = target.cpu().numpy()
-    precision = precision_score(target, pred, average='macro')  # Use 'macro' for multi-class
+    precision = precision_score(target, pred, average='macro', zero_division=0.0)  # Use 'macro' for multi-class
     return precision
 
 def compute_recall(output, target):
     pred = output.argmax(dim=1).cpu().numpy()  # Get the index of the max log-probability
     target = target.cpu().numpy()
-    recall = recall_score(target, pred, average='macro')  # Use 'macro' for multi-class
+    recall = recall_score(target, pred, average='macro', zero_division=0.0)  # Use 'macro' for multi-class
     return recall
 
 def compute_f1(output, target):
