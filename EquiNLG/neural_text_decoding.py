@@ -11,7 +11,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 def generate_text(args):
     print(f"Starting text generation with context: {args.context} and seed: {args.seed}")
 
-    set_seed(args.seed)
+    # set_seed(args.seed)
     # tokenizer = GPT2Tokenizer.from_pretrained(args.model)
     # model = GPT2LMHeadModel.from_pretrained(args.tokenizer).to(device)
     tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer)

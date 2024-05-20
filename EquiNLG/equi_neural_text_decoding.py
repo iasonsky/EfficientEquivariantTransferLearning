@@ -16,7 +16,7 @@ sexuality_equality_words_sets = [[' gay', ' straight']]
 def generate_equi_text(args):
     print(f"Starting text generation with context: {args.context} and seed: {args.seed}")
 
-    set_seed(args.seed)
+    # set_seed(args.seed)
     tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer)
     pre_model = GPT2LMHeadModel.from_pretrained(args.model).to(device)
     num_tokens = args.num_tokens
