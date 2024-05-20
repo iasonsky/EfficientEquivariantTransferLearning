@@ -4,6 +4,7 @@ import torch
 
 from g_utils import cyclic_group_generator, cyclic_group, g_transform_data, g_inv_transform_prob_data, g_inv_transform_prob_data_new
 from torch.nn import CrossEntropyLoss
+from attention_aggregation import AttentionAggregation
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,10 +51,10 @@ class EquiLLM(nn.Module):
 
     def forward(self, input_ids, return_dict=True, labels=None):
         transformed_context = g_transform_data(input_ids, self.in_G, device)  # dim: [|G|, batch_size, seq_length]
-        print(f"INPUT IDS: {input_ids}")
-        print(f"INPUT IDS SHAPE: {input_ids.shape}")
-        print(f"Transformed context: {transformed_context}")
-        print(f"Transformed context shape: {transformed_context.shape}")
+        #print(f"INPUT IDS: {input_ids}")
+        #print(f"INPUT IDS SHAPE: {input_ids.shape}")
+        #print(f"Transformed context: {transformed_context}")
+        #print(f"Transformed context shape: {transformed_context.shape}")
 
         # get transformed outputs
         transformed_logits = []
@@ -64,10 +65,10 @@ class EquiLLM(nn.Module):
 
         # inverse transform the texts corresponding to each of the transformed contexts
         transformed_logits = torch.stack(transformed_logits)
-        print(f"Transformed logits: {transformed_logits}")
-        print(f"Transformed logits shape: {transformed_logits.shape}")
+        #print(f"Transformed logits: {transformed_logits}")
+        #print(f"Transformed logits shape: {transformed_logits.shape}")
 
-        group_logits = g_inv_transform_prob_data_new(transformed_logits, G=self.out_G, sequence_len=len(self.eq_word_indices[0]), vocab_size=self.vocab_size)
+        group_logits = g_inv_transform_prob_data(transformed_logits, G=self.out_G)
         # print(f"Group logits after inverse transformation: {group_logits}")
 
         logits = torch.mean(group_logits, dim=0, keepdim=False)  # dim [batch_size, seq_len, vocab_size]
@@ -162,6 +163,69 @@ class REquiLLM(nn.Module):
         return [loss, logits]
 
 
+class EquiAttLLM(nn.Module):
+    def __init__(self, pre_model, tokenizer, group_size=2, vocab_size=8, eq_word_indices=[2, 7],
+                 feature_extracting=False, group_type='cyclic'):
+        super(EquiAttLLM, self).__init__()
+        self.vocab_size = vocab_size
+        self.group_size = group_size
+        self.eq_word_indices = eq_word_indices
 
+        in_g = cyclic_group_generator(vocab_size=vocab_size, group_size=group_size, eq_indices=eq_word_indices)
+        out_g = cyclic_group_generator(vocab_size=vocab_size, group_size=group_size, eq_indices=eq_word_indices)
+
+        self.in_G = cyclic_group(g=in_g, vocab_size=vocab_size, group_size=group_size)
+        self.out_G = cyclic_group(g=out_g, vocab_size=vocab_size, group_size=group_size)
+
+        set_parameter_requires_grad(pre_model, feature_extracting)
+        self.pre_model = pre_model
+        self.tokenizer = tokenizer
+
+        self.loss_fn = CrossEntropyLoss()
+
+    def compute_loss(self, logits, labels):
+        """
+        Args:
+            logits: logits of dim [batch_size, num_tokens in a sentence, vocab_size]
+            labels: logits of dim [batch_size, num_tokens in a sentence]
+        Returns:
+        """
+        if labels is not None:
+            loss = self.loss_fn(logits.permute(0, 2, 1)[:, :, 0:-1], labels[:, 1:])
+        else:
+            loss = 0
+        return loss
+
+    def forward(self, input_ids, return_dict=True, labels=None):
+        transformed_context = g_transform_data(input_ids, self.in_G, device)  # dim: [|G|, batch_size, seq_length]
+        #print(f"INPUT IDS: {input_ids}")
+        #print(f"INPUT IDS SHAPE: {input_ids.shape}")
+        #print(f"Transformed context: {transformed_context}")
+        #print(f"Transformed context shape: {transformed_context.shape}")
+
+        # get transformed outputs
+        transformed_logits = []
+        for i in range(len(transformed_context)):
+            context = torch.tensor([transformed_context[i].tolist()]).to(device)
+            forward = self.pre_model(input_ids=context, past_key_values=None, return_dict=return_dict)
+            transformed_logits.append(forward.logits[0])  # forward.logits[0] dim [batch_size, seq_len, vocab_size]
+
+        # inverse transform the texts corresponding to each of the transformed contexts
+        transformed_logits = torch.stack(transformed_logits)
+        #print(f"Transformed logits: {transformed_logits}")
+        #print(f"Transformed logits shape: {transformed_logits.shape}")
+
+        group_logits = g_inv_transform_prob_data(transformed_logits, G=self.out_G)
+        # print(f"Group logits after inverse transformation: {group_logits}")
+        group_size, batch_size, seq_len, vocab_size = group_logits.shape
+
+        attention_aggregation = AttentionAggregation(group_size, vocab_size, seq_len).to(device)
+        logits = attention_aggregation(group_logits) 
+        #logits = torch.mean(group_logits, dim=0, keepdim=False)  # dim [batch_size, seq_len, vocab_size]
+        # print(f"Final logits: {logits}")
+
+        loss = self.compute_loss(logits, labels)
+
+        return [loss, logits]
 
 
