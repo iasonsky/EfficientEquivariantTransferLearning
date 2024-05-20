@@ -135,6 +135,7 @@ def main(args):
     )
     wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
 
+    # Save the weighting model as an artifact
     artifact = wandb.Artifact('Weighting_model', type='model')
     artifact.add_file(MODEL_PATH)
     wandb.log_artifact(artifact)
