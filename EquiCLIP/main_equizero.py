@@ -8,9 +8,6 @@ import argparse
 import pytorch_lightning as pl
 import wandb
 
-from tqdm import tqdm
-from pkg_resources import packaging
-
 from load_model import load_model
 from dataset_utils import imagenet_classes, imagenet_templates, get_labels_textprompts, get_dataloader
 from zeroshot_weights import zeroshot_classifier
@@ -59,6 +56,12 @@ if __name__ == "__main__":
                                                                         'ViT-L/14', 'ViT-L/14@336px'])
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100", "ISIC2018", "MNIST"])
     parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--softmax", action='store_true')
+    parser.add_argument("--load", action='store_true')
+    parser.add_argument("--full_finetune", action='store_true')
+    parser.add_argument("--undersample", action='store_true')
+    parser.add_argument("--oversample", action='store_true')
+    parser.add_argument("--validate_equivariance", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
