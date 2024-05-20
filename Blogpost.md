@@ -56,6 +56,7 @@ Our experiments show that removing the redundant softmax and adopting end-to-end
 |---:|:-----------------------------------|-----------------------------------------:|----------------------------------------:|--------------------------------------:|-------------------------------------:|
 |  0 | CLIP w RN50 - flip - *λ-equitune*  |                                    36.12 |                                   37.94 |                                 52.04 |                                56.49 |
 |  1 | CLIP w RN50 - rot90 - *λ-equitune* |                                    23.75 |                                   36.25 |                                 50.63 |                                56.58 |
+
 *Table n: Image classification results using the author's original and our modified code base*
 
 ### 4.2 Introducing equivariance into the CLIP image classification experiments
@@ -149,6 +150,7 @@ Image classification was performed by finetuning CLIP with a Resnet 50 backbone.
 |---:|:-----------------------------------|-----------------------------------------:|----------------------------------------:|--------------------------------------:|-------------------------------------:|
 |  0 | CLIP w RN50 - flip - *λ-equitune*  |                                    12.94 |                                   13.38 |                                 35.75 |                                53.89 |
 |  1 | CLIP w RN50 - rot90 - *λ-equitune* |                                    12.81 |                                   13.5  |                                 37.31 |                                54.4  |
+
 *Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical dataset*
 
 
