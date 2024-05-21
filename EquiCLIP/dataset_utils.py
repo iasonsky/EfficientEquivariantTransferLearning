@@ -278,8 +278,12 @@ def get_dataloader(args, preprocess):
         from torchvision.datasets import CIFAR100
         dataset = CIFAR100("./data", transform=preprocess, download=True, train=False)
     elif args.dataset_name == "ISIC2018":
-        train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
-        train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
+        if args.kaggle:
+            train_img_dir = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Training_Input/ISIC2018_Task3_Training_Input'
+            train_label_file = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Training_GroundTruth.csv'
+        else:
+            train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
+            train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
         dataset = ISICDataset(train_img_dir, train_label_file, transform=preprocess)
         if args.undersample:
             dataloader = get_balanced_dataloader(dataset, method='undersample', batch_size=32, num_workers=1)
@@ -305,11 +309,17 @@ def get_ft_dataloader(args, preprocess):
         eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=32, num_workers=2)
     elif args.dataset_name == "ISIC2018":
         # Load the training and validation datasets
-        train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
-        train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
-        val_img_dir = 'data/ISIC2018/ISIC2018_Task3_Validation_Input'
-        val_label_file = 'data/ISIC2018/ISIC2018_Task3_Validation_GroundTruth.csv'
-        
+        if args.kaggle:
+            train_img_dir = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Training_Input/ISIC2018_Task3_Training_Input'
+            train_label_file = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Training_GroundTruth.csv'
+            val_img_dir = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Validation_Input/ISIC2018_Task3_Validation_Input'
+            val_label_file = '/kaggle/input/isic-2018-task-3/ISIC2018_Task3_Validation_GroundTruth/ISIC2018_Task3_Validation_GroundTruth/ISIC2018_Task3_Validation_GroundTruth.csv'
+        else:
+            train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
+            train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
+            val_img_dir = 'data/ISIC2018/ISIC2018_Task3_Validation_Input'
+            val_label_file = 'data/ISIC2018/ISIC2018_Task3_Validation_GroundTruth.csv'
+            
         isic2018_train = ISICDataset(train_img_dir, train_label_file, transform=preprocess)
         isic2018_val = ISICDataset(val_img_dir, val_label_file, transform=preprocess)
         if args.undersample:

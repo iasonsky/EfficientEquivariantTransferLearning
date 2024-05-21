@@ -194,6 +194,7 @@ if __name__ == "__main__":
     parser.add_argument("--undersample", action='store_true')
     parser.add_argument("--oversample", action='store_true')
     parser.add_argument("--full_val", action='store_true')
+    parser.add_argument("--kaggle", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
