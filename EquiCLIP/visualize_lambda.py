@@ -9,11 +9,21 @@ import torch
 import clip
 import copy
 import argparse
+import os
+from pathlib import Path
 import pytorch_lightning as pl
+import sys
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
 
+# ugly way of making import work when using as a Python module
+# equiclip_path = os.path.join(os.path.dirname(__file__), "EquiCLIP")
+equiclip_path = os.path.dirname(__file__)
+assert "EquiCLIP" in equiclip_path
+if equiclip_path not in sys.path:
+    sys.path.append(equiclip_path)
+# print(sys.path)
 
 from tqdm import tqdm
 from pkg_resources import packaging
@@ -42,7 +52,46 @@ def plot_lambda_weights():
     lambda_vit16 = torch.tensor([244.9, 437.8, 374.3, 366.8])
     lambda_vit16 = lambda_vit16 / sum(lambda_vit16)
 
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description='Weighted equituning')
+    parser.add_argument("--seed", default=0, type=int)
+    parser.add_argument("--device", default='cuda:0', type=str)
+    parser.add_argument("--img_num", default=0, type=int)
+    parser.add_argument("--num_prefinetunes", default=10, type=int, help="num of iterations for learning the lambda weights")
+    # parser.add_argument("--num_finetunes", default=8, type=int)
+    # parser.add_argument("--iter_per_prefinetune", default=100, type=int)
+    # parser.add_argument("--iter_per_finetune", default=500, type=int)
+    parser.add_argument("--data_transformations", default="", type=str, help=["", "flip", "rot90"])
+    parser.add_argument("--group_name", default="", type=str, help=["", "flip", "rot90"])
+    parser.add_argument("--method", default="equitune", type=str, help=["vanilla", "equitune", "equizero"])
+    parser.add_argument("--model_name", default="RN50", type=str, help=['RN50', 'RN101', 'RN50x4', 'RN50x16',
+                                                                        'RN50x64', 'ViT-B/32', 'ViT-B/16',
+                                                                        'ViT-L/14', 'ViT-L/14@336px'])
+    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100"])
+    parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--softmax", action='store_true')
+    parser.add_argument("--use_underscore", action='store_true')
+    parser.add_argument("--load", action='store_true')
+    parser.add_argument("--full_finetune", action='store_true')
+    parser.add_argument("--visualize_features", action='store_true',
+        help="Visualize intermediate features on top of the lambda weights")
+    parser.add_argument("--model_file", default="", type=str, help="File name of the model. If set then other parameters are discarded.")
+    parser.add_argument("--output_filename_suffix", default="", type=str, help="File name suffix of the output dataframe. Specify it to avoid name clashes when generating plots with multiple input models where the parameters are not unique")
+    parser.add_argument("--model_display_name", default="", type=str, help="")
+    args = parser.parse_args(argv)
+
+    args.verbose = True
+
+    pl.seed_everything(args.seed)
+
+    if not args.model_display_name:
+        args.model_display_name = args.model_name
+
+    return args
+
 def main(args):
+    args = parse_args(args)
+    print(args)
     # load model and preprocess
     model, preprocess = load_model(args)
 
@@ -53,16 +102,22 @@ def main(args):
     train_loader, eval_loader = get_ft_dataloader(args, preprocess)
     viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess)
 
-    MODEL_DIR = "saved_weight_net_models"
+    if not args.model_file:
+        MODEL_DIR = "saved_weight_net_models"
 
-    if args.model_name in ['ViT-B/32', 'ViT-B/16']:
-        args.save_model_name = ''.join(args.model_name.split('/'))
+        if args.model_name in ['ViT-B/32', 'ViT-B/16']:
+            args.save_model_name = ''.join(args.model_name.split('/'))
+        else:
+            args.save_model_name = args.model_name
+
+        MODEL_NAME = f"{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}" \
+                    f"_steps_{args.num_prefinetunes}.pt"
+        MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
     else:
+        MODEL_PATH = args.model_file
+        MODEL_NAME = Path(MODEL_PATH).name
+        MODEL_DIR = Path(MODEL_PATH).parent
         args.save_model_name = args.model_name
-
-    MODEL_NAME = f"{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}" \
-                 f"_steps_{args.num_prefinetunes}.pt"
-    MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
     if args.method == "attention":
         feature_combination_module = AttentionAggregation(args)
@@ -92,7 +147,13 @@ def main(args):
                 # `internal_features` are the output of the last convolution layer of the backbone, 
                 # where we expect to see actual equivariance
                 image_features, internal_features = model.encode_image(x, return_internal_features=True)  # dim [group_size * batch_size, feat_size=512]
-                writer.add_image(f'internal features {k}', grid, j)
+                # print(internal_features.shape, internal_features.dtype)
+                for k in range(len(internal_features)):
+                    grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
+                    writer.add_image(f'internal features{k}', grid, j)
+
+                    fn = f"feature_visualizations/{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}{args.output_filename_suffix}_batch_{i}_image_{k}_group_{j}.png"
+                    torchvision.utils.save_image(grid, fn)
             else:
                 image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
             weights = weight_net(image_features.float()).half()
@@ -103,6 +164,7 @@ def main(args):
             weights_for_all_trafos.append(weights[:, 0].detach().cpu().numpy())
         weights_for_all_trafos = np.stack(weights_for_all_trafos)
         all_weights.append(weights_for_all_trafos)
+        # raise Exception("e")
 
     # Save actual images to Tensorboard - this use a different data loader, skipping some preprocessing steps,
     # that's why it is a separate loop
@@ -122,6 +184,7 @@ def main(args):
     all_weights = np.concatenate(all_weights, axis=-1).astype(np.float32)
     df = pd.DataFrame(all_weights.T, columns=["90", "180", "270", "0"]).loc[:, ["0", "90", "180", "270"]]
     df["model_name"] = args.model_name
+    df["model_display_name"] = args.model_display_name
     df["dataset_name"] = args.dataset_name
     df["group_name"] = args.group_name
     df["data_transformations"] = args.data_transformations
@@ -135,33 +198,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Weighted equituning')
-    parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--device", default='cuda:0', type=str)
-    parser.add_argument("--img_num", default=0, type=int)
-    parser.add_argument("--num_prefinetunes", default=10, type=int, help="num of iterations for learning the lambda weights")
-    # parser.add_argument("--num_finetunes", default=8, type=int)
-    # parser.add_argument("--iter_per_prefinetune", default=100, type=int)
-    # parser.add_argument("--iter_per_finetune", default=500, type=int)
-    parser.add_argument("--data_transformations", default="", type=str, help=["", "flip", "rot90"])
-    parser.add_argument("--group_name", default="", type=str, help=["", "flip", "rot90"])
-    parser.add_argument("--method", default="equitune", type=str, help=["vanilla", "equitune", "equizero"])
-    parser.add_argument("--model_name", default="RN50", type=str, help=['RN50', 'RN101', 'RN50x4', 'RN50x16',
-                                                                        'RN50x64', 'ViT-B/32', 'ViT-B/16',
-                                                                        'ViT-L/14', 'ViT-L/14@336px'])
-    parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=["ImagenetV2", "CIFAR100"])
-    parser.add_argument("--verbose", action='store_true')
-    parser.add_argument("--softmax", action='store_true')
-    parser.add_argument("--use_underscore", action='store_true')
-    parser.add_argument("--load", action='store_true')
-    parser.add_argument("--full_finetune", action='store_true')
-    parser.add_argument("--visualize_features", action='store_true', 
-        help="Visualize intermediate features on top of the lambda weights")
-    args = parser.parse_args()
-
-    args.verbose = True
-
-    pl.seed_everything(args.seed)
-    main(args)
+    main(sys.argv[1:])
 
 # python main_weighted_equitune.py  --dataset_name CIFAR100  --logit_factor 1.0  --iter_per_finetune 500 --method equitune --group_name rot90 --data_transformations rot90  --model_name 'ViT-B/16' --lr 0.000005 --num_finetunes 10 --num_prefinetunes 20 --k -10 --prelr 0.33
