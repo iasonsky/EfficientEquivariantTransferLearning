@@ -5,18 +5,18 @@ import torch.nn.functional as F
 from clip.model import CLIP
 import wandb
 from tqdm.autonotebook import tqdm, trange
-
+from itertools import cycle
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
-def cycle(iterable):
-    # this does not reset the iterable,
-    # so it hangs the process with an infinite loop when iterable reaches the end (i think)
-    while True:
-        for x in iterable:
-            yield x
+# def cycle(iterable):
+#     # this does not reset the iterable,
+#     # so it hangs the process with an infinite loop when iterable reaches the end (i think)
+#     while True:
+#         for x in iterable:
+#             yield x
 
 
 def accuracy(output, target, topk=(1,)):
