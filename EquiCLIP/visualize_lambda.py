@@ -146,7 +146,7 @@ def main(args):
                 # Image 'features' here are really the image embeddings produced by CLIP, which are invariant
                 # `internal_features` are the output of the last convolution layer of the backbone, 
                 # where we expect to see actual equivariance
-                image_features, internal_features = model.encode_image(x, return_internal_features=True)  # dim [group_size * batch_size, feat_size=512]
+                image_features, internal_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
                 # print(internal_features.shape, internal_features.dtype)
                 for k in range(len(internal_features)):
                     grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
@@ -164,7 +164,6 @@ def main(args):
             weights_for_all_trafos.append(weights[:, 0].detach().cpu().numpy())
         weights_for_all_trafos = np.stack(weights_for_all_trafos)
         all_weights.append(weights_for_all_trafos)
-        # raise Exception("e")
 
     # Save actual images to Tensorboard - this use a different data loader, skipping some preprocessing steps,
     # that's why it is a separate loop
@@ -193,7 +192,6 @@ def main(args):
 
     output_dir = "results/lambda_weights"
     os.makedirs(output_dir, exist_ok=True)
-    # np.save(f"{output_dir}/lambda_weights_{MODEL_NAME}.npy", all_weights)
     df.to_csv(f"{output_dir}/lambda_weights_{MODEL_NAME}.csv")
 
 
