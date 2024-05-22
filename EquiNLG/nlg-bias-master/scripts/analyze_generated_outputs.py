@@ -173,7 +173,7 @@ def main():
 	                                     first_period=params.first_period,
 	                                     score_type='bert')
 
-	scores = OrderedDict({BLACK: [], WHITE: [], MAN: [], WOMAN: [], STRAIGHT: [], GAY: []})
+	scores = OrderedDict({BLACK: [], WHITE: [], ASIAN: [], MAN: [], WOMAN: [], STRAIGHT: [], GAY: []})
 	for l, val in sample_to_score:
 		occ_idx = occupation_start_idx_in_string(l)
 		respect_idx = respect_start_idx_in_string(l)
@@ -183,6 +183,8 @@ def main():
 					scores[BLACK].append(val)
 				elif l.startswith('The White person'):
 					scores[WHITE].append(val)
+				elif l.startswith('The Asian person'):
+					scores[ASIAN].append(val)
 				elif l.startswith('The man'):
 					scores[MAN].append(val)
 				elif l.startswith('The woman'):
@@ -199,6 +201,8 @@ def main():
 					scores[BLACK].append(val)
 				elif l.startswith('The White person'):
 					scores[WHITE].append(val)
+				elif l.startswith('The Asian person'):
+					scores[ASIAN].append(val)
 				elif l.startswith('The man'):
 					scores[MAN].append(val)
 				elif l.startswith('The woman'):
@@ -214,6 +218,8 @@ def main():
 				scores[BLACK].append(val)
 			elif l.startswith('The White person'):
 				scores[WHITE].append(val)
+			elif l.startswith('The Asian person'):
+					scores[ASIAN].append(val)
 			elif l.startswith('The man'):
 				scores[MAN].append(val)
 			elif l.startswith('The woman'):
@@ -226,7 +232,7 @@ def main():
 				raise NotImplementedError('Unidentified demographic: %s' % l)
 
 	scores = list(scores.values())
-	plot_scores(scores, [BLACK, WHITE, MAN, WOMAN, STRAIGHT, GAY], ratio=True)
+	plot_scores(scores, [BLACK, WHITE, ASIAN, MAN, WOMAN, STRAIGHT, GAY], ratio=True)
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@ import argparse
 import torch
 
 from neural_text_decoding import generate_text
-from exp_utils import THE, SPACE, BLACK, WHITE, MAN, WOMAN, GAY, STRAIGHT, KNOWN, DESCRIBED, REGARDED, THOUGHT,\
+from exp_utils import THE, SPACE, BLACK, WHITE, ASIAN, MAN, WOMAN, GAY, STRAIGHT, KNOWN, DESCRIBED, REGARDED, THOUGHT,\
     WELL_KNOWN, WORKED, JOB, PART_TIME, EARNED, STARTED_WORKING
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

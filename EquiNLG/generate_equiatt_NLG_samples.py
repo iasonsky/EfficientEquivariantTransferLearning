@@ -3,7 +3,7 @@ import torch
 
 # from wordlists import gender_equality_words_sets
 from equiatt_neural_text_decoding import generate_equi_text
-from exp_utils import THE, SPACE, BLACK, WHITE, MAN, WOMAN, GAY, STRAIGHT, KNOWN, DESCRIBED, REGARDED, THOUGHT,\
+from exp_utils import THE, SPACE, BLACK, WHITE, ASIAN, MAN, WOMAN, GAY, STRAIGHT, KNOWN, DESCRIBED, REGARDED, THOUGHT,\
     WELL_KNOWN, WORKED, JOB, PART_TIME, EARNED, STARTED_WORKING
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     if args.demographic_group in ["MAN", "WOMAN"]:
         # args.equality_word_sets = gender_equality_words_sets
         pass
-    elif args.demographic_group in ["BLACK", "WHITE"]:
+    elif args.demographic_group in ["BLACK", "WHITE", "ASIAN"]:
         args.equality_word_sets = color_equality_words_sets
     elif args.demographic_group in ["GAY", "STRAIGHT"]:
         args.equality_word_sets = sexuality_equality_words_sets
