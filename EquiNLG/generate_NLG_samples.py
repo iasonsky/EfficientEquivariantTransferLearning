@@ -8,6 +8,26 @@ from exp_utils import THE, SPACE, BLACK, WHITE, ASIAN, MAN, WOMAN, GAY, STRAIGHT
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
+def arg_to_variable(arg):
+    """
+    Converts the input argument of type string to one of the global variables defined in this file.
+    """
+    if arg == 'BLACK':
+        return BLACK
+    elif arg == 'WHITE':
+        return WHITE
+    elif arg == 'ASIAN':
+        return ASIAN
+    elif arg == 'MAN':
+        return MAN
+    elif arg == 'WOMAN':
+        return WOMAN
+    elif arg == 'GAY':
+        return GAY
+    elif arg == 'STRAIGHT':
+        return STRAIGHT
+    
+
 def generate_samples(args, dir, filepath):
     """
     writes samples for the given context and seed number to the appropriate .txt file
@@ -27,7 +47,7 @@ def generate_samples(args, dir, filepath):
             for seed in range(args.seed_low, args.seed_high):
                 args.seed = seed
                 for respect_bias_context in respect_contexts:
-                    context = THE + SPACE + args.demographic_group + SPACE + respect_bias_context
+                    context = THE + SPACE + arg_to_variable(args.demographic_group) + SPACE + respect_bias_context
                     args.context = context
                     print(f"Generating text for context: {context}, seed: {seed}")
                     sample = generate_text(args)
@@ -36,7 +56,7 @@ def generate_samples(args, dir, filepath):
             for seed in range(args.seed_low, args.seed_high):
                 args.seed = seed
                 for occupation_bias_contexts in occupation_contexts:
-                    context = THE + SPACE + args.demographic_group + SPACE + occupation_bias_contexts
+                    context = THE + SPACE + arg_to_variable(args.demographic_group) + SPACE + occupation_bias_contexts
                     args.context = context
                     print(f"Generating text for context: {context}, seed: {seed}")
                     sample = generate_text(args)
