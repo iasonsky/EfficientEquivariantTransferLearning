@@ -78,7 +78,10 @@ def compute_logits(
         zeroshot_weights,
         group_name,
         validate_equivariance=False,  # here it is a separate arg because it is only called in validation
+        return_weights_features=False
 ):
+    lambda_weights = None
+    # internal_features = None
     if args.method == "attention" or args.method == "equitune":
         group_size = int(group_sizes[group_name])
         image_features = conv_forward(model.visual, group_images.type(model.dtype))  # dim [group_size * batch_size, *feat_dims]
@@ -94,14 +97,20 @@ def compute_logits(
             original_shape = image_features.shape
 
             attention_weights = feature_combination_module(image_features)  # dim [batch_size, group_size, group_size]
+            # print("attention_weights ", attention_weights.shape)
+            # print(attention_weights)
+            # print(attention_weights.mean(dim=1))
             assert len(attention_weights.shape) == 3 and attention_weights.shape[1] == attention_weights.shape[2]
 
             image_features = inverse_transform_images(image_features, group_name=group_name)  # [B, G, C, H, H]
+            # print("image_features ", image_features.shape)
             assert image_features.shape[1] == group_size
 
             # Finish applying attention
             values = image_features.flatten(start_dim=2).type(feature_combination_module.dtype)  # [B, G, C*H*H]
+            # print("values ", values.shape)
             combined_features = torch.matmul(attention_weights, values)  # dim [B, N, D]
+            # print("combined_features ", combined_features.shape)
             combined_features = combined_features.view(original_shape)
 
             # mean features over the group
@@ -110,6 +119,9 @@ def compute_logits(
             assert combined_features.shape[0] == original_shape[0]
             assert combined_features.shape[-3:] == original_shape[-3:]
             assert len(combined_features.shape) == 4
+            if return_weights_features:
+                lambda_weights = attention_weights
+                # internal_features = internal_features
         else:
             weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
             weights = weights.reshape(-1, group_size)  # dim [batch_size, group_size]
@@ -124,6 +136,10 @@ def compute_logits(
 
             # sum and not mean because they normalized anyway
             combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
+
+            if return_weights_features:
+                lambda_weights = weights
+                # internal_features = image_features
 
         if validate_equivariance:
             # actually verify invariance of combined features because that is much easier
@@ -144,7 +160,11 @@ def compute_logits(
             logits = torch.nn.functional.softmax(logits, dim=-1)
     else:
         raise NotImplementedError
-    return logits
+
+    if return_weights_features:
+        return logits, lambda_weights # , internal_features
+    else:
+        return logits
 
 
 def weighted_equitune_clip(

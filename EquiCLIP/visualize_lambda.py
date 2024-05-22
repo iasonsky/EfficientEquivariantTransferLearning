@@ -27,13 +27,17 @@ if equiclip_path not in sys.path:
 
 from tqdm import tqdm
 from pkg_resources import packaging
-from weight_models import WeightNet
+from weight_models import WeightNet, AttentionAggregation
 from load_model import load_model
 from weighted_equitune_utils import weighted_equitune_clip
 from dataset_utils import imagenet_classes, imagenet_templates, get_labels_textprompts, get_dataloader, get_ft_dataloader, get_ft_visualize_dataloader
 from zeroshot_weights import zeroshot_classifier
 from eval_utils import eval_clip
 from torch.utils.tensorboard import SummaryWriter
+from weighted_equitune_utils import compute_logits
+from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images, verify_invariance, \
+    verify_weight_equivariance
+
 
 import pandas as pd
 
@@ -63,7 +67,8 @@ def parse_args(argv):
     # parser.add_argument("--iter_per_finetune", default=500, type=int)
     parser.add_argument("--data_transformations", default="", type=str, help=["", "flip", "rot90"])
     parser.add_argument("--group_name", default="", type=str, help=["", "flip", "rot90"])
-    parser.add_argument("--method", default="equitune", type=str, help=["vanilla", "equitune", "equizero"])
+    parser.add_argument("--method", default="equitune", type=str,
+                        help=str(["vanilla", "equitune", "equizero", "attention"]))
     parser.add_argument("--model_name", default="RN50", type=str, help=['RN50', 'RN101', 'RN50x4', 'RN50x16',
                                                                         'RN50x64', 'ViT-B/32', 'ViT-B/16',
                                                                         'ViT-L/14', 'ViT-L/14@336px'])
@@ -95,12 +100,14 @@ def main(args):
     # load model and preprocess
     model, preprocess = load_model(args)
 
-    # load weight network
-    weight_net = WeightNet(args).to(args.device)
-
     # get dataloader
-    train_loader, eval_loader = get_ft_dataloader(args, preprocess)
-    viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess)
+    train_loader, eval_loader = get_ft_dataloader(args, preprocess, batch_size=12)
+    viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess, batch_size=12)
+
+    # get labels and text prompts
+    classnames, templates = get_labels_textprompts(args)
+    # create text weights for different classes
+    zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
 
     if not args.model_file:
         MODEL_DIR = "saved_weight_net_models"
@@ -120,14 +127,14 @@ def main(args):
         args.save_model_name = args.model_name
 
     if args.method == "attention":
-        feature_combination_module = AttentionAggregation(args)
+        feature_combination_module = AttentionAggregation(args.model_name)
     else:
         feature_combination_module = WeightNet(args)
     feature_combination_module.to(args.device)
 
     if os.path.isfile(MODEL_PATH):
         print(f"Loading model from {MODEL_PATH}")
-        weight_net.load_state_dict(torch.load(MODEL_PATH))
+        feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
     else:
         raise Exception(f"Please train a model first (using main_lambda_equitune.py)")
 
@@ -135,53 +142,81 @@ def main(args):
     # compute lambda for different transformed images
     writer = SummaryWriter()
     for i, data in enumerate(tqdm(eval_loader)):
-        x, y = data
-        x = x.to(args.device)
-        x_group = []
-        weights_for_all_trafos = []
-        for j in range(4):
-            x = torch.rot90(x, k=1, dims=(-1, -2))
-            x_group.append(x)
-            if args.visualize_features:
-                # Image 'features' here are really the image embeddings produced by CLIP, which are invariant
-                # `internal_features` are the output of the last convolution layer of the backbone, 
-                # where we expect to see actual equivariance
-                image_features, internal_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
-                # print(internal_features.shape, internal_features.dtype)
-                for k in range(len(internal_features)):
-                    grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
-                    writer.add_image(f'internal features{k}', grid, j)
+        images, target = data
+        # weights_for_all_trafos = []
+    
+        images = images.to(args.device)  # dim [batch_size, c_in, H, H]
+        # images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
-                    fn = f"feature_visualizations/{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}{args.output_filename_suffix}_batch_{i}_image_{k}_group_{j}.png"
-                    torchvision.utils.save_image(grid, fn)
-            else:
-                image_features = model.encode_image(x)  # dim [group_size * batch_size, feat_size=512]
-            weights = weight_net(image_features.float()).half()
-            assert weights.shape[-1] == 1
-            for k in range(len(weights)):
-               weight = weights[k]
-               writer.add_scalar(f'lambda{k}', weight, j)
-            weights_for_all_trafos.append(weights[:, 0].detach().cpu().numpy())
-        weights_for_all_trafos = np.stack(weights_for_all_trafos)
-        all_weights.append(weights_for_all_trafos)
+        group_images = group_transform_images(images,
+                                              group_name=args.group_name)  # dim [group_size, batch_size, c_in, H, H]
+        group_images_shape = group_images.shape
+
+        # dim [group_size * batch_size, c_in, H, H]
+        group_images = group_images.reshape(group_images_shape[0] * group_images_shape[1], group_images_shape[2],
+                                            group_images_shape[3], group_images_shape[3])
+        
+        logits, weights = compute_logits(args=args,
+            model=model,
+            feature_combination_module=feature_combination_module,
+            group_images=group_images,
+            zeroshot_weights=zeroshot_weights,
+            group_name=args.group_name,
+            validate_equivariance=False,  # here it is a separate arg because it is only called in validation
+            return_weights_features=True
+        )
+        if args.method == "attention":
+            assert weights.shape == torch.Size([images.shape[0], 4, 4])
+            # Attention weights are square, [B, G, G]. However, after being multiplied with the features, the
+            # mean of the result is taken, so I guess it makes sense to simply take the mean of the weights 
+            # here.. right?
+            weights = weights.mean(dim=1)
+        else:
+            #weights: [B, G, 1, 1, 1]
+            assert weights.shape == torch.Size([images.shape[0], 4, 1, 1, 1])
+            weights = weights[:, :, 0, 0, 0]
+        #weights: [B, G]
+        assert weights.shape == torch.Size([images.shape[0], 4])
+        
+        for k in range(len(weights)): # batch
+            for j in range(len(weights[k])): # group
+                weight = weights[k, j]
+                writer.add_scalar(f'lambda{k}', weight, j)
+        
+        if args.visualize_features:
+            # FIXME not yet updated to the latest master
+            for k in range(len(internal_features)):
+                grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
+                writer.add_image(f'internal features{k}', grid, j)
+
+                fn = f"feature_visualizations/{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}{args.output_filename_suffix}_batch_{i}_image_{k}_group_{j}.png"
+                torchvision.utils.save_image(grid, fn)
+
+        all_weights.append(weights[:, :].detach().cpu().numpy())
 
     # Save actual images to Tensorboard - this use a different data loader, skipping some preprocessing steps,
     # that's why it is a separate loop
     for i, data in enumerate(viz_eval_loader):
-        x, y = data
-        x = x.to(args.device)
-        for j in range(4):
-            x = torch.rot90(x, k=1, dims=(-1, -2))
+        images, target = data
+        # weights_for_all_trafos = []
+    
+        images = images.to(args.device)  # dim [batch_size, c_in, H, H]
+        # images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
-            for k in range(len(x)):
-                grid = torchvision.utils.make_grid(x[k])
-                writer.add_image(f'images{k}', grid, j)
+        group_images = group_transform_images(images,
+                                              group_name=args.group_name)  # dim [group_size, batch_size, c_in, H, H]
+        group_images_shape = group_images.shape
 
-        break
+        grid = torchvision.utils.make_grid(group_images[:, 0, :, :, :], normalize=False, nrow=1)
+        torchvision.utils.save_image(grid, f"feature_visualizations/input_{i}.png")
+
+        if i > 6:
+            break
+
     writer.close()
 
-    all_weights = np.concatenate(all_weights, axis=-1).astype(np.float32)
-    df = pd.DataFrame(all_weights.T, columns=["90", "180", "270", "0"]).loc[:, ["0", "90", "180", "270"]]
+    all_weights = np.concatenate(all_weights, axis=0).astype(np.float32)
+    df = pd.DataFrame(all_weights, columns=["0", "90", "180", "270"])
     df["model_name"] = args.model_name
     df["model_display_name"] = args.model_display_name
     df["dataset_name"] = args.dataset_name
@@ -192,7 +227,7 @@ def main(args):
 
     output_dir = "results/lambda_weights"
     os.makedirs(output_dir, exist_ok=True)
-    df.to_csv(f"{output_dir}/lambda_weights_{MODEL_NAME}.csv")
+    df.to_csv(f"{output_dir}/lambda_weights_{MODEL_NAME}_{args.output_filename_suffix}.csv")
 
 
 if __name__ == "__main__":
