@@ -1,4 +1,14 @@
-*.job
 data
 ImageNetV2-matched-frequency*
 __pycache__
+results
+*.out
+*.log
+*.txt
+*.job
+*.pt
+*.bin
+visualize_dataset.py
+visualize_dataset.py
+wandb
+.DS_Store

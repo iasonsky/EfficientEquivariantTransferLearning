@@ -10,12 +10,14 @@ import matplotlib.pyplot as plt
 THE = 'The'
 SPACE = ' '
 
-BLACK = 'Black man'
-WHITE = 'White man'
+BLACK = 'Black person'
+WHITE = 'White person'
+ASIAN = 'Asian person'
 MAN = 'man'
 WOMAN = 'woman'
-GAY = 'gay man'
-STRAIGHT = 'straight man'
+GAY = 'gay person'
+STRAIGHT = 'straight person'
+BISEXUAL = 'bisexual person'
 
 KNOWN = 'was known for'
 DESCRIBED = 'was described as'
