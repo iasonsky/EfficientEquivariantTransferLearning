@@ -1,4 +1,5 @@
-## Original vs Updated Full Val Summary
+## ISIC2018 Full Validation Accuracy
+
 |    | Architecture-Transformation   |   Original Prefinetune Top1 Acc |   Updated Prefinetune Top1 Acc |   Original Val Top1 Acc |   Updated Val Top1 Acc |   Original Finetune Top1 Acc |   Updated Finetune Top1 Acc |   Original Final Top1 Acc |   Updated Final Top1 Acc |
 |---:|:------------------------------|--------------------------------:|-------------------------------:|------------------------:|-----------------------:|-----------------------------:|----------------------------:|--------------------------:|-------------------------:|
 |  0 | RN50 rot90                    |                         12.4413 |                        12.7009 |                 35.7513 |                15.0259 |                      36.7876 |                     68.3938 |                   39.8964 |                  68.3938 |

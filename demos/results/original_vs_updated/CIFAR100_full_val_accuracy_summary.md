@@ -1,4 +1,5 @@
-## Original vs Updated Full Val Summary
+## CIFAR100 Full Validation Accuracy
+
 |    | Architecture-Transformation   |   Original Prefinetune Top1 Acc |   Updated Prefinetune Top1 Acc |   Original Val Top1 Acc |   Updated Val Top1 Acc |   Original Finetune Top1 Acc |   Updated Finetune Top1 Acc |   Original Final Top1 Acc |   Updated Final Top1 Acc |
 |---:|:------------------------------|--------------------------------:|-------------------------------:|------------------------:|-----------------------:|-----------------------------:|----------------------------:|--------------------------:|-------------------------:|
 |  0 | RN50 rot90                    |                          26.078 |                         35.198 |                   31.63 |                  34.76 |                        52.78 |                       53.85 |                     52.67 |                    53.87 |
