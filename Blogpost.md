@@ -121,7 +121,9 @@ following formulation:
 ```
 
 We get *equitune* as a special case when all λ values are equal, and *equizero* as a special case when λ is an indicator
-function.
+function. Naturally, *λ-equitune* is implemented as a neural network that learns the $\lambda$ weights,
+which can be done with or without fine-tuning the backbone at the same time. As we can see, all methods have a computation cost that grows linearly in the number of group
+transformations used.
 
 ## 4. Our contributions
 
