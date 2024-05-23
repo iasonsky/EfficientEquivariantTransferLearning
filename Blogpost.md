@@ -50,7 +50,7 @@ The *equizero* method introduced by Kaba et al (2022) is formulated as an optimi
 ```
 where
 ```math
-g_{*}^{-1} = argmin_{g \in G} l(\mathbf{M}(gx))
+g_{*} = argmin_{g \in G} l(\mathbf{M}(gx))
 ```
 ```math
 l : \mathcal{Y} \to \mathbb{R}
