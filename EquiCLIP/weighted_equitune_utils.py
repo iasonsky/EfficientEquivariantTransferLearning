@@ -119,8 +119,13 @@ def weighted_equitune_clip(args, model: CLIP,
     since = time.time()
     top1, top5, n = 0., 0., 0.
     st_time = time.time()
+
+    # Create a limited loader to avoid running the entire dataset
     limited_loader = islice(loader, num_iterations)
-    for i, (images, target) in enumerate(tqdm(limited_loader, desc="Training CLIP and/or WeightNet", total=num_iterations)):
+    # Count the actual number of items in limited_loader
+    actual_iterations = min(num_iterations, len(loader))
+    
+    for images, target in tqdm(limited_loader, desc="Training CLIP and/or WeightNet", total=actual_iterations):
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 

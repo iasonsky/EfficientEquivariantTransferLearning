@@ -103,19 +103,12 @@ def main(args):
                 print(f"Learning lambda weights: {i}/{args.num_prefinetunes}")
             # zeroshot prediction
             # add weight_net save code for the best model
-            if args.full_val_pf:
-                prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
-                    args, model, zeroshot_weights, train_loader, val=False, **val_kwargs
-                )
-                wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision, 
-                        "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
-            else:
-                # evaluating for only 50 steps using val=True
-                prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
-                    args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
-                )
-                wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision, 
-                        "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
+            val = False if args.full_val_pf else True # evaluating for only 50 steps using val=True if full_val_pf is False
+            prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
+                args, model, zeroshot_weights, train_loader, val=val, **val_kwargs
+            )
+            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision, 
+                    "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
             if prefinetune_top1_acc > best_top1:
                 best_top1 = prefinetune_top1_acc
                 best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
@@ -130,13 +123,9 @@ def main(args):
     # zeroshot eval on validation data
     print(f"Validation accuracy!")
     logging.info(f"Validation accuracy!")
-    if args.full_val:
-        val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
-        wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
-    else:
-        # val=True only for choosing the best lambda weights using the trainloader
-        val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=True, **val_kwargs)
-        wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
+    val = False if args.full_val else True # evaluating for only 50 steps using val=True if full_val is False
+    val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=val, **val_kwargs)
+    wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
     
     # Save the weighting model as an artifact
     artifact = wandb.Artifact('Weighting_model', type='model')
