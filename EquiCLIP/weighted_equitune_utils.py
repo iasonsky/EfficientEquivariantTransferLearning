@@ -127,7 +127,7 @@ def weighted_equitune_clip(args, model: CLIP,
     since = time.time()
     top1, top5, n = 0., 0., 0.
     st_time = time.time()
-    for i, (images, target) in enumerate(tqdm(loader, desc="Training CLIP and/or WeightNet")):
+    for i, (images, target) in enumerate(trange(min(num_iterations, len(loader)), desc="Training CLIP and/or WeightNet")):
         if i >= num_iterations:
             break
         images = images.to(device)  # dim [batch_size, c_in, H, H]
