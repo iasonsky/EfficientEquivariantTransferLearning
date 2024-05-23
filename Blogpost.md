@@ -3,7 +3,7 @@
 Mikhail Vlasenko, Ádám Divák, Iason Skylitsis, Milan Miletić, Zoe Tzifa-Kratira
 
 ## 1. Introduction
-Equivariance in deep learning refers to a model's ability to maintain consistent output changes in response to specific transformations of the input, ensuring that the model's behavior aligns predictably with the symmetries in the data. Many problems are known to be equivariant in nature, thus using a method that inherently has this inductive bias can increase the robustness and generalization capabilities of the models used. Several very large foundation models have been trained recently in multiple modalities, which deliver unprecedented performance in a wide variety of downstream tasks. These models however are not equivariant by their design, which limits their usability in contexts where this would be necessary. Re-training foundation models from scratch using an equivariant architecture is prohibitively expensive for most researchers, which is why several methods were proposed to get provably equivariant output from non-equivariant backbone architectures. We set out to explore the methods *λ-equitune* and *equizero*  proposed by Basu et al, which were shown to deliver good results in a wide variety of downstream tasks. We perform replication studies, suggest code and parameter improvements that deliver significantly better results, and propose a new alternative method that we call *EquiAttention*. Additionally we explore the performance of these methods on new problems and produce visualizations to better understand their working mechanisms.
+Equivariance in deep learning refers to a model's ability to maintain consistent output changes in response to specific transformations of the input, ensuring that the model's behavior aligns predictably with the symmetries in the data. Many problems are known to be equivariant in nature, thus using a method that inherently has this inductive bias can increase the robustness and generalization capabilities of the models used. Several very large foundation models have been trained recently in multiple modalities, which deliver unprecedented performance in a wide variety of downstream tasks. These models however are not equivariant by their design, which limits their usability in contexts where this would be necessary. Re-training foundation models from scratch using an equivariant architecture is prohibitively expensive for most researchers, which is why several methods were proposed to get provably equivariant output from non-equivariant backbone architectures. We set out to explore the methods *λ-equitune* and *equizero*  proposed by Basu et al, which were shown to deliver good results in a wide variety of downstream tasks. We perform replication studies, suggest code and parameter improvements that deliver significantly better results, and propose a new alternative method that we call *equiattention*. Additionally we explore the performance of these methods on new problems and produce visualizations to better understand their working mechanisms.
 
 ## 2. Background
 The most well-known equivariance in deep learning is the translation equivariance of Convolutional Neural Networks (CNNs) - an object in the upper left corner of an image has the same visual features as the same object in the lower right corner of an image. Convolutions are a particular layer type that exploit this property, by applying the same computation to different parts of their input. This leads to significantly smaller model sizes than comparable fully connected models due to the inherent weight sharing, and faster and more robust training, as data augmentation is not required to teach equivariance to the model.
@@ -67,12 +67,17 @@ We get *equitune* as a special case when all λ values are equal, and *equizero*
 
 ## 4. Our contributions
 
-The original paper proposed two new methods and validated it on an exceptionally wide range of tasks in the domain of vision, natural language processing and reinforcement learning. Having results from such a diverse set of tasks and using multiple backbone models is a strong testament to a well-working method. On the other hand we noticed that the publication included a different subset of the transfer learning methods for different tasks, so we wanted to verify whether the results also hold for the missing experiments. The publication included a limited discussion of the weight patterns *λ-equitune* learns, but it was based on a plot created for a single training example, which clearly does not generalize and is insufficient for drawing meaningful conclusions. Additionally we also noticed that many of the tasks chosen, for example image classification, were not equivariant but invariant in their nature, so good results on these does not necessarily verify true equivariance of the solution. These observations motivated us to perform reproducibility studies on some of the original data sets, expand the discussion of the inner workings of *λ-equitune*, and to perform similar studies on additional data that tests the equivariant properties more.
+The original paper improved on *equizero* and proposed *λ-equitune*, then validated them on an exceptionally wide range of tasks in the domain of vision, natural language processing and reinforcement learning. Having results from such a diverse set of tasks and using multiple backbone models is a strong testament to well-working methods. On the other hand, we noticed that the publication included a different subset of the transfer learning methods for different tasks, so we wanted to verify whether the results also hold for the missing experiments. The publication included a limited discussion of the weight patterns *λ-equitune* learns, but it was based on a plot created for a single training example, which clearly does not generalize and is insufficient for drawing meaningful conclusions. Additionally, we also noticed that many of the tasks chosen, for example image classification, were not equivariant but invariant in their nature, so good results on these does not necessarily verify true equivariance of the solution. These observations motivated us to perform reproducibility studies on some of the original data sets, expand the discussion of the inner workings of *λ-equitune*, and to perform similar studies on additional data that tests the equivariant properties more.
 
-In addition we noticed that even the most sophisticated method proposed, *λ-equitune*, inspects each feature map individually when calculating the weight, disregarding a significant source of information. Given the enormous success of the Transformer architecture in almost all areas of deep learning in recent years (quote at least Attention is all you need + one review), we hypothesized that using an Attention layer instead might provide more flexibility and thus better performance. This motivated us to create an extension of the original methods called *EquiAttention*.
+In addition, we noticed that even the most sophisticated method proposed, *λ-equitune*, inspects each feature map individually when calculating the weight, disregarding a significant source of information. Given the enormous success of the Transformer architecture in almost all areas of deep learning in recent years (quote at least Attention is all you need + one review), we hypothesized that using an Attention layer instead might provide more flexibility and thus better performance. This motivated us to create an extension of the original methods called *equiattention*.
 
-The rest of the blog post will be structured accordingly to provide a summary of our methodologies and results 
-( put an outline here based on the actual headers we will have )
+The rest of the blog post will be structured accordingly to provide a summary of our methodologies and results:
+- in 4.1 we discuss minor improvements we added to the original implementation
+- section 4.2 explores whether the implementation was really equivariant
+- in 4.3 we discuss our proposed alternative feature combination method
+- 4.4 expands our understanding of the patterns *λ-equitune* learns
+- in 4.5 the methods are tested on novel data sets
+- and finally in 4.6 an extension of the original NLG tasks is described.
 
 ### 4.1 Reproducibility and minor implementation improvements
 The authors kindly shared their implementation of the paper’s methods and experiments, which formed the basis of our work. We started by reproducing the experiments related to image classification and we were pleased to find that we could recreate Figure 4 from the original publication easily. Some training parameters were not specified in the publication, in which case we used default values in the code base unless otherwise noted. However, upon closer examination of the implementation, we discovered multiple points that we believe could be improved in the implementation.
@@ -122,7 +127,7 @@ In order to test true equivariance in an image processing setting, we modified t
 By applying these changes and testing with 90 degree rotations as the group transformation, we achieved an increase of xx in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight network (pre-finetuning), as can be seen in the table below. This underlines the fact that using a truly equivariant version of *λ-equitune* outperforms the existing implementation even when tested on invariant tasks. 
 In (section x) we explore the performance of this method on truly equivariant tasks.
 
-### 4.3 EquiAttention: Using Attention as a feature combination method
+### 4.3 *equiattention*: Using Attention as a feature combination method
 In the original work, the weights of features from $gx$ in the average are obtained independently for each $gx$. We see this as a potential limitation, as such an approach is withholding potentially crucial information for determining the significance of specific features. 
 
 We note that the only requirement for obtaining equivariant weights in the given setting is maintaining equivariance for permutation of feature sets. Specifically,
@@ -156,16 +161,16 @@ V_i = g_i^{-1}h_i
 
 where values $V$ are the inputs with the inverse transformation applied to them.
 
-Using the Attention as described above, we can calculate the final output of EquiAttention as follows:
+Using the Attention as described above, we can calculate the final output of *equiattention* as follows:
 ```math
 \mathbf{M}_G^A(x) = \mathbf{M}_2(\frac{1}{|G|}\sum_{g \in G}^{|G|} \text{Attention\_module}([\mathbf{M_1}(g_0x), \dots, \mathbf{M_1}(g_{|G|-1}x)]))
 ```
 
 where `Attention_module` takes the features sets and applies one attention operation as described above.
 
-Using the above described method of EquiAttention, we achieved a result of .. (insert results here)
+Using the above described method of *equiattention*, we achieved a result of .. (insert results here)
 
-### 4.4 Visualizations: understanding what *λ-equitune* (and *EquiAttention*) learns
+### 4.4 Visualizations: understanding what *λ-equitune* (and *equiattention*) learns
 Add visualizations here
 
 ### 4.5 Replicability: verifying the effectiveness on new problems
@@ -203,7 +208,7 @@ However, as mentioned above, the authors only focused on establishing fairness a
 
 
 ## 5. Summary
-Equivariant fine-tuning of large foundational models is an attractive approach for combining the unprecedented representation capabilities of these models with the introduction of guaranteed equivariance required in certain domains. We have reproduced, replicated and extended the work of Basu et al., where they introduced *equizero*  and *λ-equitune* for performing such fine-tuning. We have achieved an increase of [xx pp] in top1 accuracy on [whichever dataset] by improving code and parameters, a further increase of [xx pp] by improving the methodology, and proposed a new method called *EquiAttention*, which performed on par with the best baseline. Additionally, we have verified the efficacy of these methods on novel datasets that exhibit equivariant properties and delivered visualizations to better understand the operation of the trained *λ-equitune* and *EquiAttention* methods. Overall, we found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work contributed to the understanding of their strengths and weaknesses.
+Equivariant fine-tuning of large foundational models is an attractive approach for combining the unprecedented representation capabilities of these models with the introduction of guaranteed equivariance required in certain domains. We have reproduced, replicated and extended the work of Basu et al., where they introduced *equizero*  and *λ-equitune* for performing such fine-tuning. We have achieved an increase of [xx pp] in top1 accuracy on [whichever dataset] by improving code and parameters, a further increase of [xx pp] by improving the methodology, and proposed a new method called *equiattention*, which performed on par with the best baseline. Additionally, we have verified the efficacy of these methods on novel datasets that exhibit equivariant properties and delivered visualizations to better understand the operation of the trained *λ-equitune* and *equiattention* methods. Overall, we found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work contributed to the understanding of their strengths and weaknesses.
 Acknowledgements
 We would like to thank the authors for making their code available and for their fast and detailed responses to our inquiries. We would also like to thank Yongtuo Liu for his supervision of our work.
 
