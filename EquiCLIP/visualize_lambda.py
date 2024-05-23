@@ -78,8 +78,8 @@ def parse_args(argv):
     parser.add_argument("--use_underscore", action='store_true')
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
-    parser.add_argument("--visualize_features", action='store_true',
-        help="Visualize intermediate features on top of the lambda weights")
+    # parser.add_argument("--visualize_features", action='store_true',
+    #     help="Visualize intermediate features on top of the lambda weights")
     parser.add_argument("--model_file", default="", type=str, help="File name of the model. If set then other parameters are discarded.")
     parser.add_argument("--output_filename_suffix", default="", type=str, help="File name suffix of the output dataframe. Specify it to avoid name clashes when generating plots with multiple input models where the parameters are not unique")
     parser.add_argument("--model_display_name", default="", type=str, help="")
@@ -167,12 +167,17 @@ def main(args):
         )
         if args.method == "attention":
             assert weights.shape == torch.Size([images.shape[0], 4, 4])
-            # Attention weights are square, [B, G, G]. However, after being multiplied with the features, the
-            # mean of the result is taken, so I guess it makes sense to simply take the mean of the weights 
-            # here.. right?
+            # Attention weights are square, [B, G, G], as they contain one value for each combination of
+            # source_feature_map, destination_feature_map.
+            # However, after being multiplied with the features, the
+            # mean of the result is taken, so I take the mean of them here for plotting purposes.
+            # This basically averages how much a given feature map is "attended to" by all the other ones.
+            # The direction is important here, taking the mean in the other direction would result in
+            # [0.25, 0.25, 0.25, 0.25] always.
             weights = weights.mean(dim=1)
         else:
-            #weights: [B, G, 1, 1, 1]
+            # Weights are of shape [B, G, 1, 1, 1], the last 3 dimensions were only added internally to make
+            # them compatbile with the (group-transformation-expanded) image features.
             assert weights.shape == torch.Size([images.shape[0], 4, 1, 1, 1])
             weights = weights[:, :, 0, 0, 0]
         #weights: [B, G]
@@ -183,14 +188,14 @@ def main(args):
                 weight = weights[k, j]
                 writer.add_scalar(f'lambda{k}', weight, j)
         
-        if args.visualize_features:
-            # FIXME not yet updated to the latest master
-            for k in range(len(internal_features)):
-                grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
-                writer.add_image(f'internal features{k}', grid, j)
-
-                fn = f"feature_visualizations/{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}{args.output_filename_suffix}_batch_{i}_image_{k}_group_{j}.png"
-                torchvision.utils.save_image(grid, fn)
+        # if args.visualize_features:
+        #     # FIXME not yet updated to the latest master
+        #     for k in range(len(internal_features)):
+        #         grid = torchvision.utils.make_grid(internal_features[k].unsqueeze(1), normalize=False, nrow=64)
+        #         writer.add_image(f'internal features{k}', grid, j)
+        #
+        #         fn = f"feature_visualizations/{args.dataset_name}_{args.save_model_name}_aug_{args.data_transformations}_eq_{args.group_name}{args.output_filename_suffix}_batch_{i}_image_{k}_group_{j}.png"
+        #         torchvision.utils.save_image(grid, fn)
 
         all_weights.append(weights[:, :].detach().cpu().numpy())
 
@@ -205,8 +210,7 @@ def main(args):
 
         group_images = group_transform_images(images,
                                               group_name=args.group_name)  # dim [group_size, batch_size, c_in, H, H]
-        group_images_shape = group_images.shape
-
+        assert group_images.shape[1] == 1, "Only batches of 1 are supported"
         grid = torchvision.utils.make_grid(group_images[:, 0, :, :, :], normalize=False, nrow=1)
         torchvision.utils.save_image(grid, f"feature_visualizations/input_{i}.png")
 
