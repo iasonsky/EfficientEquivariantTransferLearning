@@ -189,7 +189,6 @@ if __name__ == "__main__":
     parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--undersample", action='store_true')
     parser.add_argument("--oversample", action='store_true')
-    parser.add_argument("--full_val", action='store_true')
     parser.add_argument("--kaggle", action='store_true')
     parser.add_argument("--full_val_pf", action='store_true')
     parser.add_argument("--validate_equivariance", action='store_true')
