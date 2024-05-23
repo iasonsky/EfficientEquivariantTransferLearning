@@ -26,13 +26,44 @@ At the same time, very large foundation models have been trained in self-supervi
 
 ## 3. Overview of the original paper
 
+The lack of equivariance of a pretrained model means that upon presenting slightly perturbed versions of the same input, the output of the model can be widely different. This is especially true for inputs that have a natural orientation or which for any other reason occur more frequently in a particular configuration in the training set. The main idea behind the family of methods described in the paper is to create the group-transformed version of the inputs for all transformations that we are interested in (for example 90-degree rotated versions of the input image), pass each of these through the same backbone network, and combine the resulting outputs in some way in order to achieve equivariance. The difference between these methods is in how the final combination step is performed.
+
+<!--
 Basu et al. introduced the *equitune* method as a solution to the challenge of leveraging group equivariance in transfer learning. The proposed methodology of Basu et al. is an equivariant finetuning technique that involves performing group averaging over features that have been extracted from pretrained models.
 The core idea behind *equitune* (SOURCE from previous paper) is to incorporate group averaging as a mechanism to align the features extracted from pretrained models with the desired group-equivariant properties. By averaging these features, the network can adapt to new tasks while maintaining group equivariance.
 Equitune represents a novel approach to enhancing the transfer learning capabilities of neural networks, particularly in scenarios where group equivariance is a crucial factor. It bridges the gap between pretrained models and group-equivariant architectures, enabling more efficient and reliable transfer learning processes.
 However, *equitune* is found to perform poorly when it comes to zero-shot tasks. For this reason, Basu et al. (SOURCE current paper) improve upon Kaba et al. (2022) and introduce *equizero*  as the method that achieves comparatively better results for zero-shot and fine-tuning tasks, if used with the appropriate loss functions. Following up on *equizero* , the authors additionally propose *λ-equitune* as the solution to the observation that pretrained models provide better quality features for certain group transformations compared to others. *λ-equitune* learns importance weights directly from the data and uses them to perform a weighted group averaging, thus leading to better performance compared to simple *equitune*, and competing results to *equizero*  used with the appropriate loss functions. 
+-->
 
-### 3.1 *equizero*  (maybe?)
-### 3.2 *equitune* and *λ-equitune*
+The *equitune* method that Basu et al. (2023) proposed can turn a non-equivariant model M into a model M_G that is equivariant under the group actions belonging to the group G, via minimizing the distance of features obtained from pretrained and equivariant models. The output of an equituned model is given by the following formula:
+
+```math
+\mathbf{M}_G(x) = \frac{1}{|G|} \sum_{g \in G} g^{-1} \mathbf{M}(gx).
+```
+
+Essentially, this means that the features calculated for each transformed input are averaged with equal weights to create the final output. Simply averaging the features can lead to detrimental performance, especially in zero-shot learning tasks, potentially because the pretrained model outputs high quality features only for some of the transformed inputs.
+
+The *equizero* method introduced by Kaba et al (2022) is formulated as an optimization problem, where all group-transformed versions of the input are passed through the backbone, but only a single one is selected for producing the output. More formally:
+
+```math
+\mathbf{M}_G(x) = g_{*}^{-1} \mathbf{M}(g_{*}x)
+```
+where
+```math
+g_{*}^{-1} = argmin_{g \in G} l(\mathbf{M}(gx))
+```
+```math
+l : \mathcal{Y} \to \mathbb{R}
+```
+$l$ is an injective proxy loss function. The choice of $l$ plays an important role in the final zero-shot and finetuning performance, and one of the contributions of the original publication is showing $l$ functions that work well for particular problems..
+
+*λ-equitune* is a more general formulation which contains both previous methods as special cases. The main idea of *λ-equitune* is that given a pretrained model $M$, the features $M(gx)$ for any fixed $x$ are not all equally important for all $g \in G$. *λ-equitune* learns to assign variable weights to each group-transformed inputs, resulting in the following formulation:
+
+```math
+\mathbf{M}_G^\lambda(x) = \frac{1}{\sum_{g \in G} \lambda(gx)} \sum_{g \in G}^{|G|} g^{-1} \lambda(gx) \mathbf{M}(gx).
+```
+
+We get *equitune* as a special case when all λ values are equal, and *equizero* as a special case when λ is an indicator function.
 
 ## 4. Our contributions
 
