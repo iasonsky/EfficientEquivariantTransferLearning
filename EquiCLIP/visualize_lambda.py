@@ -157,14 +157,14 @@ def main(args):
                                             group_images_shape[3], group_images_shape[3])
         
         logits, weights = compute_logits(args=args,
-            model=model,
-            feature_combination_module=feature_combination_module,
-            group_images=group_images,
-            zeroshot_weights=zeroshot_weights,
-            group_name=args.group_name,
-            validate_equivariance=False,  # here it is a separate arg because it is only called in validation
-            return_weights_features=True
-        )
+                                         model=model,
+                                         feature_combination_module=feature_combination_module,
+                                         group_images=group_images,
+                                         zeroshot_weights=zeroshot_weights,
+                                         group_name=args.group_name,
+                                         validate_equivariance=False,  # here it is a separate arg because it is only called in validation
+                                         return_weights=True
+                                         )
         if args.method == "attention":
             assert weights.shape == torch.Size([images.shape[0], 4, 4])
             # Attention weights are square, [B, G, G], as they contain one value for each combination of
