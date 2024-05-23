@@ -5,19 +5,11 @@ import torch.nn.functional as F
 from clip.model import CLIP
 import wandb
 from tqdm.autonotebook import tqdm, trange
-# from itertools import cycle
+from itertools import islice
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images
 
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
-
-# def cycle(iterable):
-#     # this does not reset the iterable,
-#     # so it hangs the process with an infinite loop when iterable reaches the end (i think)
-#     while True:
-#         for x in iterable:
-#             yield x
-
 
 def accuracy(output, target, topk=(1,)):
     pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
@@ -127,9 +119,8 @@ def weighted_equitune_clip(args, model: CLIP,
     since = time.time()
     top1, top5, n = 0., 0., 0.
     st_time = time.time()
-    for i, (images, target) in enumerate(trange(min(num_iterations, len(loader)), desc="Training CLIP and/or WeightNet")):
-        if i >= num_iterations:
-            break
+    limited_loader = islice(loader, num_iterations)
+    for i, (images, target) in enumerate(tqdm(limited_loader, desc="Training CLIP and/or WeightNet", total=num_iterations)):
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
