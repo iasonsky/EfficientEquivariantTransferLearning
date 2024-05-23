@@ -30,7 +30,7 @@ print("Torch version:", torch.__version__)
 
 def main(args):
     # Initialize wandb
-    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
+    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args), tags=["no shuffle", "no cycle"])
     wandb.run.name = f"lambda_{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
@@ -103,7 +103,7 @@ def main(args):
                 print(f"Learning lambda weights: {i}/{args.num_prefinetunes}")
             # zeroshot prediction
             # add weight_net save code for the best model
-            if args.full_val:
+            if args.full_val_pf:
                 prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
                     args, model, zeroshot_weights, train_loader, val=False, **val_kwargs
                 )
@@ -195,6 +195,7 @@ if __name__ == "__main__":
     parser.add_argument("--oversample", action='store_true')
     parser.add_argument("--full_val", action='store_true')
     parser.add_argument("--kaggle", action='store_true')
+    parser.add_argument("--full_val_pf", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
