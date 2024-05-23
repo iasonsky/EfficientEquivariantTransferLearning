@@ -126,15 +126,10 @@ def weighted_equitune_clip(args, model: CLIP,
     torch.autograd.set_detect_anomaly(True)
     since = time.time()
     top1, top5, n = 0., 0., 0.
-    training_iterator = loader
     st_time = time.time()
-    for i, (images, target) in enumerate(tqdm(loader), desc="Training CLIP and/or WeightNet"):
-    # for i in trange(min(num_iterations, len(loader)), desc="Training CLIP and/or WeightNet"):
-        # if (i+1)%iter_print_freq == 0:
-        #     print(f"iteration number: {i+1}")
-        #     curr_time = time.time()
-        #     print(f"time elapsed per iter: {(curr_time - st_time) / (i + 1)}")
-        (images, target) = next(training_iterator)
+    for i, (images, target) in enumerate(tqdm(loader, desc="Training CLIP and/or WeightNet")):
+        if i >= num_iterations:
+            break
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
