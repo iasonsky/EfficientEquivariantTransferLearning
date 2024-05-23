@@ -299,14 +299,14 @@ def get_dataloader(args, preprocess):
         raise NotImplementedError("Dataset not recognized.")
     return DataLoader(dataset, batch_size=32, shuffle=True, num_workers=2)
 
-def get_ft_dataloader(args, preprocess):
+def get_ft_dataloader(args, preprocess, batch_size=32):
     if args.dataset_name == "CIFAR100":
         from torchvision.datasets import CIFAR100
         cifar100_train = CIFAR100("./data", transform=preprocess, download=True, train=True)
-        train_loader = torch.utils.data.DataLoader(cifar100_train, batch_size=32, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(cifar100_train, batch_size=batch_size, num_workers=2)
 
         cifar100_eval = CIFAR100("./data", transform=preprocess, download=True, train=False)
-        eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=32, num_workers=2)
+        eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=batch_size, num_workers=2)
     elif args.dataset_name == "ISIC2018":
         # Load the training and validation datasets
         if args.kaggle:
@@ -323,18 +323,18 @@ def get_ft_dataloader(args, preprocess):
         isic2018_train = ISICDataset(train_img_dir, train_label_file, transform=preprocess)
         isic2018_val = ISICDataset(val_img_dir, val_label_file, transform=preprocess)
         if args.undersample:
-            train_loader = get_balanced_dataloader(isic2018_train, method='undersample', batch_size=32, num_workers=1)
-            eval_loader = get_balanced_dataloader(isic2018_val, method='undersample', batch_size=32, num_workers=1)
+            train_loader = get_balanced_dataloader(isic2018_train, method='undersample', batch_size=batch_size, num_workers=1)
+            eval_loader = get_balanced_dataloader(isic2018_val, method='undersample', batch_size=batch_size, num_workers=1)
         elif args.oversample:
-            train_loader = get_balanced_dataloader(isic2018_train, method='oversample', batch_size=32, num_workers=1)
-            eval_loader = get_balanced_dataloader(isic2018_val, method='oversample', batch_size=32, num_workers=1)
+            train_loader = get_balanced_dataloader(isic2018_train, method='oversample', batch_size=batch_size, num_workers=1)
+            eval_loader = get_balanced_dataloader(isic2018_val, method='oversample', batch_size=batch_size, num_workers=1)
         else:
             train_loader = DataLoader(isic2018_train, batch_size=32, num_workers=2)
             eval_loader = DataLoader(isic2018_val, batch_size=32, num_workers=2)
     elif args.dataset_name == "MNIST":
         from torchvision.datasets import MNIST
         mnist_train = MNIST("./data", transform=preprocess, download=True, train=True)
-        train_loader = torch.utils.data.DataLoader(mnist_train, batch_size=32, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(mnist_train, batch_size=batch_size, num_workers=2)
 
         mnist_eval = MNIST("./data", transform=preprocess, download=True, train=False)
         eval_loader = torch.utils.data.DataLoader(mnist_eval, batch_size=32, num_workers=2)
@@ -350,15 +350,15 @@ def get_ft_dataloader(args, preprocess):
     return train_loader, eval_loader
 
 
-def get_ft_visualize_dataloader(args, preprocess):
+def get_ft_visualize_dataloader(args, preprocess, batch_size=32):
     if args.dataset_name == "CIFAR100":
         from torchvision.datasets import CIFAR100
         transforms = ToTensor()
         cifar100_train = CIFAR100("./data", transform=transforms, download=True, train=True)
-        train_loader = torch.utils.data.DataLoader(cifar100_train, batch_size=32, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(cifar100_train, batch_size=batch_size, num_workers=2)
 
         cifar100_eval = CIFAR100("./data", transform=transforms, download=True, train=False)
-        eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=32, num_workers=2)
+        eval_loader = torch.utils.data.DataLoader(cifar100_eval, batch_size=batch_size, num_workers=2)
 
     else:
         raise NotImplementedError

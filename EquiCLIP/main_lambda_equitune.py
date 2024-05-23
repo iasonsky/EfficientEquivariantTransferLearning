@@ -15,7 +15,7 @@ import torch.optim as optim
 import logging
 import wandb
 
-from tqdm.autonotebook import tqdm, trange
+from tqdm.autonotebook import trange
 from weight_models import WeightNet, AttentionAggregation
 from load_model import load_model
 from weighted_equitune_utils import weighted_equitune_clip
@@ -30,18 +30,14 @@ print("Torch version:", torch.__version__)
 
 def main(args):
     # Initialize wandb
-    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args), tags=["no shuffle", "no cycle"])
+    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args), tags=["equivariant features"])
     wandb.run.name = f"lambda_{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
     model, preprocess = load_model(args)
-    if args.use_underscore:
-        model_, preprocess_ = load_model(args)
-    else:
-        model_, preprocess_ = None, None
 
     if args.method == "attention":
-        feature_combination_module = AttentionAggregation(args)
+        feature_combination_module = AttentionAggregation(args.model_name)
     else:
         feature_combination_module = WeightNet(args)
     feature_combination_module.to(args.device)
@@ -55,13 +51,21 @@ def main(args):
     # optimizer and loss criterion
     criterion = nn.CrossEntropyLoss()
 
+    lr_scheduler = None
     if args.method == "attention":
         if args.prelr > 0.01:
             print("Attention model is being trained with a high learning rate. This is not recommended.")
-        optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr)
+        optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
+        # optimizer1 = optim.Adam(feature_combination_module.parameters(), lr=args.prelr, eps=1e-5)
+        # warmup scheduler
+        # lr_scheduler = optim.lr_scheduler.LinearLR(optimizer1, start_factor=0.01, total_iters=100)
     else:
         # only weight_net is trained not the model itself
         optimizer1 = optim.SGD(feature_combination_module.parameters(), lr=args.prelr, momentum=0.9)
+
+    temp = f"Optimizing {sum(p.numel() for p in feature_combination_module.parameters())} parameters."
+    print(temp)
+    logging.info(temp)
 
     # create text weights for different classes
     zeroshot_weights = zeroshot_classifier(args, model, classnames, templates, save_weights='True').to(args.device)
@@ -82,15 +86,13 @@ def main(args):
     MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
     val_kwargs = {
-        "data_transformations": args.data_transformations, 
+        "data_transformations": args.data_transformations,
         "group_name": args.group_name,
-        "device": args.device, 
-        "feature_combination_module": feature_combination_module, 
-        "model_": model_,
+        "device": args.device,
+        "feature_combination_module": feature_combination_module,
     }
 
     train_kwargs = val_kwargs.copy()
-    train_kwargs["iter_print_freq"] = args.iter_print_freq
     del train_kwargs["feature_combination_module"]
 
     if os.path.isfile(MODEL_PATH) and args.load:
@@ -114,8 +116,11 @@ def main(args):
                 best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
 
             # finetune prediction
-            model = weighted_equitune_clip(args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
-                                           train_loader, num_iterations=args.iter_per_prefinetune, **train_kwargs)
+            model = weighted_equitune_clip(
+                args, model, feature_combination_module, optimizer1, criterion, zeroshot_weights,
+                train_loader, num_iterations=args.iter_per_prefinetune, lr_scheduler=lr_scheduler,
+                **train_kwargs
+            )
 
         torch.save(best_model_weights, MODEL_PATH)
         feature_combination_module.load_state_dict(torch.load(MODEL_PATH))
@@ -123,10 +128,12 @@ def main(args):
     # zeroshot eval on validation data
     print(f"Validation accuracy!")
     logging.info(f"Validation accuracy!")
-    val = False if args.full_val else True # evaluating for only 50 steps using val=True if full_val is False
-    val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=val, **val_kwargs)
+    # val=True only for choosing the best lambda weights using the trainloader
+    val_top1_acc, val_top5_acc, val_precision, val_recall, val_f1_score = eval_clip(
+        args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs
+    )
     wandb.log({"val_top1_acc": val_top1_acc, "val_top5_acc": val_top5_acc, "val_precision": val_precision, "val_recall": val_recall, "val_f1_score": val_f1_score})
-    
+
     # Save the weighting model as an artifact
     artifact = wandb.Artifact('Weighting_model', type='model')
     artifact.add_file(MODEL_PATH)
@@ -145,10 +152,14 @@ def main(args):
                                        optimizer2, criterion, zeroshot_weights, train_loader,
                                        num_iterations=args.iter_per_finetune,
                                        **train_kwargs)
-        finetune_top1_acc, finetune_top5_acc, finetune_precision, finetune_recall, finetune_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
+        finetune_top1_acc, finetune_top5_acc, finetune_precision, finetune_recall, finetune_f1_score = eval_clip(
+            args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs
+        )
         wandb.log({"finetune_top1_acc": finetune_top1_acc, "finetune_top5_acc": finetune_top5_acc, "finetune_precision": finetune_precision,
                     "finetune_recall": finetune_recall, "finetune_f1_score": finetune_f1_score})
-    final_top1_acc, final_top5_acc, final_precision, final_recall, final_f1_score = eval_clip(args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs)
+    final_top1_acc, final_top5_acc, final_precision, final_recall, final_f1_score = eval_clip(
+        args, model, zeroshot_weights, eval_loader, val=False, **val_kwargs
+    )
     wandb.log({"final_top1_acc": final_top1_acc, "final_top5_acc": final_top5_acc, "final_precision": final_precision, "final_recall": final_recall, "final_f1_score": final_f1_score})
     wandb.finish()
 
@@ -161,7 +172,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_finetunes", default=8, type=int, help="number of finetune steps")
     parser.add_argument("--iter_per_prefinetune", default=100, type=int)
     parser.add_argument("--iter_per_finetune", default=500, type=int)
-    parser.add_argument("--iter_print_freq", default=50, type=int)
     parser.add_argument("--logit_factor", default=1., type=float)
     parser.add_argument("--prelr", default=0.33, type=float)
     parser.add_argument("--lr", default=0.000005, type=float)
@@ -175,9 +185,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name", default="ImagenetV2", type=str, help=str(["ImagenetV2", "CIFAR100", "ISIC2018", "MNIST"]))
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--softmax", action='store_true')
-    parser.add_argument("--use_underscore", action='store_true', 
-        help=("If specified then use a separate frozen copy of the pretrained model as an input to the weight network even during finetuning of this model."
-        "This matches the original implementation, but requires more VRAM."))
     parser.add_argument("--load", action='store_true')
     parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--undersample", action='store_true')
@@ -185,6 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--full_val", action='store_true')
     parser.add_argument("--kaggle", action='store_true')
     parser.add_argument("--full_val_pf", action='store_true')
+    parser.add_argument("--validate_equivariance", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True

@@ -98,6 +98,7 @@ dependencies:
   - pillow=9.4.0=py39h6a678d5_1
   - pip=23.2.1=py39h06a4308_0
   - platformdirs=3.11.0=pyhd8ed1ab_0
+  - plotly
   - prompt-toolkit=3.0.39=pyha770c72_0
   - prompt_toolkit=3.0.39=hd8ed1ab_0
   - psutil=5.9.0=py39h5eee18b_0
@@ -128,6 +129,7 @@ dependencies:
   - torchvision=0.15.2=py39_cu118
   - tornado=6.1=py39hb9d737c_3
   - traitlets=5.10.1=pyhd8ed1ab_0
+  - transformers
   - typing-extensions=4.8.0=hd8ed1ab_0
   - typing_extensions=4.8.0=pyha770c72_0
   - tzdata=2023c=h04d1e81_0
@@ -149,6 +151,7 @@ dependencies:
       - frozenlist==1.4.0
       - fsspec==2023.9.2
       - ftfy==6.1.1
+      - imblearn
       - importlib-resources==6.1.0
       - kiwisolver==1.4.5
       - lightning-utilities==0.9.0
@@ -162,4 +165,5 @@ dependencies:
       - tqdm==4.66.1
       - yarl==1.9.2
       - zipp==3.17.0
+      - wandb
 prefix: /home/sourya/anaconda3/envs/equi
