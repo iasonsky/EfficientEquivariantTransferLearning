@@ -43,37 +43,53 @@ class ISICDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image, label
+    
+    def get_image_by_class(self, class_idx):
+        for img_name, label in self.labels.items():
+            if label == class_idx:
+                img_path = os.path.join(self.img_dir, f"{img_name}.jpg")
+                image = Image.open(img_path).convert("RGB")
+                if self.transform:
+                    image = self.transform(image)
+                return image, label
+        return None, None
 
+def collect_images_by_class(dataset):
+    images = []
+    labels = []
+    for class_idx in range(len(dataset.classes)):
+        image, label = dataset.get_image_by_class(class_idx)
+        if image is not None:
+            images.append(image)
+            labels.append(label)
+    return images, labels
 
-# # Set the paths for the ISIC 2018 dataset
-# train_img_dir = 'data/ISIC2018_Task3_Training_Input'
-# train_label_file = 'data/ISIC2018_Task3_Training_GroundTruth.csv'
+# Define the dataset and transformation
+train_img_dir = 'data/ISIC2018/ISIC2018_Task3_Training_Input'
+train_label_file = 'data/ISIC2018/ISIC2018_Task3_Training_GroundTruth.csv'
 
-# # Apply data transformations
-# transform = transforms.Compose([
-#     transforms.Resize((224, 224)),
-#     transforms.ToTensor(),
-#     # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-# ])
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+])
 
-# # Initialize the dataset and dataloader
-# isic_dataset = ISICDataset(train_img_dir, train_label_file, transform=transform)
-# dataloader = DataLoader(isic_dataset, batch_size=8, shuffle=True, num_workers=2)
+isic_dataset = ISICDataset(train_img_dir, train_label_file, transform=transform)
 
-# # Function to visualize a batch of images with their labels
-# def show_images(images, labels, class_names):
-#     fig, axes = plt.subplots(1, len(images), figsize=(20, 20))
-#     for img, lbl, ax in zip(images, labels, axes):
-#         ax.imshow(img.permute(1, 2, 0).numpy())
-#         ax.set_title(class_names[lbl])
-#         ax.axis('off')
-#     plt.savefig('isic2018.png')
-#     plt.show()
+# Collect one image per class
+images, labels = collect_images_by_class(isic_dataset)
+class_names = isic_dataset.classes
 
-# # Load and visualize a batch of images
-# images, labels = next(iter(dataloader))
-# class_names = isic_dataset.classes
-# show_images(images, labels, class_names)
+# Plot the images
+def show_images(images, labels, class_names):
+    fig, axes = plt.subplots(1, len(images), figsize=(20, 20))
+    for img, lbl, ax in zip(images, labels, axes):
+        ax.imshow(img.permute(1, 2, 0).numpy())
+        ax.set_title(class_names[lbl])
+        ax.axis('off')
+    plt.savefig('isic2018.png')
+    plt.show()
+
+show_images(images, labels, class_names)
 
 import matplotlib.pyplot as plt
 from collections import Counter

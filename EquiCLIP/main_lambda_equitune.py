@@ -105,13 +105,12 @@ def main(args):
                 print(f"Learning lambda weights: {i}/{args.num_prefinetunes}")
             # zeroshot prediction
             # add weight_net save code for the best model
-
-            # evaluating for only 50 steps using val=True
+            val = False if args.full_val_pf else True # evaluating for only 50 steps using val=True if full_val_pf is False
             prefinetune_top1_acc, prefinetune_top5_acc, prefinetune_precision, prefinetune_recall, prefinetune_f1_score = eval_clip(
-                args, model, zeroshot_weights, train_loader, val=True, **val_kwargs
+                args, model, zeroshot_weights, train_loader, val=val, **val_kwargs
             )
-            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision,
-                       "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
+            wandb.log({"prefinetune_top1_acc": prefinetune_top1_acc, "prefinetune_top5_acc": prefinetune_top5_acc, "prefinetune_precision": prefinetune_precision, 
+                    "prefinetune_recall": prefinetune_recall, "prefinetune_f1_score": prefinetune_f1_score})
             if prefinetune_top1_acc > best_top1:
                 best_top1 = prefinetune_top1_acc
                 best_model_weights = copy.deepcopy(feature_combination_module.state_dict())
@@ -190,6 +189,8 @@ if __name__ == "__main__":
     parser.add_argument("--full_finetune", action='store_true')
     parser.add_argument("--undersample", action='store_true')
     parser.add_argument("--oversample", action='store_true')
+    parser.add_argument("--kaggle", action='store_true')
+    parser.add_argument("--full_val_pf", action='store_true')
     parser.add_argument("--validate_equivariance", action='store_true')
     args = parser.parse_args()
 

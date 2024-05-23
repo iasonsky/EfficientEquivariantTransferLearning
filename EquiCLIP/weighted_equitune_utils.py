@@ -4,8 +4,8 @@ import torch
 import torch.nn.functional as F
 from clip.model import CLIP, ModifiedResNet
 import wandb
-from tqdm.autonotebook import trange
-
+from tqdm.autonotebook import tqdm, trange
+from itertools import islice
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images, inverse_transform_images, verify_invariance, \
     verify_weight_equivariance
@@ -28,7 +28,9 @@ def accuracy(output, target, topk=(1,)):
 
 
 def get_output(output, group_name="", reduction="mean"):
-    if group_name == "rot90":
+    if group_name == "":
+        return output
+    elif group_name == "rot90":
         group_size = 4
     elif group_name == "flip":
         group_size = 2
