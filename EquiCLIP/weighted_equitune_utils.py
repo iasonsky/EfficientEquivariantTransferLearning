@@ -78,7 +78,9 @@ def compute_logits(
         zeroshot_weights,
         group_name,
         validate_equivariance=False,  # here it is a separate arg because it is only called in validation
+        return_weights=False
 ):
+    lambda_weights = None
     if args.method == "attention" or args.method == "equitune":
         group_size = int(group_sizes[group_name])
         image_features = conv_forward(model.visual, group_images.type(model.dtype))  # dim [group_size * batch_size, *feat_dims]
@@ -110,6 +112,8 @@ def compute_logits(
             assert combined_features.shape[0] == original_shape[0]
             assert combined_features.shape[-3:] == original_shape[-3:]
             assert len(combined_features.shape) == 4
+            if return_weights:
+                lambda_weights = attention_weights
         else:
             weights = feature_combination_module(image_features)  # dim [batch_size * group_size, 1]
             weights = weights.reshape(-1, group_size)  # dim [batch_size, group_size]
@@ -124,6 +128,9 @@ def compute_logits(
 
             # sum and not mean because they normalized anyway
             combined_features = torch.sum(image_features * weights, dim=1)  # dim [batch_size, *feat_dims]
+
+            if return_weights:
+                lambda_weights = weights
 
         if validate_equivariance:
             # actually verify invariance of combined features because that is much easier
@@ -144,7 +151,11 @@ def compute_logits(
             logits = torch.nn.functional.softmax(logits, dim=-1)
     else:
         raise NotImplementedError
-    return logits
+
+    if return_weights:
+        return logits, lambda_weights
+    else:
+        return logits
 
 
 def weighted_equitune_clip(
