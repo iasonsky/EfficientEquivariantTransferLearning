@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from clip.model import CLIP
 import wandb
 from tqdm.autonotebook import tqdm, trange
-from itertools import cycle
+# from itertools import cycle
 from weight_models import AttentionAggregation, WeightNet
 from exp_utils import group_transform_images, random_transformed_images
 
@@ -126,11 +126,11 @@ def weighted_equitune_clip(args, model: CLIP,
     torch.autograd.set_detect_anomaly(True)
     since = time.time()
     top1, top5, n = 0., 0., 0.
-    training_iterator = cycle(iter(loader))
+    training_iterator = loader
     # for i, (images, target) in enumerate(tqdm(loader)):
     import time
     st_time = time.time()
-    for i in trange(num_iterations, desc="Training CLIP and/or WeightNet"):
+    for i in trange(min(num_iterations, len(loader)), desc="Training CLIP and/or WeightNet"):
         # if (i+1)%iter_print_freq == 0:
         #     print(f"iteration number: {i+1}")
         #     curr_time = time.time()

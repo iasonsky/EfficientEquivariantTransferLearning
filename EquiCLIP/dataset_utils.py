@@ -329,8 +329,8 @@ def get_ft_dataloader(args, preprocess):
             train_loader = get_balanced_dataloader(isic2018_train, method='oversample', batch_size=32, num_workers=1)
             eval_loader = get_balanced_dataloader(isic2018_val, method='oversample', batch_size=32, num_workers=1)
         else:
-            train_loader = DataLoader(isic2018_train, batch_size=32, shuffle=True, num_workers=2)
-            eval_loader = DataLoader(isic2018_val, batch_size=32, shuffle=True, num_workers=2)
+            train_loader = DataLoader(isic2018_train, batch_size=32, num_workers=2)
+            eval_loader = DataLoader(isic2018_val, batch_size=32, num_workers=2)
     elif args.dataset_name == "MNIST":
         from torchvision.datasets import MNIST
         mnist_train = MNIST("./data", transform=preprocess, download=True, train=True)
@@ -343,8 +343,8 @@ def get_ft_dataloader(args, preprocess):
         train_dataset = ImageNetV2Dataset(transform=preprocess) #  variant="matched-frequency"
         train_dataset, eval_dataset = torch.utils.data.random_split(train_dataset, [8000, 2000]) 
         # Not sure about this but the 'val' variant was much larger than the one used in the paper 
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
-        eval_loader = DataLoader(eval_dataset, batch_size=32, shuffle=True, num_workers=2)
+        train_loader = DataLoader(train_dataset, batch_size=32, num_workers=2)
+        eval_loader = DataLoader(eval_dataset, batch_size=32, num_workers=2)
     else:
         raise NotImplementedError
     return train_loader, eval_loader
