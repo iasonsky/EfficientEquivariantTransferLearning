@@ -13,14 +13,6 @@ from exp_utils import group_transform_images, random_transformed_images, inverse
 group_sizes = {"rot90": 4., "flip": 2., "": 1.}
 
 
-def cycle(iterable):
-    # this does not reset the iterable,
-    # so it hangs the process with an infinite loop when iterable reaches the end (i think)
-    while True:
-        for x in iterable:
-            yield x
-
-
 def accuracy(output, target, topk=(1,)):
     pred = output.topk(max(topk), 1, True, True)[1].t()  # dim [max_topk, batch_size]
     correct = pred.eq(target.view(1, -1).expand_as(pred))
@@ -187,10 +179,13 @@ def weighted_equitune_clip(
 
     """
     torch.autograd.set_detect_anomaly(True)
-    training_iterator = cycle(iter(loader))
 
-    for _ in trange(num_iterations, desc="Training CLIP and/or WeightNet"):
-        (images, target) = next(training_iterator)
+    # Create a limited loader to avoid running the entire dataset
+    limited_loader = islice(loader, num_iterations)
+    # Count the actual number of items in limited_loader
+    actual_iterations = min(num_iterations, len(loader))
+
+    for images, target in tqdm(limited_loader, desc="Training CLIP and/or WeightNet", total=actual_iterations):
         images = images.to(device)  # dim [batch_size, c_in, H, H]
         images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
 
