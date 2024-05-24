@@ -7,9 +7,9 @@ from torch.nn import CrossEntropyLoss
 
 # Define model paths
 model_paths = [
-    "../models/regard_v2.1/bert_regard_v2.1/checkpoint-90",
-    "../models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90",
-    "../models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90"
+    "/kaggle/working/DL2-2024/EquiNLG/nlg-bias-master/models/regard_v2.1/bert_regard_v2.1/checkpoint-90",
+    "/kaggle/working/DL2-2024/EquiNLG/nlg-bias-master/models/regard_v2.1/bert_regard_v2.1_2/checkpoint-90",
+    "/kaggle/working/DL2-2024/EquiNLG/nlg-bias-master/models/regard_v2.1/bert_regard_v2.1_3/checkpoint-90"
 ]
 
 # Load models and tokenizers
