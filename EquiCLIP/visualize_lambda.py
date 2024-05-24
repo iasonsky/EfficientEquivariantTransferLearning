@@ -163,7 +163,8 @@ def main(args):
                                          zeroshot_weights=zeroshot_weights,
                                          group_name=args.group_name,
                                          validate_equivariance=False,  # here it is a separate arg because it is only called in validation
-                                         return_weights=True
+                                         return_weights=True,
+                                         log_variance=False
                                          )
         if args.method == "attention":
             assert weights.shape == torch.Size([images.shape[0], 4, 4])
