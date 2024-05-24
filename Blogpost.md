@@ -182,18 +182,19 @@ network frozen and only training the weight network can seriously lower the risk
 
 Our experiments show that removing the redundant softmax and adopting end-to-end finetuning significantly improve
 performance. With these changes, along with using a lower learning rate of $5e-8$ for better training stability, we
-achieve results that surpass those reported in the original paper by a large margin. We achieved an increase of 12.5
-percentage points (52.6%) in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and
-only training the weight network (pre-finetuning), as can be seen in the table below. The increase of 5.95 percentage
-points (11.8%) is less pronounced but still significant in case of full finetuning, and a the results are equally
-satisfactory across all other tests we have performed.
+achieve results that surpass those reported in the original paper. We achieved an increase of 3.13
+percentage points (9.90%) in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and
+only training the weight network (pre-finetuning), as can be seen in the table below. The increase of 1.20 percentage
+points (2.28%) is less pronounced but still noticable in case of full finetuning. A small increase in performance can be seen also when using flips.
 
-|   | Architecture-Transformation        | CIFAR100 Original Prefinetune Top1 Acc | CIFAR100 Updated Prefinetune Top1 Acc | CIFAR100 Original Finetune Top1 Acc | CIFAR100 Updated Finetune Top1 Acc |
-|--:|:-----------------------------------|---------------------------------------:|--------------------------------------:|------------------------------------:|-----------------------------------:|
-| 0 | CLIP w RN50 - flip - *λ-equitune*  |                                  36.12 |                                 37.94 |                               52.04 |                              56.49 |
-| 1 | CLIP w RN50 - rot90 - *λ-equitune* |                                  23.75 |                                 36.25 |                               50.63 |                              56.58 |
+|    | Method        | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
+|---:|:--------------|:-----------------------------------|-----------------------:|--------------------:|
+|  0 | Original Code | CLIP w RN50 - rot90 - *λ-equitune* |                  31.63 |               52.67 |
+|  1 | Updated Code  | CLIP w RN50 - rot90 - *λ-equitune* |                  34.76 |               53.87 |
+|  2 | Original Code | CLIP w RN50 - flip - *λ-equitune*  |                  37.7  |               54.25 |
+|  3 | Updated Code  | CLIP w RN50 - flip - *λ-equitune*  |                  37.7  |               55.09 |
 
-*Table n: Image classification results using the author's original and our modified code base*
+*Table 1: Image classification results using the author's original and our modified code base*
 
 ### 4.2 Introducing equivariance into the CLIP image classification experiments
 
