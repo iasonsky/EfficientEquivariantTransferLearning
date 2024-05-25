@@ -21,7 +21,7 @@ visualizations to better understand their working mechanisms.
 ## 2. Background
 
 The most well-known equivariance in deep learning is the translation equivariance of Convolutional Neural Networks (
-CNNs) - an object in the upper left corner of an image has the same visual features as the same object in the lower
+CNNs) (LeCun et al. (1989)) - an object in the upper left corner of an image has the same visual features as the same object in the lower
 right corner of an image. Convolutions are a particular layer type that exploit this property, by applying the same
 computation to different parts of their input. This leads to significantly smaller model sizes than comparable fully
 connected models due to the inherent weight sharing, and faster and more robust training, as data augmentation is not
@@ -40,24 +40,23 @@ to its input.
 M(x) = M(g(x))
 ```
 
-There are however many problems where equivariance to transformations other than translation is desired. In medical
-image analysis, protein folding, etc. (add examples here) A lack of equivariance in these domains would mean that even
-if we know that the model works correctly for all the examples in our test set, it may fail at a slightly modified (e.g.
+There are however many problems where equivariance to transformations other than translation is desired. Some examples include medical
+image segmentation (Bekkers et al. (2018), Lafarge et al. (2021)), protein folding (Tunyasuvunakool et al., 2021), molecule modelling (Hoogeboom et al. (2022)) or modelling a wide range of physical phenomenon (Villar et al. (2021)). A lack of equivariance in these domains would mean that even
+if we know that the model works correctly for all the examples in our test set, it may fail at a slightly modified (for example
 rotated) version of the same inputs.
 
 Equivariance can in theory be learnt by any model by applying adequate data augmentation during training, simply by
 providing a wide range of transformed versions of the data set, and expecting a similarly transformed output. This
 however makes training significantly slower for large data sets, and was shown to still not achieve robust
-equivariance (reference paper by Erik here). This is why specialized architectures like Group Equivariant Convolutional
-Networks have been proposed that generalize equivariance to a much wider range of discrete transformations, referred to
+equivariance (Moskalev et al. (2023)). This is why specialized architectures like Group Equivariant Convolutional
+Networks (Cohen et al. (2016)) have been proposed that generalize equivariance to a much wider range of discrete transformations, referred to
 as groups based on their mathematical description, and these have been shown to perform well in many tasks.
 
 At the same time, very large foundation models have been trained in self-supervised manner on previously unseen data
-sizes, like (reference a few papers here). These models achieve state of the art performance on a multitude of
+sizes, like [CLIP](https://openai.com/index/clip/) (Radford et al. (2021)), [GPT-4](https://chatgpt.com/?oai-dm=1) (OpenAI (2023)) or [Llama](https://llama.meta.com/) (Touvron et al. (2023)). These models achieve state of the art performance on a multitude of
 downstream tasks, sometimes surpassing specialized solutions in a zero-shot manner, without dedicated training on that
-particular task. (e.g. CLIP, Flamingo) These models are typically not trained in an equivariant manner, which has led to
-great interest in transfer learning methods that can equip these models with equivariant properties. (Copy references to
-a few of the prior works here from the original paper.)
+particular task (Bommasani et al. (2021)). These models are typically not trained in an equivariant manner, which has led to
+an interest in transfer learning methods that can equip these models with equivariant properties.
 
 ## 3. Overview of the original paper
 
@@ -125,6 +124,13 @@ function. Naturally, *λ-equitune* is implemented as a neural network that learn
 which can be done with or without fine-tuning the backbone at the same time. As we can see, all methods have a computation cost that grows linearly in the number of group
 transformations used.
 
+### 3.2 Related work
+
+The methods described in the original paper fall under the category of *symmetrization*. This means that all transformations of the input are passed through the backbone network and the final output is calculated as some combination of these. A competing approach is *canonicalization*: where a canonicalization network first learns to transform the data into a canonical form, and only this selected form is passed through the network. An architecture based on this idea is described by Mondal et al. (2023). *Canonicalization* has the advantage in that it only requires a single forward pass through the backbone network, so it only has a small computational overhead. On the other hand, the *canonicalization* network has to operate without any input from the backbone network, which may lead to duplicating some low-level image understanding operations and making suboptimal choices, as canonicalization can be uninformed about the
+preference of the prediction network, undermining its performance. *Symmetrization* thus has the advantage in that it operates on the output of the backbone network and has access to the output of all group-transformed inputs, potentially leading to a wider variety of options and more informed choices.
+
+The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense the it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as requires less passes through the backbone, it only works if the correct frame could be selected for the given group and input, which is a non-trivial task. While theoretically it could be applied with existing pretrained backbones, results for this use case are not currently available.
+
 ## 4. Our contributions
 
 The original paper improved on *equizero* and proposed *λ-equitune*, then validated them on an exceptionally wide range
@@ -133,7 +139,7 @@ diverse set of tasks and using multiple backbone models is a strong testament to
 hand, we noticed that the publication included a different subset of the transfer learning methods for different tasks,
 so we wanted to verify whether the results also hold for the missing experiments. The publication included a limited
 discussion of the weight patterns *λ-equitune* learns, but it was based on a plot created for a single training example,
-which clearly does not generalize and is insufficient for drawing meaningful conclusions. Additionally, we also noticed
+which does not generalize and is insufficient for drawing meaningful conclusions. Additionally, we also noticed
 that many of the tasks chosen, for example image classification, were not equivariant but invariant in their nature, so
 good results on these does not necessarily verify true equivariance of the solution. These observations motivated us to
 perform reproducibility studies on some of the original data sets, expand the discussion of the inner workings of
@@ -229,7 +235,7 @@ Equations the describe the code (derived by us):
 \text{output}_{G}^\lambda = \frac{1}{|G|} \sum_{g \in G}^{|G|} \text{logits}_{g}^\lambda
 ```
 
-In a correspondence with the authors they shared that this is because the image classification experiments do not
+In a correspondence with the authors, they shared that this is because the image classification experiments do not
 require equivariance, only invariance, and it was not even possible to apply the inverse group transformation to the
 logits (the final outputs) of the backbone models in this case, as those have no spatial meaning anymore. While we
 certainly agree with these observations, we were interested in understanding how the truly equivariant method (as
@@ -396,12 +402,42 @@ inquiries. We would also like to thank Yongtuo Liu for his supervision of our wo
 
 ## 7. References
 
-*** When using the ISIC 2018 datasets in your research, please cite the following works:
+Basu, S., Katdare, P., Sattigeri, P., Chenthamarakshan, V., Driggs-Campbell, K., Das, P., & Varshney, L. R. (2023). Efficient Equivariant Transfer Learning from Pretrained Models. http://arxiv.org/abs/2305.09900
 
-[1] Noel Codella, Veronica Rotemberg, Philipp Tschandl, M. Emre Celebi, Stephen Dusza, David Gutman, Brian Helba, Aadi
-Kalloo, Konstantinos Liopyris, Michael Marchetti, Harald Kittler, Allan Halpern: "Skin Lesion Analysis Toward Melanoma
-Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC)",
-2018; https://arxiv.org/abs/1902.03368
+Basu, S., Sattigeri, P., Ramamurthy, K. N., Chenthamarakshan, V., Varshney, K. R., Varshney, L. R., & Das, P. (2023). Equi-Tuning: Group Equivariant Fine-Tuning of Pretrained Models. www.aaai.org
 
-[2] Tschandl, P., Rosendahl, C. & Kittler, H. The HAM10000 dataset, a large collection of multi-source dermatoscopic
-images of common pigmented skin lesions. Sci. Data 5, 180161 doi:10.1038/sdata.2018.161 (2018).
+Bekkers, E. J., Lafarge, M. W., Veta, M., Eppenhof, K. A., Pluim, J. P., & Duits, R. (2018). Roto-Translation Covariant Convolutional Networks for Medical Image Analysis.
+
+Bommasani, R., Hudson, D. A., Adeli, E., Altman, R., Arora, S., von Arx, S., Bernstein, M. S., Bohg, J., Bosselut, A., Brunskill, E., Brynjolfsson, E., Buch, S., Card, D., Castellon, R., Chatterji, N., Chen, A., Creel, K., Davis, J. Q., Demszky, D., … Liang, P. (2021). On the Opportunities and Risks of Foundation Models. http://arxiv.org/abs/2108.07258
+
+Codella, N., Rotemberg, V., Tschandl, P., Celebi, M. E., Dusza, S., Gutman, D., Helba, B., Kalloo, A., Liopyris, K., Marchetti, M., Kittler, H., & Halpern, A. (2019). Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC).
+
+Cohen, T., Geiger, M., & Weiler, M. (2018). A General Theory of Equivariant CNNs on Homogeneous Spaces. http://arxiv.org/abs/1811.02017
+
+Cohen, T. S., & Welling, M. (2016). Group Equivariant Convolutional Networks.
+
+Hoogeboom, E., Satorras, V. G., Vignac, C., & Welling, M. (2022). Equivariant Diffusion for Molecule Generation in 3D.
+
+Kaba, S.-O., Mondal, A. K., Zhang, Y., Bengio, Y., & Ravanbakhsh, S. (2022). Equivariance with Learned Canonicalization Functions. http://arxiv.org/abs/2211.06489
+
+Lafarge, M. W., Bekkers, E. J., Pluim, J. P. W., Duits, R., & Veta, M. (2021). Roto-translation equivariant convolutional networks: Application to histopathology image analysis. Medical Image Analysis, 68, 101849. https://doi.org/10.1016/j.media.2020.101849
+
+LeCun, Y., Boser, B., Denker, J. S., Henderson, D., Howard, R. E., Hubbard, W., & Jackel, L. D. (1989). Backpropagation Applied to Handwritten Zip Code Recognition. Neural Computation, 1(4), 541–551. https://doi.org/10.1162/neco.1989.1.4.541
+
+Mondal, A. K., Panigrahi, S. S., Kaba, S.-O., Rajeswar, S., & Ravanbakhsh, S. (2023). Equivariant Adaptation of Large Pretrained Models.
+
+Moskalev, A., Sepliarskaia, A., Bekkers, E. J., & Smeulders, A. (2023). On genuine invariance learning without weight-tying.
+
+OpenAI, Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., Avila, R., Babuschkin, I., Balaji, S., Balcom, V., Baltescu, P., Bao, H., Bavarian, M., Belgum, J., … Zoph, B. (2023). GPT-4 Technical Report.
+
+Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). Learning Transferable Visual Models From Natural Language Supervision.
+
+Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashlykov, N., Batra, S., Bhargava, P., Bhosale, S., Bikel, D., Blecher, L., Ferrer, C. C., Chen, M., Cucurull, G., Esiobu, D., Fernandes, J., Fu, J., Fu, W., … Scialom, T. (2023). Llama 2: Open Foundation and Fine-Tuned Chat Models.
+
+Tschandl, P., Rosendahl, C., & Kittler, H. (2018). The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions. Scientific Data, 5(1), 180161. https://doi.org/10.1038/sdata.2018.161
+
+Tunyasuvunakool, K., Adler, J., Wu, Z., Green, T., Zielinski, M., Žídek, A., Bridgland, A., Cowie, A., Meyer, C., Laydon, A., Velankar, S., Kleywegt, G. J., Bateman, A., Evans, R., Pritzel, A., Figurnov, M., Ronneberger, O., Bates, R., Kohl, S. A. A., … Hassabis, D. (2021). Highly accurate protein structure prediction for the human proteome. Nature, 596(7873), 590–596. https://doi.org/10.1038/s41586-021-03828-1
+
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention Is All You Need. http://arxiv.org/abs/1706.03762
+
+Villar, S., Hogg, D. W., Storey-Fisher, K., Yao, W., & Blum-Smith, B. (2021). Scalars are universal: Equivariant machine learning, structured like classical physics.
