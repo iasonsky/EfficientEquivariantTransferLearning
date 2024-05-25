@@ -372,7 +372,9 @@ non-binary groups. All of the three considered demographic groups naturally exte
 
 The figure below illustrates the difference in a) the standard GPT2 model, b) original EquiGPT2 and c) our extended version of EquiGPT2 for non-binary groups.
 
-\<add figures when ready\>
+<p align="center"> <img src="images/gpt2-a-jpeg.jpg" width="372"> <img src="images/equigpt_binary-b-jpeg.jpg" width="500"> </p>
+
+<p align="center"> <img src="images/inputA-c-jpeg.jpg" width="600"> </p>
 
 In the standard case of GPT2, the model is given an input and outputs the logits over the vocabulary. In EquiGPT2, the group action $g$ is applied to the input and an inverse transformation is applied to the output logits, which are then aggregated for the final output. Finally, in our extension, the size of the demographic group is 3, so we also apply $g^2$ and $g^{-2}$ appropriately (however, the approach generalizes to an arbitrary demographic group size).
 
