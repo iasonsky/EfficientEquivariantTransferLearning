@@ -372,7 +372,7 @@ non-binary groups. All of the three considered demographic groups naturally exte
 
 The figure below illustrates the difference in a) the standard GPT2 model, b) original EquiGPT2 and c) our extended version of EquiGPT2 for non-binary groups.
 
-<p align="center"> <img src="images/gpt2-a-jpeg.jpg" width="372"> <img src="images/equigpt_binary-b-jpeg.jpg" width="500"> </p>
+<p align="center"> <img src="images/gpt2-a-jpeg.jpg" width="372"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="images/equigpt_binary-b-jpeg.jpg" width="500"> </p>
 
 <p align="center"> <img src="images/inputA-c-jpeg.jpg" width="600"> </p>
 
