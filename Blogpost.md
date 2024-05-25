@@ -147,8 +147,7 @@ perform reproducibility studies on some of the original data sets, expand the di
 
 In addition, we noticed that even the most sophisticated method proposed, *λ-equitune*, inspects each feature map
 individually when calculating the weight, disregarding a significant source of information. Given the enormous success
-of the Transformer architecture in almost all areas of deep learning in recent years (quote at least Attention is all
-you need + one review), we hypothesized that using an Attention layer instead might provide more flexibility and thus
+of the Transformer architecture (Vaswani et al. (2017)) in almost all areas of deep learning in recent years (Bommasani et al. (2021)), we hypothesized that using an Attention layer instead might provide more flexibility and thus
 better performance. This motivated us to create an extension of the original methods called *equiattention*.
 
 The rest of the blog post will be structured accordingly to provide a summary of our methodologies and results:
@@ -386,7 +385,7 @@ proposed methods can mitigate bias in real-world settings.
 
 Equivariant fine-tuning of large foundational models is an attractive approach for combining the unprecedented
 representation capabilities of these models with the introduction of guaranteed equivariance required in certain
-domains. We have reproduced, replicated and extended the work of Basu et al., where they introduced *equizero*  and
+domains. We have reproduced, replicated and extended the work of Basu et al. (2023), where they introduced *equizero*  and
 *λ-equitune* for performing such fine-tuning. We have achieved an increase of [xx pp] in top1 accuracy
 on [whichever dataset] by improving code and parameters, a further increase of [xx pp] by improving the methodology, and
 proposed a new method called *equiattention*, which performed on par with the best baseline. Additionally, we have
@@ -394,13 +393,26 @@ verified the efficacy of these methods on novel datasets that exhibit equivarian
 visualizations to better understand the operation of the trained *λ-equitune* and *equiattention* methods. Overall, we
 found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work
 contributed to the understanding of their strengths and weaknesses.
-Acknowledgements
+
+## 6. Acknowledgements
 We would like to thank the authors for making their code available and for their fast and detailed responses to our
 inquiries. We would also like to thank Yongtuo Liu for his supervision of our work.
 
-## 6. Individual contributions
+## 7. Individual contributions
 
-## 7. References
+All authors continuously contributed to the project and group discussions. In particular, 
+
+**Mikhail Vlasenko** found and fixed the code discrepancies, suggested, implemented and described the *equiattention* method
+
+**Ádám Divák** created the lambda weight visualizations for CLIP, wrote the backbone of and edited the blog post and the proposal
+
+**Iason Skylitsis** delivered the ISIC 2018 medical dataset extension and orchestrated training runs on Snellius
+
+**Milan Miletić** co-authored the NLG extension, wrote and created diagrams for the relevant parts of the blog post
+
+**Zoe Tzifa-Kratira** co-authored the NLG extension, worked on the introduction and background of the blog post
+
+## 8. References
 
 Basu, S., Katdare, P., Sattigeri, P., Chenthamarakshan, V., Driggs-Campbell, K., Das, P., & Varshney, L. R. (2023). Efficient Equivariant Transfer Learning from Pretrained Models. http://arxiv.org/abs/2305.09900
 
@@ -429,6 +441,8 @@ Mondal, A. K., Panigrahi, S. S., Kaba, S.-O., Rajeswar, S., & Ravanbakhsh, S. (2
 Moskalev, A., Sepliarskaia, A., Bekkers, E. J., & Smeulders, A. (2023). On genuine invariance learning without weight-tying.
 
 OpenAI, Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., Avila, R., Babuschkin, I., Balaji, S., Balcom, V., Baltescu, P., Bao, H., Bavarian, M., Belgum, J., … Zoph, B. (2023). GPT-4 Technical Report.
+
+Puny, O., Atzmon, M., Ben-Hamu, H., Misra, I., Grover, A., Smith, E. J., & Lipman, Y. (2021). Frame Averaging for Invariant and Equivariant Network Design.
 
 Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). Learning Transferable Visual Models From Natural Language Supervision.
 
