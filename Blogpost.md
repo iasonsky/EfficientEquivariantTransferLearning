@@ -353,34 +353,34 @@ dataset*
 
 #### 4.5.2 Extended NLG task
 
-Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task.
-Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups
-in their generations. While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019), little has
-been done to theoretically study the mitigation of this bias.
+Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task. Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups in their generations (Sheng et al, 2019; Prates, Avelar, and Lamb, 2020; Henderson et al, 2018). While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019; Nadeem, Bethke, and Reddy 2021; Abid, Farooqi, and Zou, 2021), little has been done to theoretically study the mitigation of this bias and allow for a generalizable approach.
 
-Basu et al (2023) introduced a novel approach to fairness in NLG using group theory (full details in the Appendix). The
-model is given a context $X1$ (e.g. *'The man was known for'*) and asked to generate a continuation $X2$. They define a
-cyclic group $G_2 = {e, g}$ \footnote{this is a simplification for the binary setting} with a group action g that swaps
-the demographic identifier in a given text. Thus, $gX1$ will become *'The woman was known for'*. They call a model
-group-theoretically fair if:
+Basu et al (2023) introduced a novel approach to fairness in NLG using group theory. Given a demographic group $D$ (e.g. [man, woman]) and a language model $M$ (e.g. GPT2) with vocabulary $\mathcal{V}$, the authors first define the lists $\mathcal{E}$, $\mathcal{N}$, and $\mathcal{G}$ of equality, neutral, and general words, respectively (full details of the meaning of these lists is found in the Appendix). Then they let $d$ be the size of demographic group $D$ and define a cyclic group $G = \{ e, g, ..., g^{d-1}\}$ with generator $g$. The group action of $G$ makes a right cyclic shift by one to the words in $\mathcal{E}$ (essentially swapping the demographic identifier) and does not affect the words in $\mathcal{N}$ or $\mathcal{G}$. For example, if $\mathcal{E}$ = [[man, woman]], then $g\mathcal{E}$ = [[woman, man]]. 
+
+Furthermore, they define context $X$ as a sentence consisting of words in $\mathcal{V}$ and transformed context $gX$ to be the sentence that is a result of applying $g$ to each word in $X$.  For instance, if $X$ = *"The man worked as a"*, then $gX$ = *"The woman worked as a"*. Finally, the model $M$ is given a context $X_1$ and is asked to generate a continuation $X_2$. The authors call $M$ *group-theoretically fair* if:
 
 ```math
-\forall g \in G: P(gX2 | gX1) = P(X2 | X1)
+\forall g \in G: P(gX_2 | gX_1) = P(X_2 | X_1)
 ```
 
-where $P(X2 | X1)$ is the probability of generating the continuation $X2$ given the context $X1$. Using their proposed
-*equitune* language model, *EquiLM*, the authors formally satisfy this property and demonstrate that their methods can
-reduce bias in the generated text, making the generations more fair.
+where $P(X_2 | X_1)$ is the probability of generating the continuation $X_2$ given the context $X_1$. 
 
-However, as mentioned above, the authors only focused on establishing fairness across binary demographic groups. These
-binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our
-extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
-non-binary groups. All of the three considered demographic groups naturally extend beyond binary
-classifications. <Add here explicitly how we extend the three demographic groups once we decide>. By extending the
-fairness framework to non-binary groups, we can better reflect the diversity of human identities and ensure that the
-proposed methods can mitigate bias in real-world settings.
+Using their proposed *equitune* language model, *EquiLM*, the authors formally satisfy this property and demonstrate that their methods can reduce bias in the generated text, making the generations more fair.
 
-<Add results once available> 
+However, in their work, the authors only focused on establishing fairness across binary demographic groups -- specifically: man vs. woman, Black vs. White, and straight vs. gay. These binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
+non-binary groups. All of the three considered demographic groups naturally extend beyond binary classifications. We extend the theoretical framework to work with such groups and test the results on the extended race axis, namely Black vs. White vs. Asian. By extending the fairness framework to non-binary groups, we can better reflect the diversity of human identities and ensure that the proposed methods can mitigate bias in real-world settings.
+
+The figure below illustrates the difference in a) the standard GPT2 model, b) original EquiGPT2 and c) our extended version of EquiGPT2 for non-binary groups.
+
+\<add figures when ready\>
+
+In the standard case of GPT2, the model is given an input and outputs the logits over the vocabulary. In EquiGPT2, the group action $g$ is applied to the input and an inverse transformation is applied to the output logits, which are then aggregated for the final output. Finally, in our extension, the size of the demographic group is 3, so we also apply $g^2$ and $g^{-2}$ appropriately (however, the approach generalizes to an arbitrary demographic group size).
+
+It is worth noting that in their implementation, the original authors were, in fact, applying a 'forward' transformation $g$ to the output logits in EquiGPT2, rather than $g^{-1}$. In the binary setting they considered, this is still a valid approach, as in that case $g = g^{-1}$. However, this approach breaks for $d > 2$. Therefore, we adapt the approach to work for non-binary groups and derive a mathematical proof (see Apendix) showing that applying $g^{-1}$ to the output logits ensures the equivariance property (i.e. $M(gx) = gM(x),  \forall g \in G$) and satisfies the group-theoretic fairness property (i.e. $P(gX_2 | gX_1) = P(X_2 | X_1), \forall g \in G$).
+
+The following figure shows the reproduced results from the original paper for the demographic group [Black, White] for GPT2 and EquiGPT2, as well as for the case of the extended demographic group [Black, White, Asian].
+
+\<Add results once available\> 
 
 ## 5. Summary
 
