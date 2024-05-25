@@ -75,7 +75,11 @@ def g_inv_transform_prob_data(data_list, G):
     output_data_list = data_list.clone()  # dim [group_size, batch_size, num_tokens, |V|]
     g_indices = []
     for g in G:
-        g_index = [g[i] for i in range(len(g))]
+        # Define the inverse transformation
+        g_inv = {val: key for key, val in g.items()}
+        g_inv = dict(sorted(g_inv.items()))
+        
+        g_index = [g_inv[i] for i in range(len(g_inv))]
         g_indices.append(g_index)
 
     # print("  Initial data list for inverse transformation:")
