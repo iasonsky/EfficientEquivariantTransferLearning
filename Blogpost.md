@@ -323,9 +323,10 @@ Add visualizations here
 
 Replicating the results on novel datasets which exhibit different properties is an important step in verifying the
 effectiveness of any new method. This is why, instead of reproducing all results from the original publication, we
-decided to perform replication on 2 (3?) new data sets: the ISIC2018 image classification and the (describe extended NLG
-task). (and describe object detection as well if we include it)
-ISIC 2018 Medical Imaging dataset
+decided to perform replication on 2 new data sets: the ISIC2018 image classification and and extended version of the Natural Language Generation task.
+
+#### 4.5.1 ISIC 2018 Medical Imaging dataset
+
 Image classification using widely used benchmarks like ImageNet and CIFAR provides a helpful understanding of the
 performance of the methodologies, as it places the result within the context of the multitude of other methods that have
 been tested on the same datasets. However these images have a natural orientation, so making models trained on them
@@ -350,7 +351,7 @@ that [whichever method works better - add results].
 *Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical
 dataset*
 
-### 4.6 Extended NLG task
+#### 4.5.2 Extended NLG task
 
 Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task.
 Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups
