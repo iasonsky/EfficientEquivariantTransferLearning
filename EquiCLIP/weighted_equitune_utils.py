@@ -72,7 +72,8 @@ def compute_logits(
         zeroshot_weights,
         group_name,
         validate_equivariance=False,  # here it is a separate arg because it is only called in validation
-        return_weights=False
+        return_weights=False,
+        log_variance=True,
 ):
     lambda_weights = None
     if args.method == "attention" or args.method == "equitune":
@@ -91,6 +92,9 @@ def compute_logits(
 
             attention_weights = feature_combination_module(image_features)  # dim [batch_size, group_size, group_size]
             assert len(attention_weights.shape) == 3 and attention_weights.shape[1] == attention_weights.shape[2]
+
+            if log_variance:
+                wandb.log({"weight_variance": torch.var(attention_weights.mean(dim=1)).item()}, commit=False)
 
             image_features = inverse_transform_images(image_features, group_name=group_name)  # [B, G, C, H, H]
             assert image_features.shape[1] == group_size
@@ -113,6 +117,10 @@ def compute_logits(
             weights = weights.reshape(-1, group_size)  # dim [batch_size, group_size]
             # this softmax normalizes the weights for each group
             weights = F.softmax(weights, dim=-1)  # dim [batch_size, group_size]
+
+            if log_variance:
+                # log weight variance to see if model diverges from "mean" weights
+                wandb.log({"weight_variance": torch.var(weights).item()}, commit=False)
 
             weights = weights.unsqueeze(2).unsqueeze(3).unsqueeze(4).type(image_features.dtype)
 
