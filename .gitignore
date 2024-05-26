@@ -1,14 +1,11 @@
-*.job
 data
 ImageNetV2-matched-frequency*
 __pycache__
 runs/*
 results/*
 logs/*
-
 *.out
 *.log
 *.txt
 wandb
-!compare_original_updated.job
 feature_visualizations/*

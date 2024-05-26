@@ -62,6 +62,7 @@ if __name__ == "__main__":
     parser.add_argument("--undersample", action='store_true')
     parser.add_argument("--oversample", action='store_true')
     parser.add_argument("--validate_equivariance", action='store_true')
+    parser.add_argument("--save_scores", action='store_true')
     args = parser.parse_args()
 
     args.verbose = True
