@@ -98,11 +98,13 @@ class AttentionAggregation(nn.Module):
             nn.ReLU(),
             nn.Linear(self.dim, self.dim)
         ).type(self.dtype)
+        nn.init.kaiming_uniform_(self.q[0].weight, mode='fan_in', nonlinearity='relu')
         self.k = nn.Sequential(
             nn.Linear(self.attn_in, self.dim),
             nn.ReLU(),
             nn.Linear(self.dim, self.dim)
         ).type(self.dtype)
+        nn.init.kaiming_uniform_(self.k[0].weight, mode='fan_in', nonlinearity='relu')
 
     def forward(self, x):
         """

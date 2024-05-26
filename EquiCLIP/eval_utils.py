@@ -73,7 +73,8 @@ def eval_clip(args, model, zeroshot_weights, loader, data_transformations="", gr
             # print(f"target.shape: {target.shape}")
 
             logits = compute_logits(args, model, feature_combination_module, group_images,
-                                    zeroshot_weights, group_name, validate_equivariance=args.validate_equivariance)
+                                    zeroshot_weights, group_name, validate_equivariance=args.validate_equivariance,
+                                    log_variance=False)
 
             if args.validate_equivariance:
                 target = target.repeat(int(group_sizes[group_name]))
