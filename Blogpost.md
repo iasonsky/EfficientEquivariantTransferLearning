@@ -147,8 +147,9 @@ perform reproducibility studies on some of the original data sets, expand the di
 
 In addition, we noticed that even the most sophisticated method proposed, *λ-equitune*, inspects each feature map
 individually when calculating the weight, disregarding a significant source of information. Given the enormous success
-of the Transformer architecture (Vaswani et al. (2017)) in almost all areas of deep learning in recent years (Bommasani et al. (2021)), we hypothesized that using an Attention layer instead might provide more flexibility and thus
-better performance. This motivated us to create an extension of the original methods called *equiattention*.
+of the Attention-based architectures in almost all areas of deep learning in recent years (Bommasani et al. (2021)), 
+we hypothesized that using an Attention layer instead might provide better performance. 
+This motivated us to create an extension of the original methods called *equiattention*.
 
 The rest of the blog post will be structured accordingly to provide a summary of our methodologies and results:
 
@@ -195,7 +196,7 @@ points (2.28%) is less pronounced but still noticable in case of full finetuning
 |    | Method        | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
 |---:|:--------------|:-----------------------------------|-----------------------:|--------------------:|
 |  0 | Original Code | CLIP w RN50 - rot90 - *λ-equitune* |                  31.63 |               52.67 |
-|  1 | Updated Code  | CLIP w RN50 - rot90 - *λ-equitune* |                  34.76 |               53.87 |
+|  1 | Updated Code  | CLIP w RN50 - rot90 - *λ-equitune* |                  35.12 |               56.15 |
 |  2 | Original Code | CLIP w RN50 - flip - *λ-equitune*  |                  37.7  |               54.25 |
 |  3 | Updated Code  | CLIP w RN50 - flip - *λ-equitune*  |                  37.7  |               55.09 |
 
@@ -275,21 +276,31 @@ permutation of feature sets. Specifically,
 \boldsymbol\pi(f([\forall g \in G: \mathbf{M_1}(gx))]) = f(\boldsymbol\pi([\forall g \in G: \mathbf{M_1}(gx))]))
 ```
 
-for an array permutation operator $\boldsymbol\pi$ and a function $f$ that produces an array weights from an array of
-features.
+for an array permutation operator $\boldsymbol\pi$ and a function $f$ that produces an array of weights from an array of
+features. In this case, $f$ must be a permutation equivariant function.
 
-One permutation equivariant transformation that is being successfully applied across modalities is Attention. For this
-reason, we attempt to improve results further by utilizing an attention-based framework for computing the weights of
-feature sets.
+One permutation equivariant transformation that is being successfully applied across modalities is 
+Attention (Bahdanau et al 2014, Vaswani et al 2017, Dosovitskiy et al 2020). 
+For this reason, we attempt to improve the results further by utilizing an attention-based framework 
+for computing the weights of feature sets.
 
-Attention is calculated using the usual formulation of queries $Q$, keys $K$ and values $V$ (insert reference here):
+We hypothesize that allowing the weighting function to access information from all views of the input at once, 
+rather than individually, will increase the flexibility of the weighting component. 
+However, to stay closer to the original work of *λ-equitune* and simplify the task of the learned component, 
+we enforce the output to be a linear combination of the initial feature maps. 
+
+We derive our non-masked single head self-attention from the original formulation of (Vaswani et al 2017):
 
 ```math
 Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
 ```
 
 for feature sets $H = [h_0, h_1, \dots, h_{|G|-1}]$ ($h$ because these are hiddens) and arbitrary index $i
-\in [0, |G|-1]$. $h_i$ is a feature set obtained by $\mathbf{M_1}(g_ix)$
+\in [0, |G|-1]$. $h_i$ is a feature set obtained by $\mathbf{M_1}(g_ix)$, the part of the backbone before projection layers.
+
+We calculate queries and keys with unconstrained MLPs $QNet$ and $KNet$. 
+The networks have the same structure between each other, and have to be adapted for the backbone encoder of choice, 
+as the dimension of hiddens $h_i$ varies between models.
 
 ```math
 Q_i = QNet(h_i)
@@ -303,7 +314,9 @@ K_i = KNet(h_i)
 V_i = g_i^{-1}h_i
 ```
 
-where values $V$ are the inputs with the inverse transformation applied to them.
+The values $V$ are obtained without an MLP. Instead, we only apply the inverse transformation to the inputs. 
+This design choice guarantees that the output is a linear combination of (group-transformed) feature maps, 
+and allows the use of a smaller feature combination model.
 
 Using the Attention as described above, we can calculate the final output of *equiattention* as follows:
 
@@ -311,9 +324,20 @@ Using the Attention as described above, we can calculate the final output of *eq
 \mathbf{M}_G^A(x) = \mathbf{M}_2(\frac{1}{|G|}\sum_{g \in G}^{|G|} \text{Attention\_module}([\mathbf{M_1}(g_0x), \dots, \mathbf{M_1}(g_{|G|-1}x)]))
 ```
 
-where `Attention_module` takes the features sets and applies one attention operation as described above.
+where `Attention_module` takes the features sets and applies one attention operation with the aforementioned $Q$, $K$, $V$.
 
-Using the above described method of *equiattention*, we achieved a result of .. (insert results here)
+From the results, we observe that the described method of *equiattention* is on par with 
+the feature-equivariant version of *λ-equitune*, the method which it directly extends.
+
+|    | Method    | Architecture-Transformation   |   Prefinetune Top1 Acc |
+|---:|:----------|:------------------------------|-----------------------:|
+|  0 | equitune  | CLIP w RN50 - rot90           |                  40.95 |
+|  1 | attention | CLIP w RN50 - rot90           |                  40.65 |
+
+Investigating the results, we find that both models consistently predict the maximum weight of 1 to one 
+feature map, and 0 weight to all other views. For the *rot90* group, one that contains 4 possible views, 
+the conventionally oriented view is chosen in about 75% of the cases.
+We thus conclude that *equiattention* did not outperform *λ-equitune* because the latter is already confident and close to the optimum.
 
 ### 4.4 Visualizations: understanding what *λ-equitune* (and *equiattention*) learns
 
