@@ -270,7 +270,7 @@ this as a potential limitation, as such an approach is withholding potentially c
 significance of specific features.
 
 We note that the only requirement for obtaining equivariant weights in the given setting is maintaining equivariance for
-permutation of feature sets. Specifically,
+permutation of feature maps. Specifically,
 
 ```math
 \boldsymbol\pi(f([\forall g \in G: \mathbf{M_1}(gx))]) = f(\boldsymbol\pi([\forall g \in G: \mathbf{M_1}(gx))]))
@@ -282,7 +282,7 @@ features. In this case, $f$ must be a permutation equivariant function.
 One permutation equivariant transformation that is being successfully applied across modalities is 
 Attention (Bahdanau et al 2014, Vaswani et al 2017, Dosovitskiy et al 2020). 
 For this reason, we attempt to improve the results further by utilizing an attention-based framework 
-for computing the weights of feature sets.
+for computing the weights of feature maps.
 
 We hypothesize that allowing the weighting function to access information from all views of the input at once, 
 rather than individually, will increase the flexibility of the weighting component. 
@@ -295,8 +295,8 @@ We derive our non-masked single head self-attention from the original formulatio
 Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V
 ```
 
-for feature sets $H = [h_0, h_1, \dots, h_{|G|-1}]$ ($h$ because these are hiddens) and arbitrary index $i
-\in [0, |G|-1]$. $h_i$ is a feature set obtained by $\mathbf{M_1}(g_ix)$, the part of the backbone before projection layers.
+for feature maps $H = [h_0, h_1, \dots, h_{|G|-1}]$ (labeled $h$ for hiddens) and arbitrary index $i
+\in [0, |G|-1]$. $h_i$ is a feature map obtained by $\mathbf{M_1}(g_ix)$, the part of the backbone before projection layers.
 
 We calculate queries and keys with unconstrained MLPs $QNet$ and $KNet$. 
 The networks have the same structure between each other, and have to be adapted for the backbone encoder of choice, 
@@ -329,10 +329,10 @@ where `Attention_module` takes the features sets and applies one attention opera
 From the results, we observe that the described method of *equiattention* is on par with 
 the feature-equivariant version of *λ-equitune*, the method which it directly extends.
 
-|    | Method    | Architecture-Transformation   |   Prefinetune Top1 Acc |
-|---:|:----------|:------------------------------|-----------------------:|
-|  0 | equitune  | CLIP w RN50 - rot90           |                  40.95 |
-|  1 | attention | CLIP w RN50 - rot90           |                  40.65 |
+|    | Method                | Architecture-Transformation    |   Prefinetune Top1 Acc |
+|---:|:----------------------|:-------------------------------|-----------------------:|
+|  0 | equivariant equitune  | CLIP w RN50 - rot90            |                  40.95 |
+|  1 | equivariant attention | CLIP w RN50 - rot90            |                  40.65 |
 
 Investigating the results, we find that both models consistently predict the maximum weight of 1 to one 
 feature map, and 0 weight to all other views. For the *rot90* group, one that contains 4 possible views, 
@@ -367,10 +367,11 @@ planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the d
 Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen in the results
 that [whichever method works better - add results].
 
-|   | Architecture-Transformation        | ISIC2018 Original Prefinetune Top1 Acc | ISIC2018 Updated Prefinetune Top1 Acc | ISIC2018 Original Finetune Top1 Acc | ISIC2018 Updated Finetune Top1 Acc |
-|--:|:-----------------------------------|---------------------------------------:|--------------------------------------:|------------------------------------:|-----------------------------------:|
-| 0 | CLIP w RN50 - flip - *λ-equitune*  |                                  12.94 |                                 13.38 |                               35.75 |                              53.89 |
-| 1 | CLIP w RN50 - rot90 - *λ-equitune* |                                  12.81 |                                  13.5 |                               37.31 |                               54.4 |
+|   | Method               | Architecture-Transformation          |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
+|--:|:---------------------|:-------------------------------------|-----------------------:|--------------------:|
+| 0 | Original Code        | CLIP w RN50 - rot90 - *λ-equitune*   |                  15.03 |               63.73 |
+| 1 | Updated Code         | CLIP w RN50 - rot90 - *λ-equitune*   |                  16.58 |               64.77 |
+| 2 | equivariant equitune | CLIP w RN50 - rot90                  |                  16.58 |               40.93 |
 
 *Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical
 dataset*
@@ -421,11 +422,19 @@ visualizations to better understand the operation of the trained *λ-equitune* a
 found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work
 contributed to the understanding of their strengths and weaknesses.
 
-## 6. Acknowledgements
+## 6. Future work
+
+Due to time and computational constrains, we were not able to conduct an extensive hyperparameter and 
+model architecture search for the described methods. Specifically, the attention-based method was only tested 
+with a single attention layer, and without a designated CLS token. Additionally, we note that training is 
+heavily dependent on learning rate, failing to change the model's prediction with SDG lr less than 0.05 and 
+leading to numerical issues for wide range of learning rates with Adam optimizer (Kingma et al 2014).
+
+## 7. Acknowledgements
 We would like to thank the authors for making their code available and for their fast and detailed responses to our
 inquiries. We would also like to thank Yongtuo Liu for his supervision of our work.
 
-## 7. Individual contributions
+## 8. Individual contributions
 
 All authors continuously contributed to the project and group discussions. In particular, 
 
@@ -439,7 +448,7 @@ All authors continuously contributed to the project and group discussions. In pa
 
 **Zoe Tzifa-Kratira** co-authored the NLG extension, worked on the introduction and background of the blog post
 
-## 8. References
+## 9. References
 
 Basu, S., Katdare, P., Sattigeri, P., Chenthamarakshan, V., Driggs-Campbell, K., Das, P., & Varshney, L. R. (2023). Efficient Equivariant Transfer Learning from Pretrained Models. http://arxiv.org/abs/2305.09900
 
