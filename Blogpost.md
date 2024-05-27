@@ -499,3 +499,75 @@ Tunyasuvunakool, K., Adler, J., Wu, Z., Green, T., Zielinski, M., Žídek, A., B
 Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention Is All You Need. http://arxiv.org/abs/1706.03762
 
 Villar, S., Hogg, D. W., Storey-Fisher, K., Yao, W., & Blum-Smith, B. (2021). Scalars are universal: Equivariant machine learning, structured like classical physics.
+
+---------------------------------------------
+
+## Appendix
+
+### A Group-theoretic fairness in NLG
+
+#### A.1 Equality, Neutral, and General Word Lists
+In defining their group-theoretic framework of fairness in NLG, the authors introduce the notion of three word lists -- equality ($\mathcal{E}$), neutral ($\mathcal{N}$), and general ($\mathcal{G}$). Their purpose is to group words into sets corresponding to how those words entertain the group actions and how they are handled by the model.
+
+The non-empty set of equality words $\mathcal{E}$ is a list of lists of size $d$ (the size of the demographic group $D$). It contains at least a single inner list, which is the demographic group itself, but potentially more inner lists that contain additional entities that refer to the same demographic group with analogous relationship between the demographic group members. For example, if $D$ = [man, woman], the list of equality words could be $\mathcal{E}$ = [[man, woman], [guy, girl], [father, mother] ...]. Furthermore, we refer to the set of all words in $\mathcal{E}$ as $\mathcal{E'}$.
+
+The non-empty set of neutral words $\mathcal{N}$ is a list of words that are neutral to the given demographic group. The set of general words $\mathcal{G}$ is a list of words that do not belong to either $\mathcal{E}$ or $\mathcal{N}$. Depending on the application, $\mathcal{G}$ can potentially be empty. For example, if $D$ = [man, woman], the list of neutral words can be $\mathcal{N}$ = [doctor, engineer, ...] and the list of general words can be $\mathcal{G}$ = [he, she, his, her, him]. In general, the user defines the lists $\mathcal{E}$ and $\mathcal{G}$, and the list of neutral words is obtained as $\mathcal{N} = \mathcal{V} \setminus (\mathcal{E'} \cup \mathcal{G})$, where $\mathcal{V}$ is the vocabulary of the language model.
+
+The group action $g$ is applied only to the words in $\mathcal{E}$, by applying a right-cyclic shift by one to the words in each inner list. The group action does not affect the lists $\mathcal{N}$ and $\mathcal{G}$. However, the words from these two lists are treated differently in the final step of the model, when aggregating the logits to obtain the final output, as shown in Figure ?? c). The main motivation of the authors for defining the list $\mathcal{G}$ is due to the fact that some words like pronouns often have complex relationships with nouns (e.g. coreference resolution) and break one-to-one mapping (e.g. both 'his' and 'him' map to 'her'), which can hurt model's performance.
+
+#### A.2 Extension to Non-Binary Demographic Groups
+ In this section, we show that the correct way to ensure the properties of equivariance and group-theoretic fairness to non-binary groups is to apply the inverse group transformation ($g^{-1}$) on the output logits before final aggregation, instead of the 'forward' transformation ($g)$, as was done by the authors. Importantly, their approach still ensures the aforementioned properties in the case of binary groups they explore, as in this case $g = g^{-1}$ (applying a cyclic shift by one to either right or left yields the same result for lists of size 2).
+
+First we prove that applying $g^{-1}$ ensures the equivariance property.
+
+**Theorem**: The model $M: X \rightarrow Y$ is said to to be equivariant to group $G$ under the group action of $G$ on $X$ if:
+
+```math
+\forall g \in G, \forall x \in X: M(gx) = gM(x)
+```
+
+**Lemma**: Let $M, M^{equi}: X \rightarrow Y$ be a language model with vocabulary $\mathcal{V}$ and its equitune variant, respectively, where $X \in \mathbb{R}^{n \times m}$ is the input text sequence (of length $n$ and embedding dimenson $m$) and $Y \in \mathbb{R}^{|V|}$ are the output logits over the vocabulary. Let $D$ be a demographic group of size $d$ and let $\mathcal{V}$ be split into lists $\mathcal{E} = [E_1, E_2, ..., E_d]$, $\mathcal{G}$ (arbitrary), and $\mathcal{N} = \mathcal{V} \setminus (\mathcal{E} \cup \mathcal{G})$. Let $G = \{e, g, ..., g^{d-1}\}$ be a cyclic group with generator $g$. Let the group action of $G$ perform a right-cyclic shift by one step forward in $\mathcal{E}$, or formally $gE_i = E_{(i \ \text{mod} \ d)+|g|}$ (where we define $|g|$ to be the order of transformation $g$, i.e. $|g^d| = d$). Let $Y_g$ be the intermediate output logits of $M(gx)$ for all $g \in G$. Then applying the appropriate inverse transformation $g^{-1}$ to each $Y_g$ before aggregating the intermediate logits into the final output ensures the equivariance property $M^{equi}(gx) = gM^{equi}(x)$.
+
+**Proof**: For each $g \in G$, the correpsonding $Y_g = [\mathbb{P}(w_i | gx)]_{i \in \{1, ..., |\mathcal{V}|\}}$, where $w_i$ is the word in $\mathcal{V}$ at index $i$. For any $w_i$ in $\mathcal{V}$, $g$ is defined as follows:
+
+```math
+g(w_i)= 
+\begin{cases}
+    E_{(j \ mod \ d) + |g|}, & \text{if } w_i = E_j \in \mathcal{E}\\
+    w_i,              & \text{otherwise}
+\end{cases}
+```
+Appropriately, for any word $E_i \in \mathcal{E}$, applying the inverse transformation $g^{-1}$ yields $g^{-1}E_i = E_{(i \ \text{mod} \ d)-|g|}$. However, the inverse transformation in the NLG setup is applied on the intermediate output logits $Y_g$, and while the intuition behind it is the same (therefore the same notation is used throughout the text), it is defined slightly differently, so let us denote it as $g_*^{-1}$.
+
+Then,  $g_*^{-1}: Y_g \rightarrow Y'_g$ takes the intermediate output logits as input and for every $\mathbb{P}(w_i | gx) \in Y_g$ permutes it from position $i$ to position $\sigma(V(g(w_i)))$ resulting in $Y'_g$, where $`\sigma: \{ 1, ..., |\mathcal{V}| \} \rightarrow \{ 1, ..., |\mathcal{V}| \}`$ is a permutation function defined as:
+
+```math
+\sigma(i)= 
+\begin{cases}
+    V(g(w_i)), & \text{if } w_i \in \mathcal{E}\\
+    i,              & \text{otherwise}
+\end{cases}
+```
+and $V(\cdot)$ is a function that takes a word as input and returns its index in $\mathcal{V}$ as output.
+
+Given this definition, the expression for the final output of the equitune model is: $\forall g \in G: M^{equi}(gx) = [M_i(gx)]_{i \in \{1, ..., |\mathcal{V}|\}}$, where:
+
+```math
+M_i(x)= 
+\begin{cases}
+    \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}M(gx)]_i, & \text{if } x \in \mathcal{E} \cap \mathcal{N}\\
+    M_i(gx),              & \text{otherwise}
+\end{cases}
+```
+
+In the non-trivial case, when $x \in \mathcal{E}$, we have:
+
+```math
+M^{equi}(gx) = \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}M(gx)]_i= \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}Y_g]_i = \frac{1}{|G|} \sum_{g \in G}[Y'_g]_i
+```
+
+and since given our definitions, we have $Y'_{g^{d}} = gY'_{g^{d+1}}$, consequently we will have:
+
+```math
+M^{equi}(gx) = gM^{equi}(x)
+```
