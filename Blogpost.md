@@ -372,7 +372,7 @@ performance of the methodologies, as it places the result within the context of 
 been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification task on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
 This is why we chose to test on a medical imaging dataset, since a natural orientation of skin lesions
 does not exist and any rotation of the inputs are equally likely.
-We hypothesize that the 
+We hypothesize that the model will be able to process the transformed feature maps more easily and potentially lead to increased performance, and that the λ weight values will be relatively evenly distributed. The latter was confirmed and elaborated on in the previous section.
 
 We use the ISIC 2018 dataset, which was published by the International Skin Imaging Collaboration (ISIC) as a
 large-scale dataset of dermoscopy images.The dataset consists from 10015 training images and 194 validation images
@@ -382,7 +382,6 @@ planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the d
 
 ![Sample of classes in ISIC 2018 data set](images/isic2018_sample.png)
 *Figure 4: A sample of each class in the ISIC 2018 data set*
-
 
 Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen from Table 3
 that the Finetune Top1 accuracy is considerably larger compared to the CIFAR100 results of the original and the updated invariant *λ-equitune*, while in the case of the equivariant implementation of *λ-equitune* it is considerably lower. Additionally, the prefinetune accuracy is much lower than any of the three methods for CIFAR100. 
@@ -395,7 +394,7 @@ that the Finetune Top1 accuracy is considerably larger compared to the CIFAR100 
 
 *Table 3: Image classification results using the authors' original (invariant) *λ-equitune* implementations, and our modified invariant and equivariant implementations on the ISIC 2018 medical dataset*
 
-The 
+The results on the Prefinetune task can be justified since it is probable that the backbone architectues were not trained on medical datasets in general (potentially due to the privacy-related contstraints). It is surprising that the equivariant implementation performs considerably worse than the invariant methods on the Finetune task. This may provide some evidence for arguing that in truly invariant classification tasks, enforcing equivariance properties hurts the model's capacity to differentiate among any of the transformed versions of an image. 
 
 ### 4.6 Extended Natural Language Generation task
 
