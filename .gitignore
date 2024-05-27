@@ -9,3 +9,4 @@ logs/*
 *.txt
 wandb
 feature_visualizations/*
+*.pt
