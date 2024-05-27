@@ -566,7 +566,7 @@ In the non-trivial case, when $x \in \mathcal{E}$, we have:
 M^{equi}(gx) = \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}M(gx)]_i= \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}Y_g]_i = \frac{1}{|G|} \sum_{g \in G}[Y'_g]_i
 ```
 
-and since given our definitions, we have $Y'_{g^{d}} = gY'_{g^{d+1}}$, consequently we will have:
+and since given our definitions, we have $`Y'_{g^{d}} = gY'_{g^{d+1}}`$, consequently we will have:
 
 ```math
 M^{equi}(gx) = gM^{equi}(x)
