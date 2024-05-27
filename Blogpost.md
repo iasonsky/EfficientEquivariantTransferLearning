@@ -408,7 +408,7 @@ It is worth noting that in their implementation, the original authors were, in f
 
 The following figures show the reproduced results from the original paper for the demographic group [Black, White] for GPT2 and EquiGPT2, as well as for the case of the extended demographic group [Black, White, Asian]. 
 
-<p align="center"> <img src="images/race-respect-extension.png" width="520">  <img src="images/race-respect-original.jpeg" width="500"> </p>
+<p align="center"> <img src="images/race-respect-extension.png" width="500">  <img src="images/race-respect-original.jpeg" width="500"> </p>
 
 *Figure n: Left: Results of the Respect-Race task ran with a subset of the models used in the original paper. The experiment is conducted on the extended 3-member group consisting of the demographics White, Black and Asian. Right: Original experiment results, for comparison purposes.*
 
