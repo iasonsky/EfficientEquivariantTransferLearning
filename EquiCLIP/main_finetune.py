@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 import logging
 import wandb
+from dotenv import load_dotenv
 
 from tqdm import tqdm
 from pkg_resources import packaging
@@ -23,10 +24,16 @@ from eval_utils import eval_clip
 from logging_setup import setup_logging
 
 print("Torch version:", torch.__version__)
+# Load environment variables
+load_dotenv()
 
 def main(args):
+    # Set project and entity name
+    project = os.getenv("WANDB_PROJECT", "dl-2024")
+    entity = os.getenv("WANDB_ENTITY", "dl2-2024")
+
     # Initialize wandb
-    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
+    wandb.init(project=project, entity=entity, config=vars(args))
     wandb.run.name = f"{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
