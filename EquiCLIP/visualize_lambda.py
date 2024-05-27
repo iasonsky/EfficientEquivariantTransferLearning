@@ -83,6 +83,9 @@ def parse_args(argv):
     parser.add_argument("--model_file", default="", type=str, help="File name of the model. If set then other parameters are discarded.")
     parser.add_argument("--output_filename_suffix", default="", type=str, help="File name suffix of the output dataframe. Specify it to avoid name clashes when generating plots with multiple input models where the parameters are not unique")
     parser.add_argument("--model_display_name", default="", type=str, help="")
+    parser.add_argument("--undersample", action='store_true')
+    parser.add_argument("--oversample", action='store_true')
+    parser.add_argument("--kaggle", action='store_true')
     args = parser.parse_args(argv)
 
     args.verbose = True
@@ -101,8 +104,8 @@ def main(args):
     model, preprocess = load_model(args)
 
     # get dataloader
-    train_loader, eval_loader = get_ft_dataloader(args, preprocess, batch_size=12)
-    viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess, batch_size=12)
+    train_loader, eval_loader = get_ft_dataloader(args, preprocess, batch_size=8)
+    # viz_train_loader, viz_eval_loader = get_ft_visualize_dataloader(args, preprocess, batch_size=1)
 
     # get labels and text prompts
     classnames, templates = get_labels_textprompts(args)
@@ -202,21 +205,18 @@ def main(args):
 
     # Save actual images to Tensorboard - this use a different data loader, skipping some preprocessing steps,
     # that's why it is a separate loop
-    for i, data in enumerate(viz_eval_loader):
-        images, target = data
-        # weights_for_all_trafos = []
+    # for i, data in enumerate(viz_eval_loader):
+    #     images, target = data
     
-        images = images.to(args.device)  # dim [batch_size, c_in, H, H]
-        # images = random_transformed_images(images, data_transformations=data_transformations)  # randomly transform data
+    #     images = images.to(args.device)  # dim [batch_size, c_in, H, H]
+    #     group_images = group_transform_images(images,
+    #                                           group_name=args.group_name)  # dim [group_size, batch_size, c_in, H, H]
+    #     assert group_images.shape[1] == 1, "Only batches of 1 are supported"
+    #     grid = torchvision.utils.make_grid(group_images[:, 0, :, :, :], normalize=False, nrow=1)
+    #     torchvision.utils.save_image(grid, f"feature_visualizations/input_{i}.png")
 
-        group_images = group_transform_images(images,
-                                              group_name=args.group_name)  # dim [group_size, batch_size, c_in, H, H]
-        assert group_images.shape[1] == 1, "Only batches of 1 are supported"
-        grid = torchvision.utils.make_grid(group_images[:, 0, :, :, :], normalize=False, nrow=1)
-        torchvision.utils.save_image(grid, f"feature_visualizations/input_{i}.png")
-
-        if i > 6:
-            break
+    #     if i > 6:
+    #         break
 
     writer.close()
 
