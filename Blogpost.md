@@ -337,6 +337,7 @@ the feature-equivariant version of *λ-equitune*, the method which it directly e
 |---:|:------------------------------|:-------------------------------|-----------------------:|
 |  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
 |  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                  40.65 |
+
 *Table 3: Comparison of λ-equitune and equiattention on CIFAR100*
 
 ### 4.4 Visualizations: understanding what *λ-equitune* and *equiattention* learns
@@ -347,6 +348,7 @@ Based on this information we conclude that *equiattention* did not outperform *�
 
 ![Lambda weight values on CIFAR100](results/plots/lamba_weight_means_CIFAR100.svg)
 ![Lambda weight values on CIFAR100](results/plots/lamba_weight_histogram_CIFAR100.svg)
+
 *Figure 2: Mean λ weight values (a) and histograms of λ weight values (b) over all images and all possible group transformations for the equiattention and λ-equitune models on CIFAR100*
 
 Interestingly, the difference between the two methods is much larger on the ISIC2018 dataset, where images have no natural orientation. Please see the next section for a detailed introduction to the ISIC2018 problem. In this case, *λ-equitune* surprisingly favors some orientations that are not the 0 degree versions, while *equiattention* outputs almost perfectly uniform weights. While *λ-equitune*'s performance is higher in this problem, we can find many justifications for *equiattention*'s behavior: not only is there no natural orientation for the input images, but additionally the CLIP backbone was not trained on images like this, so it has little preference for one orientation over the other.
