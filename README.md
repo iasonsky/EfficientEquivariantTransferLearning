@@ -24,7 +24,6 @@ pip install git+https://github.com/openai/CLIP.git
 pip install git+https://github.com/modestyachts/ImageNetV2_pytorch
 ```
 
-# Equi/Invariant Image Classification using CLIP
 ## How to reproduce
 
 All our experiments are tracked using [Weights and Biases](https://docs.wandb.ai/). To set it up correctly, follow these steps:
@@ -39,26 +38,37 @@ All our experiments are tracked using [Weights and Biases](https://docs.wandb.ai
    wandb login
    ```
 3. **Reproduce Initial Experiments**:
-   - Switch to the appropriate branch:
-   ```sh
-   git checkout original_vs_updated
-   ```
-   - Run the job file to reproduce the original author's zeroshot results:
-   ```sh
-   sbatch job_files/reproduce_bar_plots.job
-   ```
+   - Run the job file to reproduce the original author's zeroshot results that correspond to Figure 4 in the original paper:
+      ```sh
+      sbatch job_files/reproduce_bar_plots.job
+      ```
    - Plot the results using the provided scripts:
-   ```sh
-    python demos/plot_results.py
-    python demos/plot_results2.py
-   ```
+      ```sh
+        python demos/plot_results.py
+        python demos/plot_results2.py
+      ```
 4. **Reproduce Table 1 from the Blogpost**: 
     - Run the following job file:
-    ```sh
-    job_files/compare_original_updated.job
-    ```
-    - Create the table by running the following jupyter notebook [demos\original_vs_updated_table.ipynb](demos\original_vs_updated_table.ipynb)
+      ```sh
+      sbatch job_files/compare_original_updated_cifar.job
+      ```
+    - Create the table by running the following jupyter notebook: [demos/original_vs_updated_cifar.ipynb](demos/original_vs_updated_cifar.ipynb)
 
+5. **Reproduce Table 3 from the Blogpost**: 
+    - Run the following job file:
+      ```sh
+      sbatch demos/equivariant_equitune_vs_attention.ipynb
+      ```
+    - Create the table by running the following jupyter notebook: [demos/equivariant_equitune_vs_attention.ipynb](demos/equivariant_equitune_vs_attention.ipynb)
+
+6. **Reproduce Table 4 from the Blogpost**: 
+    - Run the following job file:
+      ```sh
+      sbatch job_files/compare_original_updated_isic.job
+      ```
+    - Create the table by running the following jupyter notebook: [demos/original_vs_updated_isic.ipynb](demos/original_vs_updated_isic.ipynb)
+
+# Equi/Invariant Image Classification using CLIP
 ## Test Robustness of Pretrained CLIP
 
 First we check that pretrained CLIP is not robust to simple transformations such as rotation by $90^\circ$ or flip. 

@@ -2,7 +2,7 @@
 
 #SBATCH --partition=gpu
 #SBATCH --gpus=1
-#SBATCH --job-name=compare_lambda_equitune
+#SBATCH --job-name=compare_cifar
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=04:00:00
@@ -14,6 +14,8 @@ module load Anaconda3/2022.05
 
 # activate the environment
 source activate lambda_equitune
+
+git checkout original_vs_updated
 
 # Arrays of models, datasets, and transformations
 models=('RN50' 'RN101')
