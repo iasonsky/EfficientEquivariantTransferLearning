@@ -193,12 +193,12 @@ percentage points (11.12%) in Top1 accuracy on CIFAR100 when using 90 degree rot
 only training the weight network (pre-finetuning), as can be seen in the table below. The increase of 4.98 percentage
 points (9.28%) is also significant and notable in case of full finetuning. A small increase in performance can be seen also when using flips.
 
-|    | Method        | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
-|---:|:--------------|:-----------------------------------|-----------------------:|--------------------:|
-|  0 | Original Code | CLIP w RN50 - rot90 - *λ-equitune* |                  31.42 |               51.17 |
-|  1 | Updated Code  | CLIP w RN50 - rot90 - *λ-equitune* |                  35.12 |               56.15 |
-|  2 | Original Code | CLIP w RN50 - flip - *λ-equitune*  |                  37.07 |               54.04 |
-|  3 | Updated Code  | CLIP w RN50 - flip - *λ-equitune*  |                  37.69 |               55.64 |
+|    | Method                                   | Architecture-Transformation     |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
+|---:|:-----------------------------------------|:--------------------------------|-----------------------:|--------------------:|
+|  0 | Original Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90             |                  31.42 |               51.17 |
+|  1 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |                  35.12 |               56.15 |
+|  2 | Original Code - *λ-equitune* (invariant)                            | CLIP w RN50 - flip              |                  37.07 |               54.04 |
+|  3 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - flip              |                  37.69 |               55.64 |
 
 *Table 1: Image classification results using the author's original and our modified code base*
 
@@ -254,14 +254,18 @@ transformation does not yield 4 identical feature maps.
 
 ![Architecture diagrams of a non-equivariant network,
 *λ-equitune* using the original implementation and our version of it](images/architecture_diagrams.svg)
-*Figure n: Architecture diagrams of a non-equivariant network, *λ-equitune* using the original implementation and our
+*Figure 1: Architecture diagrams of a non-equivariant network, *λ-equitune* using the original implementation and our
 version of it*
 
 By applying these changes and testing with 90 degree rotations as the group transformation, we achieved an increase of
-xx in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight
-network (pre-finetuning), as can be seen in the table below. This underlines the fact that using a truly equivariant
-version of *λ-equitune* outperforms the existing implementation even when tested on invariant tasks.
-In (section x) we explore the performance of this method on truly equivariant tasks.
+5.83 percentage points (16.6%) in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight
+network (pre-finetuning), as can be seen in Table 2 below. This underlines the fact that using a truly equivariant
+version of *λ-equitune* outperforms the existing implementation even when tested on invariant tasks. In all further experiments we report results with this updated method.
+
+|   | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc |
+|--:|:------------------------------|:-------------------------------|-----------------------:|
+| 0 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |                  35.12 |               56.15 |
+| 1 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
 
 ### 4.3 *equiattention*: Using Attention as a feature combination method
 
@@ -329,25 +333,33 @@ where `Attention_module` takes the features sets and applies one attention opera
 From the results, we observe that the described method of *equiattention* is on par with 
 the feature-equivariant version of *λ-equitune*, the method which it directly extends.
 
-|    | Method                | Architecture-Transformation    |   Prefinetune Top1 Acc |
-|---:|:----------------------|:-------------------------------|-----------------------:|
-|  0 | equivariant equitune  | CLIP w RN50 - rot90            |                  40.95 |
-|  1 | equivariant attention | CLIP w RN50 - rot90            |                  40.65 |
+|    | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc |
+|---:|:------------------------------|:-------------------------------|-----------------------:|
+|  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
+|  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                  40.65 |
+*Table 3: Comparison of λ-equitune and equiattention on CIFAR100*
 
-Investigating the results, we find that both models consistently predict the maximum weight of 1 to one 
-feature map, and 0 weight to all other views. For the *rot90* group, one that contains 4 possible views, 
-the conventionally oriented view is chosen in about 75% of the cases.
-We thus conclude that *equiattention* did not outperform *λ-equitune* because the latter is already confident and close to the optimum.
+### 4.4 Visualizations: understanding what *λ-equitune* and *equiattention* learns
 
-### 4.4 Visualizations: understanding what *λ-equitune* (and *equiattention*) learns
+In order to better understand the weights learnt by the feature combination networks, we passed all images from the test set of the datasets under all possible rotations through them and saved the weight value for these. We find that both methods on average assign a much higher weight to the 0 degree rotation (the natural orientation) to images from CIFAR100 than to all other rotations, suggesting that they are able to find the correct orientation in most cases. When examining the histogram of the weight values, we found that both networks consistently predict the maximum weight of 1 to one feature map, and 0 weight to all other views, resulting in a
+strongly bimodal distribution (this is also the reason why standard deviation is not shown on the figures, as it would be unnaturally large). However, we also calculated that in 27% (*λ-equitune*) and 30% (*equiattention*) of the cases, the largest weight value was not for the natural orientation. While this may hinder performance, we would like to highlight that for some categories found in CIFAR100, all orientations of the input image look equally plausible, and thus it is understandable that the weight network is not able to pinpoint the original orientation in these cases.
+Based on this information we conclude that *equiattention* did not outperform *λ-equitune* because the latter is already confident and close to the optimum on this dataset.
 
-Add visualizations here
+![Lambda weight values on CIFAR100](results/plots/lamba_weight_means_CIFAR100.svg)
+![Lambda weight values on CIFAR100](results/plots/lamba_weight_histogram_CIFAR100.svg)
+*Figure 2: Mean λ weight values (a) and histograms of λ weight values (b) over all images and all possible group transformations for the equiattention and λ-equitune models on CIFAR100*
+
+Interestingly, the difference between the two methods is much larger on the ISIC2018 dataset, where images have no natural orientation. Please see the next section for a detailed introduction to the ISIC2018 problem. In this case, *λ-equitune* surprisingly favors some orientations that are not the 0 degree versions, while *equiattention* outputs almost perfectly uniform weights. While *λ-equitune*'s performance is higher in this problem, we can find many justifications for *equiattention*'s behavior: not only is there no natural orientation for the input images, but additionally the CLIP backbone was not trained on images like this, so it has little preference for one orientation over the other.
+
+![Lambda weight values on ISIC2018](results/plots/lamba_weight_means_ISIC2018.svg)
+
+*Figure 3: Mean λ weight values over all images and all possible group transformations for the equiattention and λ-equitune models on ISIC2018*
 
 ### 4.5 Replicability: verifying the effectiveness on new problems
 
 Replicating the results on novel datasets which exhibit different properties is an important step in verifying the
 effectiveness of any new method. This is why, instead of reproducing all results from the original publication, we
-decided to perform replication on 2 new data sets: the ISIC2018 image classification and an extended version of the Natural Language Generation task.
+decided to perform replication on 2 new problems: the ISIC2018 image classification and an extended version of the Natural Language Generation task.
 
 #### 4.5.1 ISIC 2018 Medical Imaging dataset
 
@@ -374,10 +386,9 @@ that [whichever method works better - add results].
 | 1 | Updated Code         | CLIP w RN50 - rot90 - *λ-equitune*   |                  16.58 |               64.77 |
 | 2 | equivariant equitune | CLIP w RN50 - rot90                  |                  16.58 |               40.93 |
 
-*Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical
-dataset*
+*Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical dataset*
 
-#### 4.5.2 Extended NLG task
+### 4.6 Extended Natural Language Generation task
 
 Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task. Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups in their generations (Sheng et al, 2019; Prates, Avelar, and Lamb, 2020; Henderson et al, 2018). While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019; Nadeem, Bethke, and Reddy 2021; Abid, Farooqi, and Zou, 2021), little has been done to theoretically study the mitigation of this bias and allow for a generalizable approach.
 
