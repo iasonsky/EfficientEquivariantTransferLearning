@@ -25,6 +25,39 @@ pip install git+https://github.com/modestyachts/ImageNetV2_pytorch
 ```
 
 # Equi/Invariant Image Classification using CLIP
+## How to reproduce
+
+All our experiments are tracked using [Weights and Biases](https://docs.wandb.ai/). To set it up correctly, follow these steps:
+
+1. **Modify the [.env](.env) File**:
+   - Add your `entity name` (your username or organization name).
+   - Add the `project name` you want for the project.
+
+2. **Log in to Weights and Biases**:
+   Before running any experiment, log in and provide your API key when prompted:
+   ```sh
+   wandb login
+   ```
+3. **Reproduce Initial Experiments**:
+   - Switch to the appropriate branch:
+   ```sh
+   git checkout original_vs_updated
+   ```
+   - Run the job file to reproduce the original author's zeroshot results:
+   ```sh
+   sbatch job_files/reproduce_bar_plots.job
+   ```
+   - Plot the results using the provided scripts:
+   ```sh
+    python demos/plot_results.py
+    python demos/plot_results2.py
+   ```
+4. **Reproduce Table 1 from the Blogpost**: 
+    - Run the following job file:
+    ```sh
+    job_files/compare_original_updated.job
+    ```
+    - Create the table by running the following jupyter notebook [demos\original_vs_updated_table.ipynb](demos\original_vs_updated_table.ipynb)
 
 ## Test Robustness of Pretrained CLIP
 
