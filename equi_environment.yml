@@ -166,4 +166,7 @@ dependencies:
       - yarl==1.9.2
       - zipp==3.17.0
       - wandb
+      - python-dotenv
+      - pandas
+      - tabulate
 prefix: /home/sourya/anaconda3/envs/equi

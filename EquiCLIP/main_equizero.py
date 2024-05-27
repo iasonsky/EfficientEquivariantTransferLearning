@@ -7,6 +7,7 @@ import clip
 import argparse
 import pytorch_lightning as pl
 import wandb
+from dotenv import load_dotenv
 
 from load_model import load_model
 from dataset_utils import imagenet_classes, imagenet_templates, get_labels_textprompts, get_dataloader
@@ -14,11 +15,17 @@ from zeroshot_weights import zeroshot_classifier
 from eval_utils import eval_clip
 
 print("Torch version:", torch.__version__)
+# Load environment variables
+load_dotenv()
 
 def main(args):
+    # Set project and entity name
+    project = os.getenv("WANDB_PROJECT", "dl-2024")
+    entity = os.getenv("WANDB_ENTITY", "dl2-2024")
+
     # Initialize wandb
-    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args))
-    wandb.run.name = f"zs_{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
+    wandb.init(project=project, entity=entity, config=vars(args))
+    wandb.run.name = f"zs_{args.method}_{args.dataset_name}_{args.model_name}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model, preprocess = load_model(args)
 

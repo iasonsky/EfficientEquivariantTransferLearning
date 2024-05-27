@@ -14,6 +14,8 @@ module load Anaconda3/2022.05
 # activate the environment
 source activate lambda_equitune
 
+git checkout original_vs_updated
+
 # Arrays of models, datasets, transformations, and methods
 models=('RN50' 'RN101' 'ViT-B/32' 'ViT-B/16')
 datasets=("ImagenetV2" "CIFAR100")
