@@ -36,8 +36,7 @@ def main(args):
     entity = os.getenv("WANDB_ENTITY", "dl2-2024")
 
     # Initialize wandb
-    wandb.init(project=project, entity=entity, config=vars(args))
-    wandb.init(project="dl-2024", entity="dl2-2024", config=vars(args), tags=["equivariant features"])
+    wandb.init(project=project, entity=entity, config=vars(args), tags=["equivariant features"])
     wandb.run.name = f"lambda_{args.method}_{args.dataset_name}_{args.model_name}_lr{args.lr}_{args.group_name}_{args.data_transformations}"
     # load model and preprocess
     model: CLIP
