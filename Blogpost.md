@@ -126,7 +126,7 @@ transformations used.
 
 ### 3.2 Related work
 
-The methods described in the original paper fall under the category of *symmetrization*. This means that all transformations of the input are passed through the backbone network and the final output is calculated as some combination of these. A competing approach is *canonicalization*: where a canonicalization network first learns to transform the data into a canonical form, and only this selected form is passed through the network. An architecture based on this idea is described by Mondal et al. (2023). *Canonicalization* has the advantage in that it only requires a single forward pass through the backbone network, so it only has a small computational overhead. On the other hand, the *canonicalization* network has to operate without any input from the backbone network, which may lead to duplicating some low-level image understanding operations and making suboptimal choices, as canonicalization can be uninformed about the
+The fine-tuning methods described in the original paper fall under the category of *symmetrization*. This means that all transformations of the input are passed through the backbone network and the final output is calculated as some combination of these. A competing approach is *canonicalization*, where a canonicalization network first learns to transform the data into a canonical form, and only this selected form is passed through the network. An architecture based on this idea is described by Mondal et al. (2023). *Canonicalization* has the advantage in that it only requires a single forward pass through the backbone network, so it only has a small computational overhead. On the other hand, the *canonicalization* network has to operate without any input from the backbone network, which may lead to duplicating some low-level image understanding operations and making suboptimal choices, as canonicalization can be uninformed about the
 preference of the prediction network, undermining its performance. *Symmetrization* thus has the advantage in that it operates on the output of the backbone network and has access to the output of all group-transformed inputs, potentially leading to a wider variety of options and more informed choices.
 
 The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense the it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as requires less passes through the backbone, it only works if the correct frame could be selected for the given group and input, which is a non-trivial task. While theoretically it could be applied with existing pretrained backbones, results for this use case are not currently available.
@@ -158,7 +158,7 @@ The rest of the blog post will be structured accordingly to provide a summary of
 - in 4.3 we discuss our proposed alternative feature combination method
 - 4.4 expands our understanding of the patterns *λ-equitune* learns
 - in 4.5 the methods are tested on novel data sets
-- and finally in 4.6 an extension of the original NLG tasks is described.
+- and finally in 4.6 an extension of the original Natural Language Generation tasks is described.
 
 ### 4.1 Reproducibility and minor implementation improvements
 
@@ -368,12 +368,13 @@ performance of the methodologies, as it places the result within the context of 
 been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification task on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
 This is why we chose to test on a medical imaging dataset, since a natural orientation of skin lesions
 does not exist and any rotation of the inputs are equally likely.
-We hypothesize that it will be easier for the model to process the transformed feature maps and for the lambda weights to be more equally distributed.   
+We hypothesize that it will be easier for the model to process the transformed feature maps and for the lambda weights to be more equally distributed.
+
 We use the ISIC 2018 dataset, which was published by the International Skin Imaging Collaboration (ISIC) as a
 large-scale dataset of dermoscopy images.The dataset consists from 10015 training images and 194 validation images
 belonging to seven distinct diagnostic categories: Melanoma, Melanocytic nevus, Basal cell carcinoma, Actinic
 keratosis / Bowen’s disease (intraepithelial carcinoma), Benign keratosis (solar lentigo / seborrheic keratosis / lichen
-planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the dataset images is shown below:
+planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the dataset images is shown below.
 
 ![Sample of classes in ISIC 2018 data set](images/isic2018_sample.png)
 *Figure 4: A sample of each class in the ISIC 2018 data set*
@@ -439,10 +440,10 @@ Additionally, the results indicate that for the variable "Asian" there is only a
 Equivariant fine-tuning of large foundational models is an attractive approach for combining the unprecedented
 representation capabilities of these models with the introduction of guaranteed equivariance required in certain
 domains. We have reproduced, replicated and extended the work of Basu et al. (2023), where they introduced *equizero*  and
-*λ-equitune* for performing such fine-tuning. We have achieved an increase of [xx pp] in top1 accuracy
-on [whichever dataset] by improving code and parameters, a further increase of [xx pp] by improving the methodology, and
+*λ-equitune* for performing such fine-tuning. We have achieved an increase of 3.70 percentage points (11.12%) in top1 accuracy
+on CIFAR100 by improving code and parameters, a further increase of 5.83 percentage points (16.6%) by improving the methodology, and
 proposed a new method called *equiattention*, which performed on par with the best baseline. Additionally, we have
-verified the efficacy of these methods on novel datasets that exhibit equivariant properties and delivered
+verified the efficacy of these methods on novel problems that exhibit different properties, and delivered
 visualizations to better understand the operation of the trained *λ-equitune* and *equiattention* methods. Overall, we
 found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work
 contributed to the understanding of their strengths and weaknesses.

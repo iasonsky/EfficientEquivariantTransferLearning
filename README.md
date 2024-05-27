@@ -7,7 +7,7 @@
 
 This repository contains a reproduction and extension of ["Efficient Equivariant Transfer Learning from Pretrained Models"](https://arxiv.org/abs/2305.09900) by Basu et al. (2023).
 
-To read the full report containing detailed information on our reproduction experiments and extension study, please, refer to our [blogpost](Blogpost.md).
+To read the full report containing detailed information on our reproduction experiments and extension study, please refer to our [blogpost](Blogpost.md).
 
 ## Conda Environment
 First create the required conda environment, activate it, and install clip, Imagenet_V2 as follows
