@@ -267,6 +267,8 @@ version of *λ-equitune* outperforms the existing implementation even when teste
 | 0 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |                  35.12 |               56.15 |
 | 1 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
 
+*Table 2: Comparison of the authors' original invariant and our updated equivariant implementation of λ-equitune*
+
 ### 4.3 *equiattention*: Using Attention as a feature combination method
 
 In the original work, the weights of features from $gx$ in the average are obtained independently for each $gx$. We see
