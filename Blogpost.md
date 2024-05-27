@@ -559,17 +559,17 @@ The non-empty set of neutral words $\mathcal{N}$ is a list of words that are neu
 The group action $g$ is applied only to the words in $\mathcal{E}$, by applying a right-cyclic shift by one to the words in each inner list. The group action does not affect the lists $\mathcal{N}$ and $\mathcal{G}$. However, the words from these two lists are treated differently in the final step of the model, when aggregating the logits to obtain the final output, as shown in Figure ?? c). The main motivation of the authors for defining the list $\mathcal{G}$ is due to the fact that some words like pronouns often have complex relationships with nouns (e.g. coreference resolution) and break one-to-one mapping (e.g. both 'his' and 'him' map to 'her'), which can hurt model's performance.
 
 #### A.2 Extension to Non-Binary Demographic Groups
- In this section, we show that the correct way to ensure the properties of equivariance and group-theoretic fairness to non-binary groups is to apply the inverse group transformation ($g^{-1}$) on the output logits before final aggregation, instead of the 'forward' transformation ($g)$, as was done by the authors. Importantly, their approach still ensures the aforementioned properties in the case of binary groups they explore, as in this case $g = g^{-1}$ (applying a cyclic shift by one to either right or left yields the same result for lists of size 2).
+In this section, we show that the correct way to ensure the properties of equivariance and group-theoretic fairness to non-binary groups is to apply the inverse group transformation ($g^{-1}$) on the output logits before final aggregation, instead of the 'forward' transformation ($g)$, as was done by the authors. Importantly, their approach still ensures the aforementioned properties in the case of binary groups they explore, as in this case $g = g^{-1}$ (applying a cyclic shift by one to either right or left yields the same result for lists of size 2).
 
 First we prove that applying $g^{-1}$ ensures the equivariance property.
 
-**Theorem**: The model $M: X \rightarrow Y$ is said to to be equivariant to group $G$ under the group action of $G$ on $X$ if:
+**Theorem 1**: The model $M: X \rightarrow Y$ is said to to be equivariant to group $G$ under the group action of $G$ on $X$ if:
 
 ```math
 \forall g \in G, \forall x \in X: M(gx) = gM(x)
 ```
 
-**Lemma**: Let $M, M^{equi}: X \rightarrow Y$ be a language model with vocabulary $\mathcal{V}$ and its equitune variant, respectively, where $X \in \mathbb{R}^{n \times m}$ is the input text sequence (of length $n$ and embedding dimenson $m$) and $Y \in \mathbb{R}^{|V|}$ are the output logits over the vocabulary. Let $D$ be a demographic group of size $d$ and let $\mathcal{V}$ be split into lists $\mathcal{E} = [[E_1, E_2, ..., E_d]]$, $\mathcal{G}$ (arbitrary), and $\mathcal{N} = \mathcal{V} \setminus (\mathcal{E'} \cup \mathcal{G})$. Let $`G = \{e, g, ..., g^{d-1}\}`$ be a cyclic group with generator $g$. Let the group action of $G$ perform a right-cyclic shift by one step forward in $\mathcal{E}$, or formally $gE_i = E_{(i \ \text{mod} \ d)+|g|}$ (where we define $|g|$ to be the order of transformation $g$, i.e. $|g^d| = d$). Let $Y_g$ be the intermediate output logits of $M(gx)$ for all $g \in G$. Then applying the appropriate inverse transformation $g^{-1}$ to each $Y_g$ before aggregating the intermediate logits into the final output ensures the equivariance property $M^{equi}(gx) = gM^{equi}(x)$.
+**Lemma 1**: Let $M, M^{equi}: X \rightarrow Y$ be a language model with vocabulary $\mathcal{V}$ and its equitune variant, respectively, where $X \in \mathbb{R}^{n \times m}$ is the input text sequence (of length $n$ and embedding dimenson $m$) and $Y \in \mathbb{R}^{|V|}$ are the output logits over the vocabulary. Let $D$ be a demographic group of size $d$ and let $\mathcal{V}$ be split into lists $\mathcal{E} = [[E_1, E_2, ..., E_d]]$, $\mathcal{G}$ (arbitrary), and $\mathcal{N} = \mathcal{V} \setminus (\mathcal{E'} \cup \mathcal{G})$. Let $`G = \{e, g, ..., g^{d-1}\}`$ be a cyclic group with generator $g$. Let the group action of $G$ perform a right-cyclic shift by one step forward in $\mathcal{E}$, or formally $gE_i = E_{(i \ \text{mod} \ d)+|g|}$ (where we define $|g|$ to be the order of transformation $g$, i.e. $|g^d| = d$). Let $Y_g$ be the intermediate output logits of $M(gx)$ for all $g \in G$. Then applying the appropriate inverse transformation $g^{-1}$ to each $Y_g$ before aggregating the intermediate logits into the final output ensures the equivariance property $M^{equi}(gx) = gM^{equi}(x)$.
 
 **Proof**: For each $g \in G$, the correpsonding $Y_g = [\mathbb{P}(w_i | gx)]_{i \in \{1, ..., |\mathcal{V}|\}}$, where $w_i$ is the word in $\mathcal{V}$ at index $i$. For any $w_i$ in $\mathcal{V}$, $g$ is defined as follows:
 
@@ -614,3 +614,68 @@ and since given our definitions, we have $`Y'_{g^{d}} = gY'_{g^{d+1}}`$, consequ
 ```math
 M^{equi}(gx) = gM^{equi}(x)
 ```
+
+##### A.2.2 Preserving Group-Theoretic Fairness
+
+Now we prove that applying $g^{-1}$ ensures the group-theoretic fairness property.
+
+**Theorem 2**: Let $M: X \rightarrow Y$ be a language model with vocabulary $\mathcal{V}$. Let $X_1$ and $X_2$ be the input and the output of $M$, respectively, such that both $X_1$ and $X_2$ are sequences of words from $\mathcal{V}$. Given a cyclic group $G$ as before, we call the model group-theoretically fair if:
+
+```math
+\forall g \in G: P(gX_2 | gX_1) = P(X_2 | X_1)
+```
+
+**Lemma 2**: Given the same setting as in Lemma 1, applying the appropriate inverse transformation $g^{-1}$ to each $Y_g$ before aggregating the intermediate logits into the final output ensures the group-theoretic fairness property.
+
+**Proof**: Without loss of generality, let us assume that both $X_1$ and $X_2$ are single words (i.e., sequences of size 1). Then, there are four cases to be considered:
+1) $X_1, X_2 \not\in \mathcal{E}$:
+
+In this simple case, we have $gX_1 = X_1$ and $gX_2 = X_2$ for all $g \in G$, so $P(gX_2 | gX_1) = P(X_2 | X_1)$ is satisfied.
+
+2) $X_2 \in \mathcal{E} \land X_1 \not\in \mathcal{E}$:
+
+In this case we only have $gX_1 = X_1$, so the property to satisfy simplifies to $P(gX_2 | X_1) = P(X_2 | X_1)$. Since $X_1 \not\in \mathcal{E}$ the intermediate output logits $M_i(X_1)$ will be equivalent. Applying the appropriate $g_*^{-1}$ on the intermediate logits will yield the following output:
+
+```math
+M^{equi}_i(X_1)= 
+\begin{cases}
+    \frac{1}{|G|} \sum_{g \in G}[g_*^{-1}M(gX_1)]_i, & \text{if } V(w_i) \in \mathcal{E}\\
+    M_i(gX_1),              & \text{otherwise}
+\end{cases}
+```
+
+and since $gX_1$ is constant for all $g$, the property is satisfied.
+
+3) $X_1 \in \mathcal{E} \land X_2 \not\in \mathcal{E}$:
+
+In this case we only have $gX_2 = X_2$, so the property to satisfy simplifies to $P(X_2 | gX_1) = P(X_2 | X_1)$. If $V(X_2) = i$, then $P(X_2 | X_1) = M^{equi}_i(X_1)$ and $P(X_2 | gX_1) = M^{equi}_i(gX_1)$. Given the equivariance property proven before, we have $M^{equi}_i(gX_1) = gM^{equi}_i(X_1)$. Since $X_2 \not\in \mathcal{E}$, the permutation function is the identity (i.e., $\sigma(i) = i$) and thus $gM^{equi}_i(X_1) = M^{equi}_i(X_1)$, which satisfies the property.
+
+4) $X_1, X_2 \in \mathcal{E}$:
+
+$P(gX_2 | gX_1) = P(X_2 | X_1)$ can be equivalently written as
+
+```math
+[M^{equi}(gX_1)]_{V(g(X_2))} = [M^{equi}(X_1)]_{V(X_2)}
+```
+
+Applying the equivarience property to the left-hand side of the equation, we get:
+
+```math
+[gM^{equi}(X_1)]_{V(g(X_2))} = [M^{equi}(X_1)]_{V(X_2)}
+```
+
+If we set $V(X_2) = i$ for clarity, we get:
+
+```math
+[gM^{equi}(X_1)]_{V(g(w_i))} = [M^{equi}(X_1)]_{i}
+```
+
+from which we can easily observe the relationship between $i$ and $V(g(w_i))$:
+
+```math
+[gM^{equi}(X_1)]_{\sigma(i)} = [M^{equi}(X_1)]_{i}
+```
+
+and from the proof of Lemma 1, this equality holds, meaning that the property is satisfied.
+
+By satisfying all the cases, we prove Lemma 2.
