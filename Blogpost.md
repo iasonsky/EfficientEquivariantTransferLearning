@@ -376,17 +376,18 @@ keratosis / Bowen’s disease (intraepithelial carcinoma), Benign keratosis (sol
 planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the dataset images is shown below:
 
 ![Sample of classes in ISIC 2018 data set](images/isic2018_sample.png)
+*Figure 4: A sample of each class in the ISIC 2018 data set*
 
 Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen in the results
 that [whichever method works better - add results].
 
-|   | Method               | Architecture-Transformation          |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
-|--:|:---------------------|:-------------------------------------|-----------------------:|--------------------:|
-| 0 | Original Code        | CLIP w RN50 - rot90 - *λ-equitune*   |                  15.03 |               63.73 |
-| 1 | Updated Code         | CLIP w RN50 - rot90 - *λ-equitune*   |                  16.58 |               64.77 |
-| 2 | equivariant equitune | CLIP w RN50 - rot90                  |                  16.58 |               40.93 |
+|   | Method                                 | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
+|--:|:---------------------------------------|:-----------------------------------|-----------------------:|--------------------:|
+| 0 | Original Code - *λ-equitune* invariant | CLIP w RN50 - rot90                |                  15.03 |               63.73 |
+| 1 | Updated Code - *λ-equitune* invariant  | CLIP w RN50 - rot90 |                  16.58 |               64.77 |
+| 2 | *λ-equitune* equivariant               | CLIP w RN50 - rot90                |                  16.58 |               40.93 |
 
-*Table n: Image classification results using the author's original and our modified code base on the ISIC 2018 medical dataset*
+*Table 3: Image classification results using the authors' original (invariant) *λ-equitune* implementations, and our modified invariant and equivariant implementations on the ISIC 2018 medical dataset*
 
 ### 4.6 Extended Natural Language Generation task
 
@@ -407,11 +408,13 @@ Using their proposed *equitune* language model, *EquiLM*, the authors formally s
 However, in their work, the authors only focused on establishing fairness across binary demographic groups -- specifically: man vs. woman, Black vs. White, and straight vs. gay. These binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
 non-binary groups. All of the three considered demographic groups naturally extend beyond binary classifications. We extend the theoretical framework to work with such groups and test the results on the extended race axis, namely Black vs. White vs. Asian. By extending the fairness framework to non-binary groups, we can better reflect the diversity of human identities and ensure that the proposed methods can mitigate bias in real-world settings.
 
-The figure below illustrates the difference in a) the standard GPT2 model, b) original EquiGPT2 and c) our extended version of EquiGPT2 for non-binary groups.
+The figure below illustrates the difference in between each solution.
 
 <p align="center"> <img src="images/gpt2-a-jpeg.jpg" width="372"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="images/equigpt_binary-b-jpeg.jpg" width="500"> </p>
 
 <p align="center"> <img src="images/inputA-c-jpeg.jpg" width="600"> </p>
+
+*Figure 5: Architecture of a) the standard GPT2 model, b) original EquiGPT2 and c) our extended version of EquiGPT2 for non-binary groups*
 
 In the standard case of GPT2, the model is given an input and outputs the logits over the vocabulary. In EquiGPT2, the group action $g$ is applied to the input and an inverse transformation is applied to the output logits, which are then aggregated for the final output. Finally, in our extension, the size of the demographic group is 3, so we also apply $g^2$ and $g^{-2}$ appropriately (however, the approach generalizes to an arbitrary demographic group size).
 
@@ -421,7 +424,7 @@ The following figures show the reproduced results from the original paper for th
 
 <p align="center"> <img src="images/race-respect-extension.png" width="500">  <img src="images/race-respect-original.jpeg" width="500"> </p>
 
-*Figure n: Left: Results of the Respect-Race task ran with a subset of the models used in the original paper. The experiment is conducted on the extended 3-member group consisting of the demographics White, Black and Asian. Right: Original experiment results, for comparison purposes.*
+*Figure 6: (a): Results of the Respect-Race task ran with a subset of the models used in the original paper. The experiment is conducted on the extended 3-member group consisting of the demographics White, Black and Asian. (b): Original experiment results, for comparison purposes.*
 
 In the Figures, the y-axis represents the ratio of "regard scores" on 500 examples generated by GPT2 and EquiGPT2. These scores were assigned using the models of Sheng et al. (2019), and particularly "regard_v2", which is an ensemble of three BERT models that take the majority label of the model runs. The classifiers are trained to assign "regard" labels ranging from negative (-1) to positive (1) which assess the bias on the LLM's sentence generations starting with prompts such as "The white/black/asian person was regarded as...".
 The label "other" corresponds to cases where there was a label produced but the generated sentence was missing. 
@@ -452,6 +455,8 @@ with a single attention layer, and without a designated CLS token. Additionally,
 heavily dependent on learning rate, failing to change the model's prediction with SDG lr less than 0.05 and 
 leading to numerical issues for wide range of learning rates with Adam optimizer (Kingma et al 2014).
 
+We would also like to extend the visual experiments to truly equivariant tasks. We evaluated segmentation and object detection as potential candidates, and preferred object detection, as in our initial experiments that seemed to suffer more when using non-natural orientations of images. We started integrating object detection into the pipeline, but could not finish it before the deadline. 
+
 ## 7. Acknowledgements
 We would like to thank the authors for making their code available and for their fast and detailed responses to our
 inquiries. We would also like to thank Yongtuo Liu for his supervision of our work.
@@ -472,6 +477,10 @@ All authors continuously contributed to the project and group discussions. In pa
 
 ## 9. References
 
+Abid, A., Farooqi, M., & Zou, J. (2021). Persistent Anti-Muslim Bias in Large Language Models.
+
+Bahdanau, D., Cho, K., & Bengio, Y. (2014). Neural Machine Translation by Jointly Learning to Align and Translate. http://arxiv.org/abs/1409.0473
+
 Basu, S., Katdare, P., Sattigeri, P., Chenthamarakshan, V., Driggs-Campbell, K., Das, P., & Varshney, L. R. (2023). Efficient Equivariant Transfer Learning from Pretrained Models. http://arxiv.org/abs/2305.09900
 
 Basu, S., Sattigeri, P., Ramamurthy, K. N., Chenthamarakshan, V., Varshney, K. R., Varshney, L. R., & Das, P. (2023). Equi-Tuning: Group Equivariant Fine-Tuning of Pretrained Models. www.aaai.org
@@ -486,9 +495,15 @@ Cohen, T., Geiger, M., & Weiler, M. (2018). A General Theory of Equivariant CNNs
 
 Cohen, T. S., & Welling, M. (2016). Group Equivariant Convolutional Networks.
 
+Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., & Houlsby, N. (2020). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. http://arxiv.org/abs/2010.11929
+
+Henderson, P., Sinha, K., Angelard-Gontier, N., Ke, N. R., Fried, G., Lowe, R., & Pineau, J. (2017). Ethical Challenges in Data-Driven Dialogue Systems.
+
 Hoogeboom, E., Satorras, V. G., Vignac, C., & Welling, M. (2022). Equivariant Diffusion for Molecule Generation in 3D.
 
 Kaba, S.-O., Mondal, A. K., Zhang, Y., Bengio, Y., & Ravanbakhsh, S. (2022). Equivariance with Learned Canonicalization Functions. http://arxiv.org/abs/2211.06489
+
+Kingma, D. P., & Ba, J. (2014). Adam: A Method for Stochastic Optimization. http://arxiv.org/abs/1412.6980
 
 Lafarge, M. W., Bekkers, E. J., Pluim, J. P. W., Duits, R., & Veta, M. (2021). Roto-translation equivariant convolutional networks: Application to histopathology image analysis. Medical Image Analysis, 68, 101849. https://doi.org/10.1016/j.media.2020.101849
 
@@ -498,11 +513,17 @@ Mondal, A. K., Panigrahi, S. S., Kaba, S.-O., Rajeswar, S., & Ravanbakhsh, S. (2
 
 Moskalev, A., Sepliarskaia, A., Bekkers, E. J., & Smeulders, A. (2023). On genuine invariance learning without weight-tying.
 
+Nadeem, M., Bethke, A., & Reddy, S. (2020). StereoSet: Measuring stereotypical bias in pretrained language models.
+
 OpenAI, Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., Avila, R., Babuschkin, I., Balaji, S., Balcom, V., Baltescu, P., Bao, H., Bavarian, M., Belgum, J., … Zoph, B. (2023). GPT-4 Technical Report.
+
+Prates, M. O. R., Avelar, P. H. C., & Lamb, L. (2018). Assessing Gender Bias in Machine Translation -- A Case Study with Google Translate.
 
 Puny, O., Atzmon, M., Ben-Hamu, H., Misra, I., Grover, A., Smith, E. J., & Lipman, Y. (2021). Frame Averaging for Invariant and Equivariant Network Design.
 
 Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). Learning Transferable Visual Models From Natural Language Supervision.
+
+Sheng, E., Chang, K.-W., Natarajan, P., & Peng, N. (2019). The Woman Worked as a Babysitter: On Biases in Language Generation. http://arxiv.org/abs/1909.01326
 
 Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashlykov, N., Batra, S., Bhargava, P., Bhosale, S., Bikel, D., Blecher, L., Ferrer, C. C., Chen, M., Cucurull, G., Esiobu, D., Fernandes, J., Fu, J., Fu, W., … Scialom, T. (2023). Llama 2: Open Foundation and Fine-Tuned Chat Models.
 
