@@ -679,3 +679,9 @@ from which we can easily observe the relationship between $i$ and $V(g(w_i))$:
 and from the proof of Lemma 1, this equality holds, meaning that the property is satisfied.
 
 By satisfying all the cases, we prove Lemma 2.
+
+##### A.1.3 Visual Examples
+
+The following figures show the final outputs, including intermediate steps, for $M^{equi}(X)$ and $M^{equi}(gX)$, which the reader is encouraged to use for confirming that Lemma 1 and Lemma 2 hold.
+
+<p align="center"> <img src="images/inputA-a-jpeg.jpg" width="481"> &nbsp; <img src="images/inputC-b-jpeg.jpg" width="500"> </p>
