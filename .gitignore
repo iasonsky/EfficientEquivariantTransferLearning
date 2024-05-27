@@ -9,3 +9,5 @@ logs/*
 *.txt
 wandb
 feature_visualizations/*
+*.pt
+*.DS_Store

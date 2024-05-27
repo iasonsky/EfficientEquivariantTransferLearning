@@ -9,10 +9,14 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def generate_text(args):
+    print(f"Starting text generation with context: {args.context} and seed: {args.seed}")
 
-    set_seed(args.seed)
-    tokenizer = GPT2Tokenizer.from_pretrained(args.model)
-    model = GPT2LMHeadModel.from_pretrained(args.tokenizer).to(device)
+    # set_seed(args.seed)
+    # tokenizer = GPT2Tokenizer.from_pretrained(args.model)
+    # model = GPT2LMHeadModel.from_pretrained(args.tokenizer).to(device)
+    tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer)
+    model = GPT2LMHeadModel.from_pretrained(args.model).to(device)
+    print(f"Using model: {args.model}")
     num_tokens = args.num_tokens
 
     context = torch.tensor([tokenizer.encode(args.context)]).to(device)
@@ -41,6 +45,7 @@ def generate_text(args):
 
         # truncate generated text at '\n' endoftext
         prev_decoded = tokenizer.decode(prev.tolist())
+        print(f"Generated token: {prev_decoded}")
         if prev_decoded == '\n' or prev_decoded == '<|endoftext|>':
             break
         else:
@@ -53,6 +58,7 @@ def generate_text(args):
     # print(f"Average surprise: {average_suprise}")
     # print(f"Average perplexity: {2 ** average_suprise}")
     total_generated_text = tokenizer.decode(tokenizer.encode(args.context) + generated)
+    print(f"Generated text: {total_generated_text}")
     return total_generated_text
 
 

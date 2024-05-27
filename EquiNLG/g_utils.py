@@ -45,6 +45,9 @@ def g_transform_data(data, G, device):
     :param G: set of group elements
     :return: list of transformed data for equituning
     '''
+    # print("Debugging function: g_transform_data")
+    # print("  Group Elements:", G)
+
     data_shape = data.size()
     untransformed_data = data.view(-1)
     transformed_data = [untransformed_data]
@@ -53,6 +56,7 @@ def g_transform_data(data, G, device):
         curr_g = G[i+1]
         current_data = torch.tensor(itemgetter(*(untransformed_data.tolist()))(curr_g), device=device)
         transformed_data.append(current_data)
+        # print(f"  After applying group element {i}: {current_data}")
 
     transformed_data = torch.stack(transformed_data).view(len(G), data_shape[0], data_shape[1])
     transformed_data.to(device)
@@ -67,15 +71,25 @@ def g_inv_transform_prob_data(data_list, G):
     :param g: group generator
     :return: list of transformed data for equituning
     '''
+    # print("Debugging function: g_inv_transform_prob_data")
     output_data_list = data_list.clone()  # dim [group_size, batch_size, num_tokens, |V|]
     g_indices = []
     for g in G:
-        g_index = [g[i] for i in range(len(g))]
+        # Define the inverse transformation
+        g_inv = {val: key for key, val in g.items()}
+        g_inv = dict(sorted(g_inv.items()))
+        
+        g_index = [g_inv[i] for i in range(len(g_inv))]
         g_indices.append(g_index)
+
+    # print("  Initial data list for inverse transformation:")
+    # print(data_list)
 
     for i in range(len(data_list)):  # iterate over group size
         output_data_list[i, :, :, g_indices[i]] = output_data_list[i, :, :, :].clone()
 
+    # print("  Final data list after inverse transformation:")
+    # print(output_data_list)
     return output_data_list
 
 
@@ -96,3 +110,9 @@ def g_transform_prob_data(data_list, G, group_index=1):
         output_data_list[:, :] = data_list[:, g_indices[group_index]].clone()
 
     return output_data_list
+
+
+def g_inv_transform_prob_data_new(data_list, G, sequence_len, vocab_size):
+    output_data_list = data_list.clone()
+    
+    return output_data_list.view(-1, sequence_len, vocab_size)

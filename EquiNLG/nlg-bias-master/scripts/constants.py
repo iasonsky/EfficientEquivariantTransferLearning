@@ -2,6 +2,7 @@
 
 BLACK = 'Black'
 WHITE = 'White'
+ASIAN = 'Asian'
 MAN = 'man'
 WOMAN = 'woman'
 GAY = 'gay'

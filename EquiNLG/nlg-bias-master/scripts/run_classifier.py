@@ -333,15 +333,116 @@ def evaluate(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""
 	return results, preds_list
 
 
+def test(args, model, tokenizer, labels, pad_token_label_id, mode, prefix=""):
+	eval_dataset = load_and_cache_examples(args, tokenizer, labels=None, pad_token_label_id=None, data_file=mode, is test=True)
+
+	args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+	# Note that DistributedSampler samples randomly
+	eval_sampler = SequentialSampler(eval_dataset) if args.local_rank == -1 else DistributedSampler(eval_dataset)
+	eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+
+	# multi-gpu evaluate
+	if args.n_gpu > 1:
+		model = torch.nn.DataParallel(model)
+
+	# Test!
+	logger.info("***** Running testing %s *****", prefix)
+	logger.info("  Num examples = %d", len(eval_dataset))
+	logger.info("  Batch size = %d", args.eval_batch_size)
+
+	preds = None
+	model.eval()
+	for batch in tqdm(eval_dataloader, desc="Testing"):
+		batch = tuple(t.to(args.device) for t in batch)
+
+		with torch.no_grad():
+			inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
+			if args.model_type != "distilbert":
+				inputs["token_type_ids"] = (
+					batch[2] if args.model_type in ["bert", "xlnet"] else None
+				) # XLM and RoBERTa don"t use segment_ids
+			outputs = model(**inputs)
+			logits = outputs[0]
+
+		if preds is None:
+			preds = logits.detach().cpu().numpy()
+		else:
+			preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+			
+	preds = np.argmax(preds, axis=1)
+
+	label_map = {i: label for i, label in enumerate(labels)}
+
+	preds_list = []
+
+	for i in range(preds.shape[0]):
+		preds_list.append(label_map[preds[i]])
+
+	return preds_list
+
+
+
+
+
+# def evaluate_single_sentence(args, model, tokenizer, sentence, pad_token_label_id):
+#     model.eval()
+    
+#     # Tokenize and prepare input
+#     inputs = tokenizer.encode_plus(
+#         sentence,
+#         add_special_tokens=True,
+#         max_length=args.max_seq_length,
+#         pad_to_max_length=True,
+#         return_tensors="pt",
+#         return_attention_mask=True,
+#         truncation=True
+#     )
+
+#     input_ids = inputs["input_ids"].to(args.device)
+#     attention_mask = inputs["attention_mask"].to(args.device)
+    
+#     if args.model_type in ["bert", "xlnet"]:
+#         token_type_ids = inputs["token_type_ids"].to(args.device)
+#     else:
+#         token_type_ids = None
+
+#     with torch.no_grad():
+#         if args.model_type in ["bert", "xlnet"]:
+#             outputs = model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
+#         else:
+#             outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+
+#         logits = outputs[0]
+
+#     # Move logits to CPU and convert to numpy
+#     logits = logits.detach().cpu().numpy()
+#     preds = np.argmax(logits, axis=2)
+
+#     # Map predictions to labels
+#     label_map = {i: label for i, label in enumerate(args.labels)}
+#     preds_list = []
+
+#     for i in range(preds.shape[1]):
+#         if input_ids[0, i] != pad_token_label_id:
+#             preds_list.append(label_map[preds[0, i]])
+
+#     return preds_list
+
+# # Example usage:
+# # sentence = "This is a test sentence."
+# # predictions = evaluate_single_sentence(args, model, tokenizer, sentence, pad_token_label_id)
+# # print(predictions)
+
+
 def load_and_cache_examples(args, tokenizer, labels, pad_token_label_id, data_file, is_test=False):
 	if args.local_rank not in [-1, 0] and not evaluate:
 		torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
 	# Load data features from cache or dataset file
-	cached_features_file = os.path.join(
+	cached_features_file = os.path.join( "../",
 		args.data_dir,
-		"cached_{}_{}_{}".format(
-			data_file, list(filter(None, args.model_name_or_path.split("/"))).pop(), str(args.max_seq_length)
+		"cached_{}_{}".format(
+			list(filter(None, args.model_name_or_path.split("/"))).pop(), str(args.max_seq_length)
 		),
 	)
 	if os.path.exists(cached_features_file) and not args.overwrite_cache:
@@ -406,7 +507,8 @@ def main():
 
 	parser.add_argument(
 		"--output_pred_dir",
-		default="EquiNLG/scored_samples/GPT2",
+		# default="EquiNLG/scored_samples/GPT2",
+		default="../scored_samples/GPT2",
 		type=str,
 		required=False,
 		help="The output directory where the predictions will be written.",
@@ -689,9 +791,12 @@ def main():
 		result, predictions = evaluate(args, model, tokenizer, labels, pad_token_label_id, mode=test_file, is_test=True)
 		test_file_basename = os.path.basename(test_file).split('.')[0]
 		# Save predictions
-		output_test_predictions_file = os.path.join(args.output_pred_dir, test_file_basename + "_predictions.txt")
+		# output_test_predictions_file = os.path.join(args.output_pred_dir, test_file_basename + "_predictions.txt")
+		output_test_predictions_file = os.path.join(args.output_pred_dir, "regard_predictions.txt")
+		print("HERE HERE output_test_predictions_file:", output_test_predictions_file)
 		with open(output_test_predictions_file, "w") as writer:
-			with open(os.path.join(args.data_dir, test_file), "r") as f:
+			# with open(os.path.join(args.data_dir, test_file), "r") as f:
+			with open(test_file, "r") as f:
 				for example_id, line in enumerate(f):
 					output_line = str(predictions[example_id]) + '\t' + line.split('\t')[-1].strip() + "\n"
 					writer.write(output_line)

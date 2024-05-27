@@ -1,0 +1,43 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Lmod has detected the following error: The following module(s) are unknown:
+"NCCL/2.0.5-CUDA-10.0.130"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "NCCL/2.0.5-CUDA-10.0.130"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+torch cuda version: 11.0
+torch version: 1.7.1+cu110
+
+JOB STATISTICS
+==============
+Job ID: 6275718
+Cluster: snellius
+User/Group: scur0395/scur0395
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:00:17
+CPU Efficiency: 3.63% of 00:07:48 core-walltime
+Job Wall-clock time: 00:00:26
+Memory Utilized: 1.11 MB
+Memory Efficiency: 0.00% of 60.55 GB

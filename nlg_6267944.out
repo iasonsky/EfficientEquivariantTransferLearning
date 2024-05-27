@@ -1,0 +1,133 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Collecting package metadata (current_repodata.json): ...working... done
+Solving environment: ...working... done
+
+
+==> WARNING: A newer version of conda exists. <==
+  current version: 4.12.0
+  latest version: 24.5.0
+
+Please update conda by running
+
+    $ conda update -n base -c defaults conda
+
+
+
+# All requested packages already installed.
+
+Collecting package metadata (current_repodata.json): ...working... done
+Solving environment: ...working... failed with initial frozen solve. Retrying with flexible solve.
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+
+==> WARNING: A newer version of conda exists. <==
+  current version: 4.12.0
+  latest version: 24.5.0
+
+Please update conda by running
+
+    $ conda update -n base -c defaults conda
+
+
+
+## Package Plan ##
+
+  environment location: /home/scur0395/.conda/envs/biases
+
+  added / updated specs:
+    - pytorch=1.2.0
+
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    _pytorch_select-0.2        |            gpu_0           2 KB
+    cffi-1.15.1                |   py37h5eee18b_3         240 KB
+    cudatoolkit-10.0.130       |                0       261.2 MB
+    cudnn-7.6.5                |       cuda10.0_0       165.0 MB
+    intel-openmp-2023.1.0      |   hdb19cb5_46306        17.2 MB
+    mkl-2020.2                 |              256       138.3 MB
+    mkl-service-2.3.0          |   py37he8ac12f_0          52 KB
+    mkl_fft-1.3.0              |   py37h54f3939_0         167 KB
+    mkl_random-1.1.1           |   py37h0573a6f_0         322 KB
+    ninja-1.10.2               |       h06a4308_5           8 KB
+    ninja-base-1.10.2          |       hd09550d_5         109 KB
+    numpy-1.19.2               |   py37h54aff64_0          22 KB
+    numpy-base-1.19.2          |   py37hfa32c7d_0         4.1 MB
+    pytorch-1.2.0              |cuda100py37h938c94c_0       170.8 MB
+    ------------------------------------------------------------
+                                           Total:       757.5 MB
+
+The following NEW packages will be INSTALLED:
+
+  _pytorch_select    pkgs/main/linux-64::_pytorch_select-0.2-gpu_0
+  blas               pkgs/main/linux-64::blas-1.0-mkl
+  cffi               pkgs/main/linux-64::cffi-1.15.1-py37h5eee18b_3
+  cudatoolkit        pkgs/main/linux-64::cudatoolkit-10.0.130-0
+  cudnn              pkgs/main/linux-64::cudnn-7.6.5-cuda10.0_0
+  intel-openmp       pkgs/main/linux-64::intel-openmp-2023.1.0-hdb19cb5_46306
+  mkl                pkgs/main/linux-64::mkl-2020.2-256
+  mkl-service        pkgs/main/linux-64::mkl-service-2.3.0-py37he8ac12f_0
+  mkl_fft            pkgs/main/linux-64::mkl_fft-1.3.0-py37h54f3939_0
+  mkl_random         pkgs/main/linux-64::mkl_random-1.1.1-py37h0573a6f_0
+  ninja              pkgs/main/linux-64::ninja-1.10.2-h06a4308_5
+  ninja-base         pkgs/main/linux-64::ninja-base-1.10.2-hd09550d_5
+  numpy              pkgs/main/linux-64::numpy-1.19.2-py37h54aff64_0
+  numpy-base         pkgs/main/linux-64::numpy-base-1.19.2-py37hfa32c7d_0
+  pycparser          pkgs/main/noarch::pycparser-2.21-pyhd3eb1b0_0
+  pytorch            pkgs/main/linux-64::pytorch-1.2.0-cuda100py37h938c94c_0
+  six                pkgs/main/noarch::six-1.16.0-pyhd3eb1b0_1
+
+
+Proceed ([y]/n)? 
+
+Downloading and Extracting Packages
+mkl-2020.2           | 138.3 MB  |            |   0% mkl-2020.2           | 138.3 MB  | 1          |   2% mkl-2020.2           | 138.3 MB  | #2         |  12% mkl-2020.2           | 138.3 MB  | ##2        |  23% mkl-2020.2           | 138.3 MB  | ###2       |  33% mkl-2020.2           | 138.3 MB  | ####3      |  43% mkl-2020.2           | 138.3 MB  | #####3     |  54% mkl-2020.2           | 138.3 MB  | ######4    |  64% mkl-2020.2           | 138.3 MB  | #######4   |  75% mkl-2020.2           | 138.3 MB  | ########5  |  85% mkl-2020.2           | 138.3 MB  | #########5 |  96% mkl-2020.2           | 138.3 MB  | ########## | 100% 
+cudnn-7.6.5          | 165.0 MB  |            |   0% cudnn-7.6.5          | 165.0 MB  | 5          |   5% cudnn-7.6.5          | 165.0 MB  | #3         |  14% cudnn-7.6.5          | 165.0 MB  | ##2        |  23% cudnn-7.6.5          | 165.0 MB  | ###1       |  31% cudnn-7.6.5          | 165.0 MB  | ####       |  40% cudnn-7.6.5          | 165.0 MB  | ####8      |  49% cudnn-7.6.5          | 165.0 MB  | #####7     |  58% cudnn-7.6.5          | 165.0 MB  | ######6    |  66% cudnn-7.6.5          | 165.0 MB  | #######5   |  75% cudnn-7.6.5          | 165.0 MB  | ########4  |  84% cudnn-7.6.5          | 165.0 MB  | #########2 |  93% cudnn-7.6.5          | 165.0 MB  | ########## | 100% 
+mkl_fft-1.3.0        | 167 KB    |            |   0% mkl_fft-1.3.0        | 167 KB    | ########## | 100% mkl_fft-1.3.0        | 167 KB    | ########## | 100% 
+mkl_random-1.1.1     | 322 KB    |            |   0% mkl_random-1.1.1     | 322 KB    | ########## | 100% mkl_random-1.1.1     | 322 KB    | ########## | 100% 
+cffi-1.15.1          | 240 KB    |            |   0% cffi-1.15.1          | 240 KB    | ########## | 100% cffi-1.15.1          | 240 KB    | ########## | 100% 
+ninja-1.10.2         | 8 KB      |            |   0% ninja-1.10.2         | 8 KB      | ########## | 100% ninja-1.10.2         | 8 KB      | ########## | 100% 
+intel-openmp-2023.1. | 17.2 MB   |            |   0% intel-openmp-2023.1. | 17.2 MB   | #####7     |  58% intel-openmp-2023.1. | 17.2 MB   | ########## | 100% 
+_pytorch_select-0.2  | 2 KB      |            |   0% _pytorch_select-0.2  | 2 KB      | ########## | 100% _pytorch_select-0.2  | 2 KB      | ########## | 100% 
+ninja-base-1.10.2    | 109 KB    |            |   0% ninja-base-1.10.2    | 109 KB    | ########## | 100% ninja-base-1.10.2    | 109 KB    | ########## | 100% 
+numpy-1.19.2         | 22 KB     |            |   0% numpy-1.19.2         | 22 KB     | ########## | 100% numpy-1.19.2         | 22 KB     | ########## | 100% 
+cudatoolkit-10.0.130 | 261.2 MB  |            |   0% cudatoolkit-10.0.130 | 261.2 MB  | 3          |   4% cudatoolkit-10.0.130 | 261.2 MB  | 9          |   9% cudatoolkit-10.0.130 | 261.2 MB  | #3         |  14% cudatoolkit-10.0.130 | 261.2 MB  | #9         |  19% cudatoolkit-10.0.130 | 261.2 MB  | ##4        |  25% cudatoolkit-10.0.130 | 261.2 MB  | ###        |  30% cudatoolkit-10.0.130 | 261.2 MB  | ###5       |  36% cudatoolkit-10.0.130 | 261.2 MB  | ####1      |  41% cudatoolkit-10.0.130 | 261.2 MB  | ####6      |  47% cudatoolkit-10.0.130 | 261.2 MB  | #####2     |  52% cudatoolkit-10.0.130 | 261.2 MB  | #####7     |  58% cudatoolkit-10.0.130 | 261.2 MB  | ######3    |  63% cudatoolkit-10.0.130 | 261.2 MB  | ######8    |  69% cudatoolkit-10.0.130 | 261.2 MB  | #######4   |  74% cudatoolkit-10.0.130 | 261.2 MB  | #######9   |  80% cudatoolkit-10.0.130 | 261.2 MB  | ########5  |  85% cudatoolkit-10.0.130 | 261.2 MB  | #########  |  91% cudatoolkit-10.0.130 | 261.2 MB  | #########6 |  96% cudatoolkit-10.0.130 | 261.2 MB  | ########## | 100% 
+mkl-service-2.3.0    | 52 KB     |            |   0% mkl-service-2.3.0    | 52 KB     | ########## | 100% mkl-service-2.3.0    | 52 KB     | ########## | 100% 
+pytorch-1.2.0        | 170.8 MB  |            |   0% pytorch-1.2.0        | 170.8 MB  | 5          |   6% pytorch-1.2.0        | 170.8 MB  | #3         |  14% pytorch-1.2.0        | 170.8 MB  | ##1        |  22% pytorch-1.2.0        | 170.8 MB  | ###        |  30% pytorch-1.2.0        | 170.8 MB  | ###8       |  39% pytorch-1.2.0        | 170.8 MB  | ####7      |  47% pytorch-1.2.0        | 170.8 MB  | #####5     |  56% pytorch-1.2.0        | 170.8 MB  | ######4    |  64% pytorch-1.2.0        | 170.8 MB  | #######2   |  73% pytorch-1.2.0        | 170.8 MB  | ########1  |  81% pytorch-1.2.0        | 170.8 MB  | ########9  |  90% pytorch-1.2.0        | 170.8 MB  | #########8 |  98% pytorch-1.2.0        | 170.8 MB  | ########## | 100% 
+numpy-base-1.19.2    | 4.1 MB    |            |   0% numpy-base-1.19.2    | 4.1 MB    | ########## | 100% numpy-base-1.19.2    | 4.1 MB    | ########## | 100% 
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'nlg-bias-master/requirements.txt'
+
+JOB STATISTICS
+==============
+Job ID: 6267944
+Cluster: snellius
+User/Group: scur0395/scur0395
+State: RUNNING
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:24:18 core-walltime
+Job Wall-clock time: 00:01:21
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 120.00 GB (120.00 GB/node)
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.
