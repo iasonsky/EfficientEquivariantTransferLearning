@@ -217,7 +217,7 @@ Equations described in the publication:
 \mathbf{M}_G^\lambda(x) = \frac{1}{\sum_{g \in G} \lambda(gx)} \sum_{g \in G}^{|G|} g^{-1} \lambda(gx) \mathbf{M}(gx).
 ```
 
-Equations the describe the code (derived by us):
+Equations that describe the code (derived by us):
 
 ```math
 \mathbf{M}_{g\in G}^\lambda(x) = \lambda(\mathbf{M}(gx)) \mathbf{M}(gx) \\
@@ -262,12 +262,26 @@ By applying these changes and testing with 90 degree rotations as the group tran
 network (pre-finetuning), as can be seen in Table 2 below. This underlines the fact that using a truly equivariant
 version of *λ-equitune* outperforms the existing implementation even when tested on invariant tasks. In all further experiments we report results with this updated method.
 
-|   | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc |
-|--:|:------------------------------|:-------------------------------|-----------------------:|
-| 0 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |                  35.12 |               56.15 |
-| 1 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
+|   | Method                                  | Architecture-Transformation    |   Prefinetune Top1 Acc |  Finetune Top1 Acc |
+|--:|:----------------------------------------|:-------------------------------|-----------------------:|-------------------:|
+| 0 | Updated Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90            |                  35.12 |              56.15 |
+| 1 | *λ-equitune* (equivariant)              | CLIP w RN50 - rot90            |                  40.95 |              47.55 |
 
 *Table 2: Comparison of the authors' original invariant and our updated equivariant implementation of λ-equitune*
+
+The score improvement from prefinetuning to finetuning for the equivariant setup is not as substantial as for the other method.
+This difference stems from the following: the method implemented by Basu et al (2023) operates after the projection layer, 
+and is thus able to learn to ignore all difficult views by assigning all weight to the simplest view for the backbone.
+Therefore, the initial method ultimately finetunes the backbone to the dataset where all samples get converted to
+the most convenient form for the backbone by a group transformation.
+
+On the contrary, in the equivariant case, the projection layers receive the equivariant version of feature maps, 
+however, for an invariant task like classification, the fully connected projection layers need to learn the same output 
+for all group-transformed feature maps. Thus, the problem can not be reduced like in the invariant case and is fundamentally more complex.
+
+We believe the results of the feature-equivariant method are valuable nonetheless, as our method emphasises efficiency. 
+Hence, results after modifying an arbitrarily large backbone 
+are secondary to ones that can be achieved by prefinetuning - exclusively training the weight component.
 
 ### 4.3 *equiattention*: Using Attention as a feature combination method
 
@@ -335,10 +349,10 @@ where `Attention_module` takes the features sets and applies one attention opera
 From the results, we observe that the described method of *equiattention* is on par with 
 the feature-equivariant version of *λ-equitune*, the method which it directly extends.
 
-|    | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc |
-|---:|:------------------------------|:-------------------------------|-----------------------:|
-|  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |
-|  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                  40.65 |
+|    | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc | Finetune Top1 Acc |
+|---:|:------------------------------|:-------------------------------|-----------------------:|------------------:|
+|  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |             47.55 |
+|  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                  40.65 |             42.38 |
 
 *Table 3: Comparison of λ-equitune and equiattention on CIFAR100*
 
