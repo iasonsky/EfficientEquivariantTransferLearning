@@ -19,6 +19,7 @@ def set_seed(seed):
 
 
 def group_transform_images(images, group_name="rot90"):
+    # group_size is the primary axis!!!
     if group_name == "":
         return torch.stack([images])
     elif group_name == "rot90":
@@ -40,6 +41,65 @@ def group_transform_images(images, group_name="rot90"):
         return group_transformed_images
     else:
         raise NotImplementedError
+
+
+def inverse_transform_images(images, group_name="rot90"):
+    if group_name == "":
+        return images
+    elif group_name == "rot90":
+        # expects [B, 4, C, H, W]
+        assert len(images.shape) == 5
+        assert images.shape[1] == 4, f"images.shape: {images.shape}"
+        for i in range(4):
+            images[:, i, :, :, :].rot90(k=-i, dims=(-2, -1))
+            # i have no idea why but i get the same results when there is a bug in this code
+            # images[i].rot90(k=-i, dims=(-2, -1)) # this is wrong because this rotates part of the batch
+        return images  # [B, 4, C, H, W]
+    else:
+        raise NotImplementedError
+
+
+def verify_invariance(image_features, group_name="rot90", group_transform=None):
+    """
+    Verify that features of [i] and [i + j * primary_batch_size] are the same
+    Args:
+        image_features: image features of shape [G*B, C, H, H]
+        group_name:
+        group_transform: If provided, verifies equivariance of inputs using that transformation function,
+            instead of verifying invariance.
+            The function should take the tensor to transform and an index of the transformation.
+            0 is no transformation.
+
+    Returns:
+
+    """
+    if group_name != "rot90":
+        raise NotImplementedError
+
+    group_size = 4
+    batch_size = image_features.shape[0]
+    primary_batch = batch_size // group_size
+    for i in range(1, group_size):
+        for j in range(primary_batch):
+            idx1 = j
+            idx2 = i * primary_batch + j
+            if group_transform is not None:
+                tensor2 = group_transform(image_features[idx2], i)
+            else:
+                tensor2 = image_features[idx2]
+            assert torch.allclose(image_features[idx1], tensor2, rtol=1e-3), \
+                (f"idx1: {idx1}, idx2: {idx2},\n"
+                 f"tensor1: {image_features[idx1]},\n\ntensor2: {tensor2}")
+    print(f"Successfully verified {'invariance' if group_transform is None else 'equivariance'}!")
+
+
+def verify_weight_equivariance(weights, group_name="rot90"):
+    def inverse_weights_transform(w, idx):
+        if group_name == "rot90":
+            return torch.cat((w[-idx:], w[:-idx]))
+        else:
+            raise NotImplementedError
+    verify_invariance(weights, group_name=group_name, group_transform=inverse_weights_transform)
 
 
 class RandomRot90(object):

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --job-name=compare_cifar
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=04:00:00
+
+
+module purge
+module load 2022
+module load Anaconda3/2022.05
+
+# activate the environment
+source activate lambda_equitune
+
+git checkout original_vs_updated
+
+# Arrays of models, datasets, and transformations
+models=('RN50' 'RN101')
+datasets=("CIFAR100" "ISIC2018" "MNIST")
+group_name=("flip" "rot90")
+methods=("equitune")
+
+# Loop through all combinations for the runs without flags (our code)
+for dataset in "${datasets[@]}"; do
+    for method in "${methods[@]}"; do
+        for group_name in "${group_names[@]}"; do
+            for model_name in "${model_names[@]}"; do
+                srun python EquiCLIP/main_lambda_equitune.py \
+                    --dataset_name "$dataset" --method "$method" \
+                    --group_name "$group_name" --data_transformations "$group_name" \
+                    --model_name "$model_name" --lr 5e-8 --full_finetune
+            done
+        done
+    done
+done
+
+# Loop through all combinations for the runs with both flags (original code)
+for dataset in "${datasets[@]}"; do
+    for method in "${methods[@]}"; do
+        for group_name in "${group_names[@]}"; do
+            for model_name in "${model_names[@]}"; do
+                
+                # Run with both flags (original code)
+                srun --exclusive --ntasks=1 --gres=gpu:1 \
+                    python EquiCLIP/main_lambda_equitune.py \
+                    --dataset_name "$dataset" --method "$method" \
+                    --group_name "$group_name" --data_transformations "$group_name" \
+                    --model_name "$model_name" --lr 5e-7 --softmax --use_underscore
+            done
+        done
+    done
+done

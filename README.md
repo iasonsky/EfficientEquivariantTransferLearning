@@ -1,12 +1,13 @@
+# (Even More) Efficient Equivariant Transfer Learning from Pretrained Models
 
-Code for "Efficient Equivariant Transfer Learning from Pretrained Models", NeurIPS 2023
+### Mikhail Vlasenko, Ádám Divák, Iason Skylitsis, Milan Miletić, Zoe Tzifa-Kratira
 
-# Summary
-This repository consists of the code for experiments from Section 5.2 of our paper:
+-----
 
-- Equi/Invariant Image Classification using CLIP
 
-- Equi/Invariant Image Classification using Pretrained CNNs
+This repository contains a reproduction and extension of ["Efficient Equivariant Transfer Learning from Pretrained Models"](https://arxiv.org/abs/2305.09900) by Basu et al. (2023).
+
+To read the full report containing detailed information on our reproduction experiments and extension study, please refer to our [blogpost](Blogpost.md).
 
 ## Conda Environment
 First create the required conda environment, activate it, and install clip, Imagenet_V2 as follows
@@ -17,110 +18,57 @@ pip install git+https://github.com/openai/CLIP.git
 pip install git+https://github.com/modestyachts/ImageNetV2_pytorch
 ```
 
-# Equi/Invariant Image Classification using CLIP
+## How to reproduce
 
-## Test Robustness of Pretrained CLIP
+All our experiments are tracked using [Weights and Biases](https://docs.wandb.ai/). To set it up correctly, follow these steps:
 
-First we check that pretrained CLIP is not robust to simple transformations such as rotation by $90^\circ$ or flip. 
+1. **Modify the [.env](.env) File**:
+   - Add your `entity name` (your username or organization name).
+   - Add the `project name` you want for the project.
 
-```
-python EquiCLIP/main_equizero.py --device DEVICE --data_transformations DATA_TRANSFORMATIONS  --method "vanilla" --model MODEL_NAME --dataset_name DATASET_NAME
-```
+2. **Log in to Weights and Biases**:
+   Before running any experiment, log in and provide your API key when prompted:
+   ```sh
+   wandb login
+   ```
+3. **Reproduce Initial Experiments**:
+   - Run the job file to reproduce the original author's zeroshot results that correspond to Figure 4 in the original paper:
+      ```sh
+      sbatch job_files/reproduce_bar_plots.job
+      ```
+   - Plot the results using the provided scripts:
+      ```sh
+        python demos/plot_results.py
+        python demos/plot_results2.py
+      ```
+4. **Reproduce Table 1 from the Blogpost**: 
+    - Run the following job file:
+      ```sh
+      sbatch job_files/compare_original_updated_cifar.job
+      ```
+    - Create the table by running the following jupyter notebook: [demos/original_vs_updated_cifar.ipynb](demos/original_vs_updated_cifar.ipynb)
 
-where choose DEVICE from ["cpu", "cuda"], DATA_TRANSFORMATIONS from ["", "flip", "rot90"], MODEL_NAME from ["RN50", "RN101", "ViT-B/32", "ViT-B/16"], DATASET_NAME from ["ImagenetV2", "CIFAR100"].
+5. **Reproduce Table 3 from the Blogpost**: 
+    - Run the following job file:
+      ```sh
+      sbatch demos/equivariant_equitune_vs_attention.ipynb
+      ```
+    - Create the table by running the following jupyter notebook: [demos/equivariant_equitune_vs_attention.ipynb](demos/equivariant_equitune_vs_attention.ipynb)
 
-The obtained results are shown below
-
-<p float="center">
-  <img src="images/clip/plot_0_imagenet.png" width="400" />
-  <img src="images/clip/plot_0_cifar100.png" width="400" /> 
-</p>
-
-
-## Robust Zeroshot Classification using equizero/equitune Pretrained CLIP
-
-Now we use equitune/equizero transformations to obtain robust zero-shot classification from the pretrained model. 
-
-```
-python EquiCLIP/main_equizero.py --device DEVICE --data_transformations DATA_TRANSFORMATIONS  --method METHOD --group_name GROUP --model MODEL_NAME --dataset_name DATASET_NAME
-```
-
-where choose DEVICE from ["cpu", "cuda"], DATA_TRANSFORMATIONS from ["", "flip", "rot90"], METHOD from ["vanilla", "equitune", "equizero"], GROUP (use same name as DATA_TRANSFORMATIONS for robustness) from ["", "flip", "rot90"], MODEL_NAME from ["RN50", "RN101", "ViT-B/32", "ViT-B/16"], DATASET_NAME from ["ImagenetV2", "CIFAR100"].
-
-The plots below illustrate how equizero gives best classifcation accuracy
-
-<p float="center">
-  <img src="images/clip/imagenet_flip.jpeg" width="400" />
-  <img src="images/clip/imagenet.jpeg" width="400" /> 
-</p>
-
-<p float="center">
-  <img src="images/clip/cifar100_flip.jpeg" width="400" />
-  <img src="images/clip/cifar100.jpeg" width="400" /> 
-</p>
-
-## $\lambda$-equituning with CLIP
-$\lambda$-equitune can be used on CLIP using the following command
-
-```
-python EquiCLIP/main_lambda_equitune.py  --dataset_name CIFAR100  --method equitune --group_name GROUP --data_transformations DATA_TRANSFORMATION  --model_name MODEL_NAME
-```
-
-where choose DATA_TRANSFORMATIONS from ["", "flip", "rot90"], GROUP (use same name as DATA_TRANSFORMATIONS for robustness) from ["", "flip", "rot90"], MODEL_NAME from ["RN50", "RN101", "ViT-B/32", "ViT-B/16"]. 
-
-For comparison to equituning and equizero-finetuning, run the following command
-
-```
-python EquiCLIP/main_finetune.py  --dataset_name CIFAR100  --method METHOD --group_name rot90 --data_transf
-ormations rot90  --model_name 'RN50'
-```
-
-where choose METHOD from ["equitune", "equizero"], DATA_TRANSFORMATIONS from ["", "flip", "rot90"], GROUP (use same name as DATA_TRANSFORMATIONS for robustness) from ["", "flip", "rot90"], MODEL_NAME from ["RN50", "RN101", "ViT-B/32", "ViT-B/16"]. 
-
-The plots corresponding to equituning, equizero-finetuning, and $\lambda$-equituning for various models are as follows
-
-<p float="center">
-  <img src="images/clip/clip_finetuning/plot_cifar100_finetuning_RN50_RN101.png" width="400" />
-  <img src="images/clip/clip_finetuning/plot_cifar100_finetuning_ViTB32_ViTB16.png" width="400" /> 
-</p>
-
-
-# Equi/Invariant Image Classification using Pretrained CNNs
-
-To run $\lambda$-Equitune classification can be observed by the following commands
-
-```
-cd EquiClassification
-python main.py --dataset "CIFAR10" --model_name MODEL_NAME --num_epochs 10 --use_pretrained --eval_type equi0 --model_type equi0 --use_softmax
-```
-choose MODEL_NAME from ["resnet", "alexnet"]. 
-
-For comparision with equitune, run the following commands 
-```
-python main.py --dataset "CIFAR10" --model_name MODEL_NAME --num_epochs 10 --use_pretrained --eval_type equitune --model_type equitune  --save_logs
-```
-For comparision with equizero, run the following commands 
-
-```
-python main.py --dataset "CIFAR10" --model_name MODEL_NAME --num_epochs 10 --use_pretrained --eval_type equi0 --model_type equi0  --save_logs --use_ori_equizero
-# To use entropy as the proxy loss 
-python main.py --dataset "CIFAR10" --model_name MODEL_NAME --num_epochs 10 --use_pretrained --eval_type equi0 --model_type equi0  --save_logs --use_ori_equizero --use_entropy
-```
-The plots as compared to baselines like equitune for Resnet and Alexnet are as follows, 
-<p float="center">
-<img src="images/resnet_finetune.png" width="400" /> 
-<img src="images/alexnet_finetune.png" width="400" />
-  
-</p>
-
+6. **Reproduce Table 4 from the Blogpost**: 
+    - Run the following job file:
+      ```sh
+      sbatch job_files/compare_original_updated_isic.job
+      ```
+    - Create the table by running the following jupyter notebook: [demos/original_vs_updated_isic.ipynb](demos/original_vs_updated_isic.ipynb)
 
 
 If you find the code useful, please cite it as
 ```
-@article{basu2023equivariant,
-  title={Efficient Equivariant Transfer Learning from Pretrained Models},
-  author={Basu, Sourya and Katdare, Pulkit and Sattigeri, Prasanna and Chenthamarakshan, Vijil and Driggs-Campbell, Katherine and Das, Payel and Varshney, Lav R},
-  journal={Advances in Neural Information Processing Systems},
-  year={2023}
+@misc{vlasenko2024efficient,
+  title={(Even More) Efficient Equivariant Transfer Learning from Pretrained Models},
+  author={Mikhail Vlasenko and Ádám Divák and Iason Skylitsis and Milan Miletić and Zoe Tzifa-Kratira},
+  year={2024},
+  note={Work in progress}
 }
 ```

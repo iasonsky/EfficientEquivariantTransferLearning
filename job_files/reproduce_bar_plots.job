@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu
+#SBATCH --gpus=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=03:00:00
+
+
+module purge
+module load 2022
+module load Anaconda3/2022.05
+
+# activate the environment
+source activate lambda_equitune
+
+git checkout original_vs_updated
+
+# Arrays of models, datasets, transformations, and methods
+models=('RN50' 'RN101' 'ViT-B/32' 'ViT-B/16')
+datasets=("ImagenetV2" "CIFAR100")
+transformations=("" "flip" "rot90")
+methods=("vanilla" "equitune" "equizero")
+
+# Loop over each model, dataset, transformation, and method
+for method in "${methods[@]}"; do
+    for model in "${models[@]}"; do
+        for dataset in "${datasets[@]}"; do
+            for transformation in "${transformations[@]}"; do
+                if [ "${method}" == "vanilla" ]; then
+                    # Run code for vanilla method without group_name
+                    srun python EquiCLIP/main_equizero.py --method "${method}" --model "${model}" --dataset_name "${dataset}" --data_transformations "${transformation}" --save_scores
+                else
+                    # Run code for other methods with group_name
+                    srun python EquiCLIP/main_equizero.py --method "${method}" --model "${model}" --dataset_name "${dataset}" --data_transformations "${transformation}" --group_name "${transformation}" --save_scores
+                fi
+            done
+        done
+    done
+done
