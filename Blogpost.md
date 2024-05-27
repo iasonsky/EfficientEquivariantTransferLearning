@@ -370,7 +370,7 @@ performance of the methodologies, as it places the result within the context of 
 been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification task on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
 This is why we chose to test on a medical imaging dataset, since a natural orientation of skin lesions
 does not exist and any rotation of the inputs are equally likely.
-We hypothesize that it will be easier for the model to process the transformed feature maps and for the lambda weights to be more equally distributed.
+We hypothesize that the 
 
 We use the ISIC 2018 dataset, which was published by the International Skin Imaging Collaboration (ISIC) as a
 large-scale dataset of dermoscopy images.The dataset consists from 10015 training images and 194 validation images
@@ -381,16 +381,19 @@ planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the d
 ![Sample of classes in ISIC 2018 data set](images/isic2018_sample.png)
 *Figure 4: A sample of each class in the ISIC 2018 data set*
 
-Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen in the results
-that [whichever method works better - add results].
+
+Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen from Table 3
+that the Finetune Top1 accuracy is considerably larger compared to the CIFAR100 results of the original and the updated invariant *λ-equitune*, while in the case of the equivariant implementation of *λ-equitune* it is considerably lower. Additionally, the prefinetune accuracy is much lower than any of the three methods for CIFAR100. 
 
 |   | Method                                 | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
 |--:|:---------------------------------------|:-----------------------------------|-----------------------:|--------------------:|
 | 0 | Original Code - *λ-equitune* invariant | CLIP w RN50 - rot90                |                  15.03 |               63.73 |
 | 1 | Updated Code - *λ-equitune* invariant  | CLIP w RN50 - rot90 |                  16.58 |               64.77 |
-| 2 | *λ-equitune* equivariant               | CLIP w RN50 - rot90                |                  16.58 |               40.93 |
+| 2 | *λ-equitune* equivariant               | CLIP w RN50 - rot90                |                  16.58 |               18.13 |
 
 *Table 3: Image classification results using the authors' original (invariant) *λ-equitune* implementations, and our modified invariant and equivariant implementations on the ISIC 2018 medical dataset*
+
+The 
 
 ### 4.6 Extended Natural Language Generation task
 
