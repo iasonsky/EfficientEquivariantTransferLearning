@@ -9,13 +9,13 @@ transformations of the input, ensuring that the model's behavior aligns predicta
 Many problems are known to be equivariant in nature, thus using a method that inherently has this inductive bias can
 increase the robustness and generalization capabilities of the models used. Several very large foundation models have
 been trained recently in multiple modalities, which deliver unprecedented performance in a wide variety of downstream
-tasks. These models however are not equivariant by their design, which limits their usability in contexts where this
+tasks. These models, however, are not equivariant by their design, which limits their usability in contexts where this
 would be necessary. Re-training foundation models from scratch using an equivariant architecture is prohibitively
 expensive for most researchers, which is why several methods were proposed to get provably equivariant output from
 non-equivariant backbone architectures. We set out to explore the methods *λ-equitune* and *equizero*  proposed by Basu
-et al, which were shown to deliver good results in a wide variety of downstream tasks. We perform replication studies,
+et al., which were shown to deliver good results in a wide variety of downstream tasks. We perform replication studies,
 suggest code and parameter improvements that deliver significantly better results, and propose a new alternative method
-that we call *equiattention*. Additionally we explore the performance of these methods on new problems and produce
+that we call *equiattention*. Additionally, we explore the performance of these methods on new problems and produce
 visualizations to better understand their working mechanisms.
 
 ## 2. Background
@@ -40,20 +40,20 @@ to its input.
 M(x) = M(g(x))
 ```
 
-There are however many problems where equivariance to transformations other than translation is desired. Some examples include medical
-image segmentation (Bekkers et al. (2018), Lafarge et al. (2021)), protein folding (Tunyasuvunakool et al., 2021), molecule modelling (Hoogeboom et al. (2022)) or modelling a wide range of physical phenomenon (Villar et al. (2021)). A lack of equivariance in these domains would mean that even
+There are, however, many problems where equivariance to transformations other than translation is desired. Some examples include medical
+image segmentation (Bekkers et al. (2018), Lafarge et al. (2021)), protein folding (Tunyasuvunakool et al., 2021), molecule modeling (Hoogeboom et al. (2022)), or modeling a wide range of physical phenomena (Villar et al. (2021)). A lack of equivariance in these domains would mean that even
 if we know that the model works correctly for all the examples in our test set, it may fail at a slightly modified (for example
 rotated) version of the same inputs.
 
-Equivariance can in theory be learnt by any model by applying adequate data augmentation during training, simply by
-providing a wide range of transformed versions of the data set, and expecting a similarly transformed output. This
-however makes training significantly slower for large data sets, and was shown to still not achieve robust
+Equivariance can, in theory, be learned by any model by applying adequate data augmentation during training, simply by
+providing a wide range of transformed versions of the data set, and expecting a similarly transformed output. This,
+however, makes training significantly slower for large data sets, and was shown to still not achieve robust
 equivariance (Moskalev et al. (2023)). This is why specialized architectures like Group Equivariant Convolutional
 Networks (Cohen et al. (2016)) have been proposed that generalize equivariance to a much wider range of discrete transformations, referred to
 as groups based on their mathematical description, and these have been shown to perform well in many tasks.
 
-At the same time, very large foundation models have been trained in self-supervised manner on previously unseen data
-sizes, like [CLIP](https://openai.com/index/clip/) (Radford et al. (2021)), [GPT-4](https://chatgpt.com/?oai-dm=1) (OpenAI (2023)) or [Llama](https://llama.meta.com/) (Touvron et al. (2023)). These models achieve state of the art performance on a multitude of
+At the same time, very large foundation models have been trained in a self-supervised manner on previously unseen data
+sizes, like [CLIP](https://openai.com/index/clip/) (Radford et al. (2021)), [GPT-4](https://chatgpt.com/?oai-dm=1) (OpenAI (2023)) or [Llama](https://llama.meta.com/) (Touvron et al. (2023)). These models achieve state-of-the-art performance on a multitude of
 downstream tasks, sometimes surpassing specialized solutions in a zero-shot manner, without dedicated training on that
 particular task (Bommasani et al. (2021)). These models are typically not trained in an equivariant manner, which has led to
 an interest in transfer learning methods that can equip these models with equivariant properties.
@@ -62,8 +62,8 @@ an interest in transfer learning methods that can equip these models with equiva
 
 The lack of equivariance of a pretrained model means that upon presenting slightly perturbed versions of the same input,
 the output of the model can be widely different. This is especially true for inputs that have a natural orientation or
-which for any other reason occur more frequently in a particular configuration in the training set. The main idea behind
-the family of methods described in the paper is to create the group-transformed version of the inputs for all
+which, for any other reason, occur more frequently in a particular configuration in the training set. The main idea behind
+the family of methods described in the paper is to create the group-transformed versions of the inputs for all
 transformations that we are interested in (for example 90-degree rotated versions of the input image), pass each of
 these through the same backbone network, and combine the resulting outputs in some way in order to achieve equivariance.
 The difference between these methods is in how the final combination step is performed.
@@ -76,7 +76,7 @@ However, *equitune* is found to perform poorly when it comes to zero-shot tasks.
 -->
 
 The *equitune* method that Basu et al. (2023) proposed can turn a non-equivariant model M into a model M_G that is
-equivariant under the group actions belonging to the group G, via minimizing the distance of features obtained from
+equivariant under the group actions belonging to the group G, by minimizing the distance of features obtained from
 pretrained and equivariant models. The output of an equituned model is given by the following formula:
 
 ```math
@@ -88,7 +88,7 @@ create the final output. Simply averaging the features can lead to detrimental p
 learning tasks, potentially because the pretrained model outputs high quality features only for some of the transformed
 inputs.
 
-The *equizero* method introduced by Kaba et al (2022) is formulated as an optimization problem, where all
+The *equizero* method introduced by Kaba et al. (2022) is formulated as an optimization problem, where all
 group-transformed versions of the input are passed through the backbone, but only a single one is selected for producing
 the output. More formally:
 
@@ -108,11 +108,11 @@ l : \mathcal{Y} \to \mathbb{R}
 
 $l$ is an injective proxy loss function. The choice of $l$ plays an important role in the final zero-shot and finetuning
 performance, and one of the contributions of the original publication is showing $l$ functions that work well for
-particular problems..
+particular problems.
 
 *λ-equitune* is a more general formulation which contains both previous methods as special cases. The main idea of
 *λ-equitune* is that given a pretrained model $M$, the features $M(gx)$ for any fixed $x$ are not all equally important
-for all $g \in G$. *λ-equitune* learns to assign variable weights to each group-transformed inputs, resulting in the
+for all $g \in G$. *λ-equitune* learns to assign variable weights to each group-transformed input, resulting in the
 following formulation:
 
 ```math
@@ -129,7 +129,7 @@ transformations used.
 The fine-tuning methods described in the original paper fall under the category of *symmetrization*. This means that all transformations of the input are passed through the backbone network and the final output is calculated as some combination of these. A competing approach is *canonicalization*, where a canonicalization network first learns to transform the data into a canonical form, and only this selected form is passed through the network. An architecture based on this idea is described by Mondal et al. (2023). *Canonicalization* has the advantage in that it only requires a single forward pass through the backbone network, so it only has a small computational overhead. On the other hand, the *canonicalization* network has to operate without any input from the backbone network, which may lead to duplicating some low-level image understanding operations and making suboptimal choices, as canonicalization can be uninformed about the
 preference of the prediction network, undermining its performance. *Symmetrization* thus has the advantage in that it operates on the output of the backbone network and has access to the output of all group-transformed inputs, potentially leading to a wider variety of options and more informed choices.
 
-The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense the it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as requires less passes through the backbone, it only works if the correct frame could be selected for the given group and input, which is a non-trivial task. While theoretically it could be applied with existing pretrained backbones, results for this use case are not currently available.
+The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense that it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as it requires fewer passes through the backbone, it only works if the correct frame can be selected for the given group and input, which is a non-trivial task. While theoretically it could be applied with existing pretrained backbones, results for this use case are not currently available.
 
 ## 4. Our contributions
 
@@ -279,7 +279,7 @@ On the contrary, in the equivariant case, the projection layers receive the equi
 however, for an invariant task like classification, the fully connected projection layers need to learn the same output 
 for all group-transformed feature maps. Thus, the problem can not be reduced like in the invariant case and is fundamentally more complex.
 
-We believe the results of the feature-equivariant method are valuable nonetheless, as our method emphasises efficiency. 
+We believe the results of the feature-equivariant method are valuable nonetheless, as our method emphasizes efficiency. 
 Hence, results after modifying an arbitrarily large backbone 
 are secondary to ones that can be achieved by prefinetuning - exclusively training the weight component.
 
@@ -383,7 +383,7 @@ decided to perform replication on 2 new problems: the ISIC2018 image classificat
 
 Image classification via widely used benchmarks like ImageNet and CIFAR provides a helpful understanding of the
 performance of the methodologies, as it places the result within the context of the multitude of other methods that have
-been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification task on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
+been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification tasks on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
 This is why we chose to test on a medical imaging dataset, since a natural orientation of skin lesions
 does not exist and any rotation of the inputs are equally likely.
 We hypothesize that the model will be able to process the transformed feature maps more easily and potentially lead to increased performance, and that the λ weight values will be relatively evenly distributed. The latter was confirmed and elaborated on in the previous section.
@@ -408,7 +408,7 @@ that the Finetune Top1 accuracy is considerably larger compared to the CIFAR100 
 
 *Table 3: Image classification results using the authors' original (invariant) *λ-equitune* implementations, and our modified invariant and equivariant implementations on the ISIC 2018 medical dataset*
 
-The results on the Prefinetune task can be justified since it is probable that the backbone architectues were not trained on medical datasets in general (potentially due to the privacy-related contstraints). It is surprising that the equivariant implementation performs considerably worse than the invariant methods on the Finetune task. This may provide some evidence for arguing that in truly invariant classification tasks, enforcing equivariance properties hurts the model's capacity to differentiate among any of the transformed versions of an image. 
+The results on the Prefinetune task can be justified since it is probable that the backbone architectures were not trained on medical datasets in general (potentially due to the privacy-related constraints). It is surprising that the equivariant implementation performs considerably worse than the invariant methods on the Finetune task. This may provide some evidence for arguing that in truly invariant classification tasks, enforcing equivariance properties hurts the model's capacity to differentiate among any of the transformed versions of an image. 
 
 ### 4.6 Extended Natural Language Generation task
 
@@ -429,7 +429,7 @@ Using their proposed *equitune* language model, *EquiLM*, the authors formally s
 However, in their work, the authors only focused on establishing fairness across binary demographic groups -- specifically: man vs. woman, Black vs. White, and straight vs. gay. These binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
 non-binary groups. All of the three considered demographic groups naturally extend beyond binary classifications. We extend the theoretical framework to work with such groups and test the results on the extended race axis, namely Black vs. White vs. Asian. By extending the fairness framework to non-binary groups, we can better reflect the diversity of human identities and ensure that the proposed methods can mitigate bias in real-world settings.
 
-The figure below illustrates the difference in between each solution.
+The figure below illustrates the difference between each solution.
 
 <p align="center"> <img src="images/gpt2-a-jpeg.jpg" width="372"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <img src="images/equigpt_binary-b-jpeg.jpg" width="500"> </p>
 
@@ -451,7 +451,7 @@ In the Figures, the y-axis represents the ratio of "regard scores" on 500 exampl
 The label "other" corresponds to cases where there was a label produced but the generated sentence was missing. 
 
 Our reproduction results very closely resemble the original findings. EquiGPT2 results in a more equal distribution of positive and negative labels, in particular when it comes at the variable "Black". 
-Regarding the extension of inreasing the size to non-binary groups, it was observed that the label distribution did not vary significantly in the case where the inverse transformation was correctly applied to the logits, compared to when the 'forward' transformation was applied on the output logits, as originally implemented. 
+Regarding the extension of increasing the size to non-binary groups, it was observed that the label distribution did not vary significantly in the case where the inverse transformation was correctly applied to the logits, compared to when the 'forward' transformation was applied on the output logits, as originally implemented. 
 Additionally, the results indicate that for the variable "Asian" there is only a very slight but present shift towards equal distribution of positive and negative labels. 
 
 
@@ -470,11 +470,11 @@ contributed to the understanding of their strengths and weaknesses.
 
 ## 6. Future work
 
-Due to time and computational constrains, we were not able to conduct an extensive hyperparameter and 
+Due to time and computational constraints, we were not able to conduct an extensive hyperparameter and 
 model architecture search for the described methods. Specifically, the attention-based method was only tested 
 with a single attention layer, and without a designated CLS token. Additionally, we note that training is 
 heavily dependent on learning rate, failing to change the model's prediction with SDG lr less than 0.05 and 
-leading to numerical issues for wide range of learning rates with Adam optimizer (Kingma et al 2014).
+leading to numerical issues for a wide range of learning rates with Adam optimizer (Kingma et al 2014).
 
 We would also like to extend the visual experiments to truly equivariant tasks. We evaluated segmentation and object detection as potential candidates, and preferred object detection, as in our initial experiments that seemed to suffer more when using non-natural orientations of images. We started integrating object detection into the pipeline, but could not finish it before the deadline. 
 
