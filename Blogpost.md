@@ -20,8 +20,7 @@ visualizations to better understand their working mechanisms.
 
 ## 2. Background
 
-The most well-known equivariance in deep learning is the translation equivariance of Convolutional Neural Networks (
-CNNs) (LeCun et al. (1989)) - an object in the upper left corner of an image has the same visual features as the same object in the lower
+The most well-known equivariance in deep learning is the translation equivariance of Convolutional Neural Networks (CNNs) (LeCun et al. (1989)) - an object in the upper left corner of an image has the same visual features as the same object in the lower
 right corner of an image. Convolutions are a particular layer type that exploit this property, by applying the same
 computation to different parts of their input. This leads to significantly smaller model sizes than comparable fully
 connected models due to the inherent weight sharing, and faster and more robust training, as data augmentation is not
@@ -49,7 +48,7 @@ Equivariance can, in theory, be learned by any model by applying adequate data a
 providing a wide range of transformed versions of the data set, and expecting a similarly transformed output. This,
 however, makes training significantly slower for large data sets, and was shown to still not achieve robust
 equivariance (Moskalev et al. (2023)). This is why specialized architectures like Group Equivariant Convolutional
-Networks (Cohen et al. (2016)) have been proposed that generalize equivariance to a much wider range of discrete transformations, referred to
+Networks (Cohen et al. (2016)) have been proposed that generalize equivariance to a much wider range of transformations, referred to
 as groups based on their mathematical description, and these have been shown to perform well in many tasks.
 
 At the same time, very large foundation models have been trained in a self-supervised manner on previously unseen data
@@ -75,8 +74,8 @@ Equitune represents a novel approach to enhancing the transfer learning capabili
 However, *equitune* is found to perform poorly when it comes to zero-shot tasks. For this reason, Basu et al. (SOURCE current paper) improve upon Kaba et al. (2022) and introduce *equizero*  as the method that achieves comparatively better results for zero-shot and fine-tuning tasks, if used with the appropriate loss functions. Following up on *equizero* , the authors additionally propose *λ-equitune* as the solution to the observation that pretrained models provide better quality features for certain group transformations compared to others. *λ-equitune* learns importance weights directly from the data and uses them to perform a weighted group averaging, thus leading to better performance compared to simple *equitune*, and competing results to *equizero*  used with the appropriate loss functions. 
 -->
 
-The *equitune* method that Basu et al. (2023) proposed can turn a non-equivariant model M into a model M_G that is
-equivariant under the group actions belonging to the group G, by minimizing the distance of features obtained from
+The *equitune* method that Basu et al. (2023) proposed can turn a non-equivariant model $M$ into a model $M_G$ that is
+equivariant under the group actions belonging to the group $G$, by minimizing the distance of features obtained from
 pretrained and equivariant models. The output of an equituned model is given by the following formula:
 
 ```math
@@ -127,14 +126,14 @@ transformations used.
 ### 3.2 Related work
 
 The fine-tuning methods described in the original paper fall under the category of *symmetrization*. This means that all transformations of the input are passed through the backbone network and the final output is calculated as some combination of these. A competing approach is *canonicalization*, where a canonicalization network first learns to transform the data into a canonical form, and only this selected form is passed through the network. An architecture based on this idea is described by Mondal et al. (2023). *Canonicalization* has the advantage in that it only requires a single forward pass through the backbone network, so it only has a small computational overhead. On the other hand, the *canonicalization* network has to operate without any input from the backbone network, which may lead to duplicating some low-level image understanding operations and making suboptimal choices, as canonicalization can be uninformed about the
-preference of the prediction network, undermining its performance. *Symmetrization* thus has the advantage in that it operates on the output of the backbone network and has access to the output of all group-transformed inputs, potentially leading to a wider variety of options and more informed choices.
+preference of the prediction network, undermining its performance. *Symmetrization* thus has the advantage in that it operates on the output of the backbone network and has access to the output of all group-transformed inputs, potentially leading to more informed choices and better performance.
 
-The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense that it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as it requires fewer passes through the backbone, it only works if the correct frame can be selected for the given group and input, which is a non-trivial task. While theoretically it could be applied with existing pretrained backbones, results for this use case are not currently available.
+The Frame Averaging (Puny et al. (2021)) approach is similar to the ones described in Basu et al. (2023) in the sense that it involves computing the output of a backbone network for multiple transformed inputs. *Frames* are a small subset of the whole possible set of group transformations, for which it holds that averaging over just the frame already results in equivariance or invariance. While this approach results in a smaller performance penalty, as it requires fewer passes through the backbone, it only works if the correct frame can be selected for the given group and input, which is a non-trivial task. While theoretically it could be used with existing pretrained backbones, results for this use case are not currently available.
 
 ## 4. Our contributions
 
 The original paper improved on *equizero* and proposed *λ-equitune*, then validated them on an exceptionally wide range
-of tasks in the domain of vision, natural language processing and reinforcement learning. Having results from such a
+of tasks in the domain of vision, natural language generation    and reinforcement learning. Having results from such a
 diverse set of tasks and using multiple backbone models is a strong testament to well-working methods. On the other
 hand, we noticed that the publication included a different subset of the transfer learning methods for different tasks,
 so we wanted to verify whether the results also hold for the missing experiments. The publication included a limited
@@ -146,7 +145,7 @@ perform reproducibility studies on some of the original data sets, expand the di
 *λ-equitune*, and to perform similar studies on additional data that tests the equivariant properties more.
 
 In addition, we noticed that even the most sophisticated method proposed, *λ-equitune*, inspects each feature map
-individually when calculating the weight, disregarding a significant source of information. Given the enormous success
+individually when calculating the weight, disregarding the other feature maps, which could be an important source of information. Given the enormous success
 of the Attention-based architectures in almost all areas of deep learning in recent years (Bommasani et al. (2021)), 
 we hypothesized that using an Attention layer instead might provide better performance. 
 This motivated us to create an extension of the original methods called *equiattention*.
@@ -157,7 +156,7 @@ The rest of the blog post will be structured accordingly to provide a summary of
 - section 4.2 explores whether the implementation was really equivariant
 - in 4.3 we discuss our proposed alternative feature combination method
 - 4.4 expands our understanding of the patterns *λ-equitune* learns
-- in 4.5 the methods are tested on novel data sets
+- in 4.5 the methods are tested on a novel data set
 - and finally in 4.6 an extension of the original Natural Language Generation tasks is described.
 
 ### 4.1 Reproducibility and minor implementation improvements
@@ -165,26 +164,26 @@ The rest of the blog post will be structured accordingly to provide a summary of
 The authors kindly shared their implementation of the paper’s methods and experiments, which formed the basis of our
 work. We started by reproducing the experiments related to image classification and we were pleased to find that we
 could recreate Figure 4 from the original publication easily. Some training parameters were not specified in the
-publication, in which case we used default values in the code base unless otherwise noted. However, upon closer
+publication, in which case we used default values in the code base, unless otherwise noted. However, upon closer
 examination of the implementation, we discovered multiple points that we believe could be improved in the
 implementation.
 
 First, a softmax function was applied to the logits before passing them into the PyTorch `CrossEntropyLoss` function.
 Since `CrossEntropyLoss` internally applies a softmax, this additional softmax acts as a smoothing function, hindering
-the model’s ability to predict sharp distributions and slowing down training, as it decreases the gradients. Note that
+the model’s ability to predict sharp distributions and slowing down training, as it decreases the gradients, so we removed this call. Note that
 after fixing this issue, our results are not directly comparable to the original implementation even at the same
 learning rate due to this gradient magnitude difference.
 
-Training was done in two phases: first only the weight network is trained, while keeping the backbone frozen (even the
-layers that come after the weight network), which is referred to as pre-finetuning. Then the whole network is
+Training was done in two phases: first only the weight network is trained, while keeping the backbone frozen (including the
+layers that come after the weight network - see our extension in the next section), which is referred to as pre-finetuning. Then the whole network is
 fine-tuned, which is simply referred to as fine-tuning. The fine-tuning step is different from what the authors have
 originally used, as in this step they kept the weight network frozen and only trained the backbone. We found no
 theoretical justification for this approach, and also found it to perform worse in practice, so we kept the weight
-network trainable during finetuning. We report results after each step to make comparisons easier with the original
-publication, however we believe that results that only use pre-finetuning are more relevant and are more in line with
+network trainable also during finetuning. We report results after each step to make comparisons easier with the original
+publication, however, we believe that results that only use pre-finetuning are more relevant and are more in line with
 how a method such as *λ-equitune* would be used in practice. Especially when trying to achieve equivariance on a special
 task like medical segmentation, where typically only limited training samples are available, keeping the backbone
-network frozen and only training the weight network can seriously lower the risk of overfitting.
+network frozen and only training the weight network can lower the risk of overfitting.
 
 Our experiments show that removing the redundant softmax and adopting end-to-end finetuning significantly improve
 performance. With these changes, along with using a lower learning rate of $5e-8$ for better training stability, we
@@ -193,12 +192,13 @@ percentage points (11.12%) in Top1 accuracy on CIFAR100 when using 90 degree rot
 only training the weight network (pre-finetuning), as can be seen in the table below. The increase of 4.98 percentage
 points (9.28%) is also significant and notable in case of full finetuning. A small increase in performance can be seen also when using flips.
 
-|    | Method                                   | Architecture-Transformation     |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
-|---:|:-----------------------------------------|:--------------------------------|-----------------------:|--------------------:|
-|  0 | Original Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90             |                  31.42 |               51.17 |
-|  1 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |                  35.12 |               56.15 |
-|  2 | Original Code - *λ-equitune* (invariant)                            | CLIP w RN50 - flip              |                  37.07 |               54.04 |
-|  3 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - flip              |                  37.69 |               55.64 |
+|    | Method                                   | Architecture-Transformation     | Prefinetune Top1 Acc | Finetune Top1 Acc |
+|---:|:-----------------------------------------|:--------------------------------|---------------------:|------------------:|
+|  0 | Original Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90             |                31.42 |             51.17 |
+|  1 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - rot90             |            **35.12** |         **56.15** |
+|    |                             |               |                      |                   |
+|  2 | Original Code - *λ-equitune* (invariant)                            | CLIP w RN50 - flip              |                37.07 |             54.04 |
+|  3 | Updated Code - *λ-equitune* (invariant)                             | CLIP w RN50 - flip              |            **37.69** |         **55.64** |
 
 *Table 1: Image classification results using the author's original and our modified code base*
 
@@ -206,7 +206,7 @@ points (9.28%) is also significant and notable in case of full finetuning. A sma
 
 Upon a closer inspection of the implementation of the EquiCLIP experiments, we also noticed an important discrepancy
 between the equations described in the paper and the actual algorithm implemented in the codebase. While the paper
-described *λ-equitune* by performing a group inverse transformation on the output of each separate backbone model before
+described *λ-equitune* as performing a group inverse transformation on the output of each separate backbone model before
 averaging the feature maps, in practice the code implementation simply took an average of the logits calculated by each
 backbone without any inverse operation. Please see the equations below for a precise comparison of the mathematics of
 the paper and the code.
@@ -245,7 +245,7 @@ post-processing step on any backbone, but was copied and adapted for each experi
 
 In order to test true equivariance in an image processing setting, we modified the implementation to only run each
 backbone until the last convolutional layer, performed the inverse transformation, weight calculation and feature
-combination on this spatial features, then passed the resulting combined feature map through the remaining layers of the
+combination on these spatial features, then passed the resulting combined feature map through the remaining layers of the
 backbone network without changing them. We performed this modification using the CLIP model with the ResNet backends
 only, as this model lended itself most easily to these changes. An overview of the original implementation and our
 changes can be seen on the figure below. It is important to note that the feature maps for the group-transformed input
@@ -254,18 +254,18 @@ transformation does not yield 4 identical feature maps.
 
 ![Architecture diagrams of a non-equivariant network,
 *λ-equitune* using the original implementation and our version of it](images/architecture_diagrams.svg)
-*Figure 1: Architecture diagrams of a non-equivariant network, *λ-equitune* using the original implementation and our
+*Figure 1: Architecture diagrams of (a) a non-equivariant network, (b) *λ-equitune* using the original implementation and (c) our
 version of it*
 
 By applying these changes and testing with 90 degree rotations as the group transformation, we achieved an increase of
-5.83 percentage points (16.6%) in Top1 accuracy on CIFAR100 when using 90 degree rotations as the group transformations and only training the weight
+5.83 percentage points (16.6%) in Top1 accuracy on CIFAR100 when only training the weight
 network (pre-finetuning), as can be seen in Table 2 below. This underlines the fact that using a truly equivariant
 version of *λ-equitune* outperforms the existing implementation even when tested on invariant tasks. In all further experiments we report results with this updated method.
 
-|   | Method                                  | Architecture-Transformation    |   Prefinetune Top1 Acc |  Finetune Top1 Acc |
-|--:|:----------------------------------------|:-------------------------------|-----------------------:|-------------------:|
-| 0 | Updated Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90            |                  35.12 |              56.15 |
-| 1 | *λ-equitune* (equivariant)              | CLIP w RN50 - rot90            |                  40.95 |              47.55 |
+|   | Method                                  | Architecture-Transformation    | Prefinetune Top1 Acc | Finetune Top1 Acc |
+|--:|:----------------------------------------|:-------------------------------|---------------------:|------------------:|
+| 0 | Updated Code - *λ-equitune* (invariant) | CLIP w RN50 - rot90            |                35.12 |         **56.15** |
+| 1 | *λ-equitune* (equivariant)              | CLIP w RN50 - rot90            |            **40.95** |             47.55 |
 
 *Table 2: Comparison of the authors' original invariant and our updated equivariant implementation of λ-equitune*
 
@@ -349,23 +349,23 @@ where `Attention_module` takes the features sets and applies one attention opera
 From the results, we observe that the described method of *equiattention* is on par with 
 the feature-equivariant version of *λ-equitune*, the method which it directly extends.
 
-|    | Method                        | Architecture-Transformation    |   Prefinetune Top1 Acc | Finetune Top1 Acc |
-|---:|:------------------------------|:-------------------------------|-----------------------:|------------------:|
-|  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |                  40.95 |             47.55 |
-|  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                  40.65 |             42.38 |
+|    | Method                        | Architecture-Transformation    | Prefinetune Top1 Acc | Finetune Top1 Acc |
+|---:|:------------------------------|:-------------------------------|---------------------:|------------------:|
+|  0 | *λ-equitune* (equivariant)    | CLIP w RN50 - rot90            |            **40.95** |         **47.55** |
+|  1 | *equiattention* (equivariant) | CLIP w RN50 - rot90            |                40.65 |             42.38 |
 
 *Table 3: Comparison of λ-equitune and equiattention on CIFAR100*
 
 ### 4.4 Visualizations: understanding what *λ-equitune* and *equiattention* learns
 
-In order to better understand the weights learnt by the feature combination networks, we passed all images from the test set of the datasets under all possible rotations through them and saved the weight value for these. We find that both methods on average assign a much higher weight to the 0 degree rotation (the natural orientation) to images from CIFAR100 than to all other rotations, suggesting that they are able to find the correct orientation in most cases. When examining the histogram of the weight values, we found that both networks consistently predict the maximum weight of 1 to one feature map, and 0 weight to all other views, resulting in a
-strongly bimodal distribution (this is also the reason why standard deviation is not shown on the figures, as it would be unnaturally large). However, we also calculated that in 27% (*λ-equitune*) and 30% (*equiattention*) of the cases, the largest weight value was not for the natural orientation. While this may hinder performance, we would like to highlight that for some categories found in CIFAR100, all orientations of the input image look equally plausible, and thus it is understandable that the weight network is not able to pinpoint the original orientation in these cases.
-Based on this information we conclude that *equiattention* did not outperform *λ-equitune* because the latter is already confident and close to the optimum on this dataset.
+In order to better understand the weights learnt by the feature combination networks, we passed all images from the test set of the datasets under all possible rotations through the weight networks and saved the weight value for these. We find that both methods on average assign a much higher weight to the 0 degree rotation (the natural orientation) to images from CIFAR100 than to all other rotations, suggesting that they are able to find the correct orientation in most cases. When examining the histogram of the weight values, we found that both networks consistently predict the maximum weight of 1 to one feature map, and 0 weight to all other views, resulting in a
+strongly bimodal distribution (this is also the reason why standard deviation is not shown on the figures, as it would be unnaturally large). However, we also calculated that in 27% (*λ-equitune*) and 30% (*equiattention*) of the cases, the largest weight value was not for the natural orientation. While this may hinder performance, we would like to highlight that for some categories found in CIFAR100 (e.g. the flowers superclass), all orientations of the input image look equally plausible, and thus it is understandable that the weight network is not able to pinpoint the original orientation in these cases.
+Based on this information, we conclude that *equiattention* did not outperform *λ-equitune* because the latter is already confident and close to the optimum on this dataset.
 
 ![Lambda weight values on CIFAR100](results/plots/lamba_weight_means_CIFAR100.svg)
 ![Lambda weight values on CIFAR100](results/plots/lamba_weight_histogram_CIFAR100.svg)
 
-*Figure 2: Mean λ weight values (a) and histograms of λ weight values (b) over all images and all possible group transformations for the equiattention and λ-equitune models on CIFAR100*
+*Figure 2: (a) Mean λ weight values and (b) histograms of λ weight values over all images and all possible group transformations for the equiattention and λ-equitune models on CIFAR100*
 
 Interestingly, the difference between the two methods is much larger on the ISIC2018 dataset, where images have no natural orientation. Please see the next section for a detailed introduction to the ISIC2018 problem. In this case, *λ-equitune* surprisingly favors some orientations that are not the 0 degree versions, while *equiattention* outputs almost perfectly uniform weights. While *λ-equitune*'s performance is higher in this problem, we can find many justifications for *equiattention*'s behavior: not only is there no natural orientation for the input images, but additionally the CLIP backbone was not trained on images like this, so it has little preference for one orientation over the other.
 
@@ -383,13 +383,13 @@ decided to perform replication on 2 new problems: the ISIC2018 image classificat
 
 Image classification via widely used benchmarks like ImageNet and CIFAR provides a helpful understanding of the
 performance of the methodologies, as it places the result within the context of the multitude of other methods that have
-been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification tasks on benchmark datasets presented above, it would be interesting to compare the model's performance on a dataset where different orientations of the images are equally likely to occur in the dataset.
+been tested on the same datasets. These images have a natural orientation which, as mentioned before, presents a strong motivation for introducing features of equivariance. Nevertheless, given the results of invariant classification tasks on benchmark datasets presented above, we decided to compare the model's performance on a dataset where different orientations of the images are equally likely to occur
 This is why we chose to test on a medical imaging dataset, since a natural orientation of skin lesions
 does not exist and any rotation of the inputs are equally likely.
 We hypothesize that the model will be able to process the transformed feature maps more easily and potentially lead to increased performance, and that the λ weight values will be relatively evenly distributed. The latter was confirmed and elaborated on in the previous section.
 
 We use the ISIC 2018 dataset, which was published by the International Skin Imaging Collaboration (ISIC) as a
-large-scale dataset of dermoscopy images.The dataset consists from 10015 training images and 194 validation images
+large-scale dataset of dermoscopy images. The dataset consists from 10015 training images and 194 validation images
 belonging to seven distinct diagnostic categories: Melanoma, Melanocytic nevus, Basal cell carcinoma, Actinic
 keratosis / Bowen’s disease (intraepithelial carcinoma), Benign keratosis (solar lentigo / seborrheic keratosis / lichen
 planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the dataset images is shown below.
@@ -400,11 +400,11 @@ planus-like keratosis), Dermatofibroma, and Vascular lesion. An example of the d
 Image classification was performed by finetuning CLIP with a Resnet 50 backbone. It can be seen from Table 3
 that the Finetune Top1 accuracy is considerably larger compared to the CIFAR100 results of the original and the updated invariant *λ-equitune*, while in the case of the equivariant implementation of *λ-equitune* it is considerably lower. Additionally, the prefinetune accuracy is much lower than any of the three methods for CIFAR100. 
 
-|   | Method                                 | Architecture-Transformation        |   Prefinetune Top1 Acc |   Finetune Top1 Acc |
-|--:|:---------------------------------------|:-----------------------------------|-----------------------:|--------------------:|
-| 0 | Original Code - *λ-equitune* invariant | CLIP w RN50 - rot90                |                  15.03 |               63.73 |
-| 1 | Updated Code - *λ-equitune* invariant  | CLIP w RN50 - rot90 |                  16.58 |               64.77 |
-| 2 | *λ-equitune* equivariant               | CLIP w RN50 - rot90                |                  16.58 |               18.13 |
+|   | Method                                 | Architecture-Transformation        | Prefinetune Top1 Acc | Finetune Top1 Acc |
+|--:|:---------------------------------------|:-----------------------------------|---------------------:|------------------:|
+| 0 | Original Code - *λ-equitune* invariant | CLIP w RN50 - rot90                |                15.03 |             63.73 |
+| 1 | Updated Code - *λ-equitune* invariant  | CLIP w RN50 - rot90 |            **16.58** |         **64.77** |
+| 2 | *λ-equitune* equivariant               | CLIP w RN50 - rot90                |            **16.58** |             18.13 |
 
 *Table 3: Image classification results using the authors' original (invariant) *λ-equitune* implementations, and our modified invariant and equivariant implementations on the ISIC 2018 medical dataset*
 
@@ -412,7 +412,7 @@ The results on the Prefinetune task can be justified since it is probable that t
 
 ### 4.6 Extended Natural Language Generation task
 
-Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task. Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups in their generations (Sheng et al, 2019; Prates, Avelar, and Lamb, 2020; Henderson et al, 2018). While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019; Nadeem, Bethke, and Reddy 2021; Abid, Farooqi, and Zou, 2021), little has been done to theoretically study the mitigation of this bias and allow for a generalizable approach.
+Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task. Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups in their generations (Sheng et al, 2019; Prates et al. 2020; Henderson et al. 2018). While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019; Nadeem et al. 2021; Abid at al. 2021), little has been done to theoretically study the mitigation of this bias and allow for a generalizable approach.
 
 Basu et al (2023) introduced a novel approach to fairness in NLG using group theory. Given a demographic group $D$ (e.g. [man, woman]) and a language model $M$ (e.g. GPT2) with vocabulary $\mathcal{V}$, the authors first define the lists $\mathcal{E}$, $\mathcal{N}$, and $\mathcal{G}$ of equality, neutral, and general words, respectively (full details of the meaning of these lists is found in the Appendix). Then they let $d$ be the size of demographic group $D$ and define a cyclic group $G = \{ e, g, ..., g^{d-1}\}$ with generator $g$. The group action of $G$ makes a right cyclic shift by one to the words in $\mathcal{E}$ (essentially swapping the demographic identifier) and does not affect the words in $\mathcal{N}$ or $\mathcal{G}$. For example, if $\mathcal{E}$ = [[man, woman]], then $g\mathcal{E}$ = [[woman, man]]. 
 
@@ -424,9 +424,9 @@ Furthermore, they define context $X$ as a sentence consisting of words in $\math
 
 where $P(X_2 | X_1)$ is the probability of generating the continuation $X_2$ given the context $X_1$. 
 
-Using their proposed *equitune* language model, *EquiLM*, the authors formally satisfy this property and demonstrate that their methods can reduce bias in the generated text, making the generations more fair.
+Using their proposed *equitune* language model, *EquiLM*, the authors formally satisfy this property and demonstrate that their methods can reduce bias in the generated text, making the generations more fair. (In their work, Basu et al. (2023) also proposed *EquizeroLM*, but provided no code for it, so we evaluated their earlier method *EquiLM*.)
 
-However, in their work, the authors only focused on establishing fairness across binary demographic groups -- specifically: man vs. woman, Black vs. White, and straight vs. gay. These binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
+However, in their work, the authors only focused on establishing fairness across binary demographic groups, specifically: man vs. woman, Black vs. White, and straight vs. gay. These binary groups, while useful for initial studies, do not capture the full complexity of real-world demographics. In our extension of this work, we aim to explore whether the fairness improvements seen in binary groups also apply to
 non-binary groups. All of the three considered demographic groups naturally extend beyond binary classifications. We extend the theoretical framework to work with such groups and test the results on the extended race axis, namely Black vs. White vs. Asian. By extending the fairness framework to non-binary groups, we can better reflect the diversity of human identities and ensure that the proposed methods can mitigate bias in real-world settings.
 
 The figure below illustrates the difference between each solution.
@@ -439,7 +439,7 @@ The figure below illustrates the difference between each solution.
 
 In the standard case of GPT2, the model is given an input and outputs the logits over the vocabulary. In EquiGPT2, the group action $g$ is applied to the input and an inverse transformation is applied to the output logits, which are then aggregated for the final output. Finally, in our extension, the size of the demographic group is 3, so we also apply $g^2$ and $g^{-2}$ appropriately (however, the approach generalizes to an arbitrary demographic group size).
 
-It is worth noting that in their implementation, the original authors were, in fact, applying a 'forward' transformation $g$ to the output logits in EquiGPT2, rather than $g^{-1}$. In the binary setting they considered, this is still a valid approach, as in that case $g = g^{-1}$. However, this approach breaks for $d > 2$. Therefore, we adapt the approach to work for non-binary groups and derive a mathematical proof (see Apendix) showing that applying $g^{-1}$ to the output logits ensures the equivariance property (i.e. $M(gx) = gM(x),  \forall g \in G$) and satisfies the group-theoretic fairness property (i.e. $P(gX_2 | gX_1) = P(X_2 | X_1), \forall g \in G$).
+It is worth noting that in their implementation, the original authors were, in fact, applying a *forward* transformation $g$ to the output logits in EquiGPT2, rather than $g^{-1}$. In the binary setting they considered, this is still a valid approach, as in that case $g = g^{-1}$. However, this approach breaks for $d > 2$. Therefore, we adapt the approach to work for non-binary groups and derive a mathematical proof (see Apendix) showing that applying $g^{-1}$ to the output logits ensures the equivariance property (i.e. $M(gx) = gM(x),  \forall g \in G$) and satisfies the group-theoretic fairness property (i.e. $P(gX_2 | gX_1) = P(X_2 | X_1), \forall g \in G$).
 
 The following figures show the reproduced results from the original paper for the demographic group [Black, White] for GPT2 and EquiGPT2, as well as for the case of the extended demographic group [Black, White, Asian]. 
 
@@ -447,23 +447,23 @@ The following figures show the reproduced results from the original paper for th
 
 *Figure 6: (a): Results of the Respect-Race task ran with a subset of the models used in the original paper. The experiment is conducted on the extended 3-member group consisting of the demographics White, Black and Asian. (b): Original experiment results, for comparison purposes.*
 
-In the Figures, the y-axis represents the ratio of "regard scores" on 500 examples generated by GPT2 and EquiGPT2. These scores were assigned using the models of Sheng et al. (2019), and particularly "regard_v2", which is an ensemble of three BERT models that take the majority label of the model runs. The classifiers are trained to assign "regard" labels ranging from negative (-1) to positive (1) which assess the bias on the LLM's sentence generations starting with prompts such as "The white/black/asian person was regarded as...".
+In the Figures, the y-axis represents the ratio of "regard scores" on 500 examples generated by GPT2 and EquiGPT2. These scores were assigned using the models of Sheng et al. (2019), and particularly "regard_v2", which is an ensemble of three BERT models that take the majority label of the model runs. The classifiers are trained to assign "regard" labels ranging from negative (-1) to positive (1), which assess the bias on the LLM's sentence generations starting with prompts such as "The white/black/asian person was regarded as...".
 The label "other" corresponds to cases where there was a label produced but the generated sentence was missing. 
 
-Our reproduction results very closely resemble the original findings. EquiGPT2 results in a more equal distribution of positive and negative labels, in particular when it comes at the variable "Black". 
-Regarding the extension of increasing the size to non-binary groups, it was observed that the label distribution did not vary significantly in the case where the inverse transformation was correctly applied to the logits, compared to when the 'forward' transformation was applied on the output logits, as originally implemented. 
+Our reproduction results very closely resemble the original findings. EquiGPT2 results in a more equal distribution of positive and negative labels, in particular when it comes at the variable *Black*. 
+Regarding the extension of increasing the size to non-binary groups, it was observed that the label distribution did not vary significantly in the case where the inverse transformation was correctly applied to the logits, compared to when the *forward* transformation was applied on the output logits, as originally implemented. 
 Additionally, the results indicate that for the variable "Asian" there is only a very slight but present shift towards equal distribution of positive and negative labels. 
 
 
 ## 5. Summary
 
-Equivariant fine-tuning of large foundational models is an attractive approach for combining the unprecedented
+Equivariant fine-tuning of large foundation models is an attractive approach for combining the unprecedented
 representation capabilities of these models with the introduction of guaranteed equivariance required in certain
 domains. We have reproduced, replicated and extended the work of Basu et al. (2023), where they introduced *equizero*  and
 *λ-equitune* for performing such fine-tuning. We have achieved an increase of 3.70 percentage points (11.12%) in top1 accuracy
-on CIFAR100 by improving code and parameters, a further increase of 5.83 percentage points (16.6%) by improving the methodology, and
+on image classification on CIFAR100 by improving code and parameters, a further increase of 5.83 percentage points (16.6%) by improving the methodology, and
 proposed a new method called *equiattention*, which performed on par with the best baseline. Additionally, we have
-verified the efficacy of these methods on novel problems that exhibit different properties, and delivered
+verified the efficacy of these methods on a novel medical dataset that exhibit different properties, extended equivariance to a larger group in natural language generation, and delivered
 visualizations to better understand the operation of the trained *λ-equitune* and *equiattention* methods. Overall, we
 found these methods to be an interesting family of approaches that are worth further exploration, and we hope our work
 contributed to the understanding of their strengths and weaknesses.
@@ -473,10 +473,12 @@ contributed to the understanding of their strengths and weaknesses.
 Due to time and computational constraints, we were not able to conduct an extensive hyperparameter and 
 model architecture search for the described methods. Specifically, the attention-based method was only tested 
 with a single attention layer, and without a designated CLS token. Additionally, we note that training is 
-heavily dependent on learning rate, failing to change the model's prediction with SDG lr less than 0.05 and 
-leading to numerical issues for a wide range of learning rates with Adam optimizer (Kingma et al 2014).
+heavily dependent on learning rate, failing to change the model's prediction with SDG when LR is less than 0.05 and 
+leading to numerical issues for a wide range of learning rates with the Adam optimizer (Kingma et al 2014).
 
-We would also like to extend the visual experiments to truly equivariant tasks. We evaluated segmentation and object detection as potential candidates, and preferred object detection, as in our initial experiments that seemed to suffer more when using non-natural orientations of images. We started integrating object detection into the pipeline, but could not finish it before the deadline. 
+We would also like to extend the visual experiments to truly equivariant tasks. We evaluated segmentation and object detection as potential candidates, and preferred object detection, as in our initial experiments that seemed to suffer more when using non-natural orientations of input images. We started integrating object detection into the pipeline, but could not finish it before the deadline.
+
+Testing the methods using input images that are transformed on a finer granularity (e.g. 30 degree rotations), and evaluating that equivariance is still preserved by only using course group transformations in the model (e.g. 90 degree rotations) is also an interesting future extension.
 
 ## 7. Acknowledgements
 We would like to thank the authors for making their code available and for their fast and detailed responses to our
@@ -563,7 +565,7 @@ Villar, S., Hogg, D. W., Storey-Fisher, K., Yao, W., & Blum-Smith, B. (2021). Sc
 ### A Group-theoretic fairness in NLG
 
 #### A.1 Equality, Neutral, and General Word Lists
-In defining their group-theoretic framework of fairness in NLG, the authors introduce the notion of three word lists -- equality ($\mathcal{E}$), neutral ($\mathcal{N}$), and general ($\mathcal{G}$). Their purpose is to group words into sets corresponding to how those words entertain the group actions and how they are handled by the model.
+In defining their group-theoretic framework of fairness in NLG, the authors introduce the notion of three word lists — equality ($\mathcal{E}$), neutral ($\mathcal{N}$), and general ($\mathcal{G}$). Their purpose is to group words into sets corresponding to how those words entertain the group actions and how they are handled by the model.
 
 The non-empty set of equality words $\mathcal{E}$ is a list of lists of size $d$ (the size of the demographic group $D$). It contains at least a single inner list, which is the demographic group itself, but potentially more inner lists that contain additional entities that refer to the same demographic group with analogous relationship between the demographic group members. For example, if $D$ = [man, woman], the list of equality words could be $\mathcal{E}$ = [[man, woman], [guy, girl], [father, mother] ...]. Furthermore, we refer to the set of all words in $\mathcal{E}$ as $\mathcal{E'}$.
 
