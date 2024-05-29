@@ -414,7 +414,7 @@ The results on the Prefinetune task can be justified since it is probable that t
 
 Additionally, the authors formalized a group-theoretic approach to fairness in Natural Language Generation (NLG) task. Previous work has shown that Large Language Models (LLMs), such as GPT-2, are biased towards certain demographic groups in their generations (Sheng et al, 2019; Prates et al. 2020; Henderson et al. 2018). While there was notable effort put into evaluating bias in LLMs (Sheng et al, 2019; Nadeem et al. 2021; Abid at al. 2021), little has been done to theoretically study the mitigation of this bias and allow for a generalizable approach.
 
-Basu et al (2023) introduced a novel approach to fairness in NLG using group theory. Given a demographic group $D$ (e.g. [man, woman]) and a language model $M$ (e.g. GPT2) with vocabulary $\mathcal{V}$, the authors first define the lists $\mathcal{E}$, $\mathcal{N}$, and $\mathcal{G}$ of equality, neutral, and general words, respectively (full details of the meaning of these lists is found in the Appendix). Then they let $d$ be the size of demographic group $D$ and define a cyclic group $G = \{ e, g, ..., g^{d-1}\}$ with generator $g$. The group action of $G$ makes a right cyclic shift by one to the words in $\mathcal{E}$ (essentially swapping the demographic identifier) and does not affect the words in $\mathcal{N}$ or $\mathcal{G}$. For example, if $\mathcal{E}$ = [[man, woman]], then $g\mathcal{E}$ = [[woman, man]]. 
+Basu et al (2023) introduced a novel approach to fairness in NLG using group theory. Given a demographic group $D$ (e.g. [man, woman]) and a language model $M$ (e.g. GPT2) with vocabulary $\mathcal{V}$, the authors first define the lists $\mathcal{E}$, $\mathcal{N}$, and $\mathcal{G}$ of equality, neutral, and general words, respectively (full details of the meaning of these lists is found in the Appendix). Then they let $d$ be the size of demographic group $D$ and define a cyclic group $`G = \{ e, g, ..., g^{d-1}\}`$ with generator $g$. The group action of $G$ makes a right cyclic shift by one to the words in $\mathcal{E}$ (essentially swapping the demographic identifier) and does not affect the words in $\mathcal{N}$ or $\mathcal{G}$. For example, if $\mathcal{E}$ = [[man, woman]], then $g\mathcal{E}$ = [[woman, man]]. 
 
 Furthermore, they define context $X$ as a sentence consisting of words in $\mathcal{V}$ and transformed context $gX$ to be the sentence that is a result of applying $g$ to each word in $X$.  For instance, if $X$ = *"The man worked as a"*, then $gX$ = *"The woman worked as a"*. Finally, the model $M$ is given a context $X_1$ and is asked to generate a continuation $X_2$. The authors call $M$ *group-theoretically fair* if:
 
@@ -591,11 +591,11 @@ First we prove that applying $g^{-1}$ ensures the equivariance property.
 ```math
 g(w_i)= 
 \begin{cases}
-    E_{(j \ mod \ d) + |g|}, & \text{if } w_i = E_j \in \mathcal{E}\\
+    E_{(j + |g|) \ mod \ d}, & \text{if } w_i = E_j \in \mathcal{E}\\
     w_i,              & \text{otherwise}
 \end{cases}
 ```
-Appropriately, for any word $E_i \in \mathcal{E}$, applying the inverse transformation $g^{-1}$ yields $g^{-1}E_i = E_{(i \ \text{mod} \ d)-|g|}$. However, the inverse transformation in the NLG setup is applied on the intermediate output logits $Y_g$, and while the intuition behind it is the same (therefore the same notation is used throughout the text), it is defined slightly differently, so let us denote it as $g_*^{-1}$.
+Appropriately, for any word $E_i \in \mathcal{E}$, applying the inverse transformation $g^{-1}$ yields $g^{-1}E_i = E_{(j - |g|) \ mod \ d}$. However, the inverse transformation in the NLG setup is applied on the intermediate output logits $Y_g$, and while the intuition behind it is the same (therefore the same notation is used throughout the text), it is defined slightly differently, so let us denote it as $g_*^{-1}$.
 
 Then,  $g_*^{-1}: Y_g \rightarrow Y'_g$ takes the intermediate output logits as input and for every $\mathbb{P}(w_i | gx) \in Y_g$ permutes it from position $i$ to position $\sigma(V(g(w_i)))$ resulting in $Y'_g$, where $`\sigma: \{ 1, ..., |\mathcal{V}| \} \rightarrow \{ 1, ..., |\mathcal{V}| \}`$ is a permutation function defined as:
 
