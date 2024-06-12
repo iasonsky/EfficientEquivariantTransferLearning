@@ -2,12 +2,13 @@
 
 ### Mikhail Vlasenko, Ádám Divák, Iason Skylitsis, Milan Miletić, Zoe Tzifa-Kratira
 
------
+*Equivariance in deep learning refers to a model's ability to maintain consistent output changes in response to specific transformations of the input, ensuring that the model's behavior aligns predictably with the symmetries in the data. Many problems are known to be equivariant in nature, thus using a method that inherently has this inductive bias can increase the robustness and generalization capabilities of the models used. Several very large foundation models have been trained recently in multiple modalities, which deliver unprecedented performance in a wide variety of downstream tasks. These models, however, are not equivariant by their design, which limits their usability in contexts where this would be necessary. Re-training foundation models from scratch using an equivariant architecture is prohibitively expensive for most researchers, which is why several methods were proposed to get provably equivariant output from non-equivariant backbone architectures. We set out to explore the methods λ-equitune and equizero proposed by Basu et al., which were shown to deliver good results in a wide variety of downstream tasks. We perform replication studies, suggest code and parameter improvements that deliver significantly better results, and propose a new alternative method that we call equiattention. Additionally, we explore the performance of these methods on new problems and produce visualizations to better understand their working mechanisms.*
 
+-----
 
 This repository contains a reproduction and extension of ["Efficient Equivariant Transfer Learning from Pretrained Models"](https://arxiv.org/abs/2305.09900) by Basu et al. (2023).
 
-To read the full report containing detailed information on our reproduction experiments and extension study, please refer to our [blogpost](Blogpost.md).
+Please read [Blogpost.md](Blogpost.md) for the full article, containing detailed information on our reproduction experiments and extension study.
 
 ## Conda Environment
 First create the required conda environment, activate it, and install clip, Imagenet_V2 as follows
